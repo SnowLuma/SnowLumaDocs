@@ -45,9 +45,15 @@ jobs:
         run: pnpm run build
 
       - name: Deploy to GitHub Pages
-        uses: JamesIves/github-pages-deploy-action@v4
-        with:
-          repository-name: SnowLuma/snowluma.github.io
-          token: ${{ secrets.PAGES_DEPLOY_TOKEN }}
-          folder: dist
-          branch: main
+        env:
+          PAGES_DEPLOY_TOKEN: ${{ secrets.PAGES_DEPLOY_TOKEN }}
+        run: |
+          cd dist
+          git init
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout --orphan main
+          git add -A
+          git commit -m "Deploy documentation"
+          git remote add origin "https://x-access-token:${PAGES_DEPLOY_TOKEN}@github.com/SnowLuma/snowluma.github.io.git"
+          git push --force origin main
