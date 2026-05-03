@@ -87,25 +87,54 @@ select {
   border: 1px solid var(--border-subtle);
   border-radius: 0.45rem;
   padding: 0.15rem 0.35rem;
-  background: var(--bg-card);
-  color: var(--text-primary);
+  background: var(--bg-code-inline);
+  color: var(--text-code);
   font-family: var(--font-mono);
   font-size: 0.9em;
 }
 
-.prose :where(pre) {
+.prose pre {
   overflow: auto;
   border: 1px solid var(--border-subtle);
-  border-radius: 1rem;
-  padding: 1rem;
-  background: rgba(2, 6, 23, 0.72);
-  box-shadow: var(--shadow-sm);
+  border-radius: 0.75rem;
+  padding: 1rem 1.125rem;
+  background: var(--bg-code);
+  color: var(--text-code);
 }
 
-.prose :where(pre code) {
+.prose pre code {
+  display: block;
   border: 0;
+  border-radius: 0;
   padding: 0;
   background: transparent;
+  color: inherit;
+  font-size: 0.9rem;
+  line-height: 1.7;
+}
+
+[data-theme='light'] .prose pre,
+.light .prose pre {
+  border-color: #d0d7de;
+  background: #f6f8fa;
+  color: #24292f;
+}
+
+[data-theme='light'] .prose pre code,
+.light .prose pre code {
+  color: #24292f;
+}
+
+[data-theme='dark'] .prose pre,
+.dark .prose pre {
+  border-color: rgba(148, 163, 184, 0.2);
+  background: #020617;
+  color: #e2e8f0;
+}
+
+[data-theme='dark'] .prose pre code,
+.dark .prose pre code {
+  color: #e2e8f0;
 }
 
 .prose :where(blockquote) {

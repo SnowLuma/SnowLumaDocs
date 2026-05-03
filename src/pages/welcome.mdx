@@ -1,15 +1,91 @@
-# 欢迎使用 SnowLuma
+# SnowLuma
 
-SnowLuma 是一个高性能的 QQ 协议库桥接工具。
+SnowLuma 是一个面向 NTQQ 的 Remote Protocol Framework，当前处于早期高速迭代阶段，仅支持部分功能，现阶段以有头运行方式为主。
+
+项目整体采用 TypeScript + 原生模块架构：TypeScript 负责运行时、桥接、OneBot 与 WebUI，原生模块负责 QQ 进程 Hook、注入和底层 WebSocket 能力。
+
+## 你可以用它做什么
+
+- **接入 OneBot**：提供 HTTP、WebSocket、反向 WebSocket 与 HTTP POST 事件上报。
+- **桥接 NTQQ**：通过 Hook 捕获并解析 NTQQ 数据包，再转换为上层事件。
+- **管理多账号会话**：每个 UIN 会生成独立 OneBot 实例和账号级配置。
+- **使用 WebUI**：完整构建可启动内置 WebUI，便于查看和管理运行状态。
+
+## 运行要求
+
+| 项目 | 要求 |
+| --- | --- |
+| Node.js | `>= 22` |
+| 包管理器 | `pnpm 10.x` |
+| QQ 客户端 | NTQQ，有头运行 |
+| 原生模块 | 需要匹配当前平台与架构的 `.node` / `.dll` / `.so` |
 
 ## 快速开始
 
-1. 下载并安装前端。
-2. 配置 `config.yaml`。
-3. 运行 `snowluma`。
+```bash
+pnpm install
+pnpm build:all
+pnpm start
+```
 
-## 功能特性
+开发核心运行时：
 
-- **高性能**: 基于 Rust 原生驱动。
-- **易用性**: 简洁的 Web 界面。
-- **兼容性**: 支持多种 OneBot 适配。
+```bash
+pnpm dev
+```
+
+开发 WebUI：
+
+```bash
+pnpm dev:web
+```
+
+## 常用命令
+
+| 命令 | 说明 |
+| --- | --- |
+| `pnpm dev` | 启动 `@snowluma/core` 开发模式。 |
+| `pnpm dev:web` | 启动 WebUI Vite 开发服务器。 |
+| `pnpm build` | 仅构建核心运行时。 |
+| `pnpm build:webui` | 仅构建 WebUI。 |
+| `pnpm build:all` | 构建核心与 WebUI 完整发行版。 |
+| `pnpm start` | 运行 `dist/index.mjs`。 |
+| `pnpm test` | 运行核心测试。 |
+| `pnpm typecheck` | 执行类型检查。 |
+| `pnpm lint` | 执行 lint。 |
+
+## 发行目录
+
+构建产物会输出到仓库根目录 `dist/`。
+
+```text
+dist/
+├─ index.mjs
+├─ launcher.bat
+├─ package.json
+└─ native/
+   ├─ snowluma-win32-x64.node
+   ├─ snowluma-win32-x64.dll
+   └─ websocket-win32-x64.node
+```
+
+Windows 下也可以通过 `launcher.bat` 启动，它会执行：
+
+```bat
+node ./index.mjs
+pause
+```
+
+## 默认服务
+
+首次启动 OneBot 实例时，SnowLuma 会自动创建配置文件。
+
+| 服务 | 默认地址 |
+| --- | --- |
+| OneBot HTTP | `http://0.0.0.0:3000/` |
+| OneBot WebSocket | `ws://0.0.0.0:3001/` |
+| WebUI | 完整构建中默认使用运行时配置，未配置时为 `8080` |
+
+## 项目状态
+
+SnowLuma 仍处于开发初期。如果你在使用时遇到接口缺失、平台原生产物缺失或 OneBot 行为不一致，请优先检查当前分支的 README、配置文件和构建产物。
