@@ -25,29 +25,60 @@
 :root,
 [data-theme='dark'],
 .dark {
-  --bg-body: #0f172a;
-  --bg-sidebar: #111827;
-  --bg-surface: #0f172a;
-  --bg-card: #1e293b;
-  --bg-card-hover: #273449;
-  --bg-code: #020617;
-  --bg-code-inline: rgba(148, 163, 184, 0.12);
+  --bg-body: #0a0b0d;
+  --bg-sidebar: #0a0b0d;
+  --bg-surface: #0a0b0d;
+  --bg-card: rgba(255, 255, 255, 0.03);
+  --bg-card-hover: rgba(255, 255, 255, 0.05);
+  --bg-code: #000000;
+  --bg-code-inline: rgba(255, 255, 255, 0.08);
   --bg-input: #111827;
-  --bg-hover: rgba(148, 163, 184, 0.08);
-  --bg-active: rgba(14, 165, 233, 0.14);
+  --bg-hover: rgba(255, 255, 255, 0.04);
+  --bg-active: rgba(255, 255, 255, 0.06);
 
-  --border-subtle: rgba(148, 163, 184, 0.16);
-  --border-medium: rgba(148, 163, 184, 0.24);
-  --border-focus: rgba(56, 189, 248, 0.5);
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-medium: rgba(255, 255, 255, 0.12);
+  --border-focus: rgba(255, 255, 255, 0.5);
 
-  --text-primary: #f1f5f9;
-  --text-secondary: #94a3b8;
-  --text-tertiary: #64748b;
-  --text-accent: #7dd3fc;
-  --text-code: #e2e8f0;
+  --text-primary: #ffffff;
+  --text-secondary: #a1a1aa;
+  --text-tertiary: #52525b;
+  --text-accent: #ffffff;
+  --text-code: #e4e4e7;
 
-  --accent: #38bdf8;
-  --accent-hover: #7dd3fc;
+  --accent: #ffffff;
+  --accent-hover: #ffffff;
+  --accent-dim: rgba(255, 255, 255, 0.1);
+}
+
+// Light theme
+[data-theme='light'],
+.light {
+  --bg-body: #ffffff;
+  --bg-sidebar: #ffffff;
+  --bg-surface: #ffffff;
+  --bg-card: rgba(0, 0, 0, 0.02);
+  --bg-card-hover: rgba(0, 0, 0, 0.04);
+  --bg-code: #f4f4f5;
+  --bg-code-inline: rgba(0, 0, 0, 0.05);
+  --bg-input: #ffffff;
+  --bg-hover: rgba(0, 0, 0, 0.03);
+  --bg-active: rgba(0, 0, 0, 0.05);
+
+  --border-subtle: rgba(0, 0, 0, 0.06);
+  --border-medium: rgba(0, 0, 0, 0.1);
+  --border-focus: rgba(0, 0, 0, 0.4);
+
+  --text-primary: #09090b;
+  --text-secondary: #52525b;
+  --text-tertiary: #a1a1aa;
+  --text-accent: #09090b;
+  --text-code: #27272a;
+
+  --accent: #09090b;
+  --accent-hover: #09090b;
+  --accent-dim: rgba(0, 0, 0, 0.1);
+}
   --accent-subtle: rgba(56, 189, 248, 0.1);
   --accent-glow: rgba(56, 189, 248, 0.15);
 

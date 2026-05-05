@@ -1,12 +1,15 @@
-import { Book, Compass, FileText, Moon, Monitor, Sun } from 'lucide-react';
+import { Book, Compass, FileText, Moon, Monitor, Sun, X } from 'lucide-react';
 import { useTheme, type ThemeMode } from '../../contexts/ThemeContext';
 import type { Page } from './MainLayout';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface SidebarProps {
   activePage: Page;
   onNavigate: (page: Page) => void;
   status: string;
   onLogout: () => void;
+  isOpen?: boolean;
+  onClose?: () => void;
 }
 
 const navItems: { page: Page; label: string; icon: typeof Book }[] = [
@@ -21,49 +24,70 @@ const themeOptions: { mode: ThemeMode; icon: typeof Sun; label: string }[] = [
   { mode: 'dark', icon: Moon, label: '深色' },
 ];
 
-export function Sidebar({ activePage, onNavigate, status }: SidebarProps) {
+export function Sidebar({ activePage, onNavigate, status, isOpen, onClose }: SidebarProps) {
   const { mode, setMode } = useTheme();
 
-  return (
-    <aside className="flex w-64 shrink-0 flex-col border-r border-[var(--border-subtle)] bg-[var(--bg-sidebar)]">
-      <div className="flex h-16 shrink-0 items-center gap-3 border-b border-[var(--border-subtle)] px-5">
-        <img src="/logo.svg" alt="SnowLuma" className="size-9 rounded-xl" />
-        <div className="min-w-0">
-          <div className="truncate text-sm font-semibold tracking-tight text-[var(--text-primary)]">SnowLuma</div>
-          <div className="truncate text-xs text-[var(--text-tertiary)]">Remote Protocol Framework</div>
+  const content = (
+    <div className="flex h-full w-full flex-col px-6 py-10">
+      <div className="flex h-16 shrink-0 items-center justify-between px-2 pb-12">
+        <div className="flex items-center gap-4">
+          <img src="/logo.svg" alt="SnowLuma" className="size-11" />
+          <div className="min-w-0">
+            <div className="truncate text-lg font-black tracking-tighter text-[var(--text-primary)]">SNOWLUMA</div>
+            <div className="truncate text-[10px] uppercase tracking-widest text-[var(--text-tertiary)] font-bold">Protocol</div>
+          </div>
         </div>
+        {onClose && (
+          <button
+            onClick={onClose}
+            className="flex size-9 items-center justify-center rounded-full bg-[var(--bg-hover)] text-[var(--text-tertiary)] md:hidden"
+          >
+            <X size={20} />
+          </button>
+        )}
       </div>
 
-      <nav className="flex-1 px-3 py-4">
-        <div className="mb-2 px-2 text-[11px] font-semibold uppercase tracking-wider text-[var(--text-tertiary)]">文档</div>
-        <div className="space-y-1">
+      <nav className="flex-1 space-y-8 py-4">
+        <div className="space-y-2">
           {navItems.map(({ page, label, icon: Icon }) => {
             const active = activePage === page;
             return (
               <button
                 key={page}
-                onClick={() => onNavigate(page)}
-                className="flex h-10 w-full items-center gap-3 rounded-lg px-3 text-left text-sm transition-colors"
+                onClick={() => {
+                  onNavigate(page);
+                  onClose?.();
+                }}
+                className="group flex h-12 w-full items-center gap-4 rounded-xl px-4 text-left transition-all duration-300"
                 style={{
                   background: active ? 'var(--bg-active)' : 'transparent',
-                  color: active ? 'var(--accent)' : 'var(--text-secondary)',
                 }}
               >
-                <Icon size={16} strokeWidth={2} />
-                <span className="font-medium">{label}</span>
+                <div className="relative flex items-center justify-center">
+                  <Icon 
+                    size={20} 
+                    strokeWidth={active ? 2.5 : 2} 
+                    className="transition-colors duration-300"
+                    style={{ color: active ? 'var(--text-primary)' : 'var(--text-tertiary)' }}
+                  />
+                  {active && (
+                    <motion.div 
+                      layoutId="active-nav"
+                      className="absolute -left-6 h-5 w-0.5 rounded-r-full bg-[var(--accent)]"
+                    />
+                  )}
+                </div>
+                <span className={`text-sm tracking-tight transition-colors duration-300 ${active ? 'font-medium text-[var(--text-primary)]' : 'font-normal text-[var(--text-secondary)] group-hover:text-[var(--text-primary)]'}`}>
+                  {label}
+                </span>
               </button>
             );
           })}
         </div>
       </nav>
 
-      <div className="border-t border-[var(--border-subtle)] p-4">
-        <div className="mb-3 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-card)] px-3 py-2">
-          <div className="text-[11px] font-medium text-[var(--text-tertiary)]">状态</div>
-          <div className="mt-0.5 truncate text-sm text-[var(--text-secondary)]">{status}</div>
-        </div>
-
-        <div className="grid grid-cols-3 gap-1 rounded-lg bg-[var(--bg-card)] p-1">
+      <div className="pt-8">
+        <div className="flex items-center justify-center gap-2 rounded-full bg-[var(--bg-hover)] p-1.5">
           {themeOptions.map(({ mode: value, icon: Icon, label }) => {
             const active = mode === value;
             return (
@@ -71,10 +95,11 @@ export function Sidebar({ activePage, onNavigate, status }: SidebarProps) {
                 key={value}
                 title={label}
                 onClick={() => setMode(value)}
-                className="flex h-8 items-center justify-center rounded-md transition-colors"
+                className="flex aspect-square flex-1 items-center justify-center rounded-full transition-all duration-300"
                 style={{
-                  background: active ? 'var(--bg-surface)' : 'transparent',
-                  color: active ? 'var(--accent)' : 'var(--text-tertiary)',
+                  background: active ? 'var(--bg-body)' : 'transparent',
+                  color: active ? 'var(--text-primary)' : 'var(--text-tertiary)',
+                  boxShadow: active ? '0 2px 8px rgba(0,0,0,0.05)' : 'none',
                 }}
               >
                 <Icon size={14} />
@@ -83,6 +108,39 @@ export function Sidebar({ activePage, onNavigate, status }: SidebarProps) {
           })}
         </div>
       </div>
-    </aside>
+    </div>
+  );
+
+  return (
+    <>
+      {/* Desktop Sidebar */}
+      <aside className="hidden w-72 shrink-0 flex-col md:flex">
+        {content}
+      </aside>
+
+      {/* Mobile Drawer */}
+      <AnimatePresence>
+        {isOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={onClose}
+              className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm md:hidden"
+            />
+            <motion.aside
+              initial={{ x: '-100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '-100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className="fixed inset-y-0 left-0 z-50 w-72 bg-[var(--bg-sidebar)] shadow-2xl md:hidden"
+            >
+              {content}
+            </motion.aside>
+          </>
+        )}
+      </AnimatePresence>
+    </>
   );
 }
