@@ -1,0 +1,133 @@
+---
+title: 开发者文档
+description: Monorepo 结构、核心启动链路与贡献注意事项
+---
+
+SnowLuma 是一个 TypeScript + 原生模块混合项目。TypeScript 负责运行时编排、OneBot 实现、协议桥接和 WebUI；原生模块负责 Hook、注入和高性能 WebSocket 能力。
+
+## Monorepo 结构
+
+```text
+SnowLuma/
+├─ packages/
+│  ├─ core/        @snowluma/core
+│  ├─ websocket/   @snowluma/websocket
+│  ├─ webui/       React + Vite 前端
+│  └─ runtime/     发行包资源
+├─ native/         平台原生产物
+├─ dist/           构建输出
+├─ tools/          辅助脚本
+└─ package.json
+```
+
+## 核心启动链路
+
+`packages/core/src/index.ts` 是核心入口。
+
+```text
+NtqqHandler
+  ↓
+BridgeManager
+  ↓
+OneBotManager
+  ↓
+OneBotInstance
+```
+
+启动时会创建：
+
+- **NtqqHandler**：处理 NTQQ 数据包。
+- **BridgeManager**：把 NTQQ 数据转换为桥接事件和动作调用。
+- **OneBotManager**：按 UIN 管理 OneBot 实例。
+- **HookManager**：负责发现 QQ 进程并执行 Hook 注入。
+- **WebUI Server**：在完整构建中启用，默认端口来自运行时配置或 `8080`。
+
+## Hook 与原生模块
+
+Hook 原生模块通过 `process.dlopen()` 加载。
+
+平台文件名遵循：
+
+```text
+snowluma-win32-x64.node
+snowluma-win32-x64.dll
+snowluma-linux-x64.node
+snowluma-linux-x64.so
+```
+
+加载搜索路径包括：
+
+```text
+native/
+dist/native/
+packages/runtime/native/
+```
+
+原生 addon 暴露能力包括：
+
+- **getAllMainProcess**：枚举 QQ 主进程。
+- **loadModuleManual**：向目标进程手动映射注入模块。
+- **unloadModuleManual**：卸载已注入模块。
+
+Windows 默认目标进程名为 `QQ.exe`，非 Windows 默认进程名为 `qq`。
+
+## OneBot 生命周期
+
+当桥接层检测到 QQ 会话启动时：
+
+1. 根据 UIN 加载 `config/onebot_<uin>.json`。
+2. 创建 `OneBotInstance`。
+3. 启动 HTTP / WebSocket / HTTP POST 传输。
+4. 异步预热好友列表、群列表和群成员列表。
+5. 将桥接事件转换为 OneBot 事件上报。
+
+会话关闭时，对应的 OneBot 实例会被释放。
+
+## WebSocket 包
+
+`@snowluma/websocket` 是项目内置 WebSocket 实现，接口形态尽量贴近 `ws` 包。
+
+导出内容包括：
+
+- **WebSocket**：客户端构造器。
+- **WebSocketServer**：服务端构造器。
+- **Server**：`WebSocketServer` 别名。
+- **InternalWebSocket**：内部连接实现。
+
+该包同样依赖平台原生 `.node` 文件。
+
+## 开发命令
+
+```bash
+pnpm install
+pnpm dev
+pnpm dev:web
+pnpm build
+pnpm build:webui
+pnpm build:all
+pnpm test
+pnpm typecheck
+pnpm lint
+```
+
+## 构建顺序
+
+完整发行版建议使用：
+
+```bash
+pnpm build:all
+```
+
+该命令会按顺序构建：
+
+1. `@snowluma/core`
+2. `webui`
+
+构建产物统一输出到仓库根目录 `dist/`。
+
+## 贡献注意事项
+
+- **不要绕过 BridgeManager**：OneBot 层应通过桥接层调用 NTQQ 能力。
+- **保持配置可自动生成**：新增配置字段时需要兼容旧配置。
+- **原生模块按平台分发**：新增平台需要同步 `.node` 与可注入库。
+- **优先补测试**：核心 OneBot 行为应通过 `vitest` 验证。
