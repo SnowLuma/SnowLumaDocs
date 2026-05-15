@@ -10,6 +10,8 @@
     "openapi:generate": "node tools/generate-onebot-openapi.mjs"
   },
   "dependencies": {
+    "@orama/orama": "^3.1.18",
+    "@orama/tokenizers": "^3.1.18",
     "fumadocs-core": "^16.8.11",
     "fumadocs-mdx": "^15.0.5",
     "fumadocs-openapi": "^10.8.3",

@@ -1,10 +1,15 @@
 import './global.css';
 import type { Metadata } from 'next';
+import { Inter } from 'next/font/google';
 import { appName } from '@/lib/shared';
+import { i18n } from '@/lib/i18n';
 
-// Root layout is a passthrough now — `<html>` + `<body>` + provider
-// live inside `app/[lang]/layout.tsx` so the language attribute on
-// the document can track the routed locale.
+const inter = Inter({ subsets: ['latin'] });
+
+// Single root layout owning <html>+<body>. Static export cannot run
+// middleware so we can't dynamically pick the lang attribute per
+// request — it's pinned to the default locale here, and downstream
+// per-locale layouts inside `[lang]/` adjust it client-side.
 export const metadata: Metadata = {
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_SITE_URL ?? 'https://snowluma.dev',
@@ -18,5 +23,13 @@ export const metadata: Metadata = {
 };
 
 export default function Layout({ children }: LayoutProps<'/'>) {
-  return children;
+  return (
+    <html
+      lang={i18n.defaultLanguage === 'zh' ? 'zh-CN' : i18n.defaultLanguage}
+      className={inter.className}
+      suppressHydrationWarning
+    >
+      <body className="flex flex-col min-h-screen">{children}</body>
+    </html>
+  );
 }

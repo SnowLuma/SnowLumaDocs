@@ -3,7 +3,7 @@ name: Deploy Documentation
 on:
   push:
     branches:
-      - main  # 或者你的主分支名称，比如 master
+      - main
 
 permissions:
   contents: read
@@ -15,40 +15,37 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # Install pnpm BEFORE setup-node so the latter can cache the
+      # pnpm store via its built-in `cache: pnpm` option.
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
       - name: Install Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v3
-        with:
-          version: 9
-
-      - name: Get pnpm store directory
-        shell: bash
-        run: |
-          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
-
-      - name: Setup pnpm cache
-        uses: actions/cache@v4
-        with:
-          path: ${{ env.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
+          # Fumadocs 16 / Next 16 require Node >= 22.
+          node-version: 22
+          cache: pnpm
 
       - name: Install dependencies
-        run: pnpm install
+        # The repo lives standalone in CI (no parent monorepo), so the
+        # in-repo `.npmrc` (`ignore-workspace=true`) and `--frozen-lockfile`
+        # both apply by default. Pin explicitly anyway for safety.
+        run: pnpm install --frozen-lockfile
 
-      - name: Build
-        run: pnpm run build
+      - name: Build (Next.js static export)
+        run: pnpm build
 
       - name: Deploy to GitHub Pages
         env:
           PAGES_DEPLOY_TOKEN: ${{ secrets.PAGES_DEPLOY_TOKEN }}
         run: |
-          cd dist
+          # Next.js static export lands in `out/`, not `dist/`.
+          cd out
+          # Disable Jekyll on GitHub Pages so `_next/` paths are served.
+          touch .nojekyll
           git init
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"

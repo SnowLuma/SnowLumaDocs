@@ -1,25 +1,23 @@
-import { RootProvider } from 'fumadocs-ui/provider/next';
-import { Inter } from 'next/font/google';
+import { Provider } from '@/components/provider';
 import { i18nUI } from '@/lib/layout.shared';
+import { i18n, type Lang } from '@/lib/i18n';
 
-const inter = Inter({ subsets: ['latin'] });
-
+// Per-locale layout: wraps everything under `/[lang]/...` with the
+// Fumadocs RootProvider so i18n translations + theme switching are
+// available. <html>+<body> live in `app/layout.tsx`.
 export default async function Layout({
   children,
   params,
 }: LayoutProps<'/[lang]'>) {
   const { lang } = await params;
   return (
-    <html
-      lang={lang === 'zh' ? 'zh-CN' : lang}
-      className={inter.className}
-      suppressHydrationWarning
-    >
-      <body className="flex flex-col min-h-screen">
-        <RootProvider i18n={i18nUI.provider(lang)}>
-          {children}
-        </RootProvider>
-      </body>
-    </html>
+    <Provider lang={lang as Lang} i18n={i18nUI.provider(lang)}>
+      {children}
+    </Provider>
   );
+}
+
+// Static export needs the full list of language segments at build time.
+export function generateStaticParams() {
+  return i18n.languages.map((lang) => ({ lang }));
 }
