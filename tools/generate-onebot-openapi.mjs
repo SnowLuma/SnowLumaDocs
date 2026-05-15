@@ -269,16 +269,21 @@ function toOperation(action, tag) {
 
   // Prefer the curated Chinese description from the i18n file. Fall back
   // to the action name + the leading-comment text from the source.
+  // Stub actions get marked deprecated so the docs page shows a
+  // warning; truly unimplemented actions are filtered out upstream.
   const localized = DESCRIPTIONS[action.name];
   const summary = localized?.summary
     ? `${localized.summary} · ${action.name}`
     : action.name;
-  const description = localized?.description ?? action.comment;
+  const description = localized?.status === 'stub'
+    ? `**⚠️ 兼容占位** —— ${localized.description ?? ''}`
+    : (localized?.description ?? action.comment);
 
   return {
-    summary,
+    summary: localized?.status === 'stub' ? `[占位] ${summary}` : summary,
     description,
     operationId: action.name,
+    deprecated: localized?.status === 'stub' ? true : undefined,
     tags: [tag],
     requestBody: {
       required: required.length > 0,
@@ -306,11 +311,23 @@ async function main() {
   /** @type {Record<string, any>} */
   const paths = {};
   let total = 0;
+  let stubs = 0;
+  let skippedUnimplemented = 0;
+  /** @type {string[]} */
+  const skippedNames = [];
 
   for (const file of files) {
     const source = await readFile(file, 'utf8');
     const tag = tagFor(file);
     for (const action of extractActions(file, source)) {
+      // Pure stubs that always error out aren't published. We still
+      // count them in the build log so it's obvious which surface
+      // SnowLuma has chosen NOT to expose.
+      if (DESCRIPTIONS[action.name]?.status === 'unimplemented') {
+        skippedUnimplemented++;
+        skippedNames.push(action.name);
+        continue;
+      }
       const route = `/${action.name}`;
       if (paths[route]) {
         // Last writer wins; aliases like `send_packet`/`.send_packet`
@@ -319,6 +336,7 @@ async function main() {
       }
       paths[route] = { post: toOperation(action, tag) };
       total++;
+      if (DESCRIPTIONS[action.name]?.status === 'stub') stubs++;
     }
   }
 
@@ -372,7 +390,12 @@ async function main() {
   await mkdir(path.dirname(outPath), { recursive: true });
   await writeFile(outPath, JSON.stringify(spec, null, 2) + '\n', 'utf8');
   console.log(
-    `Generated ${total} actions from ${snowLumaSrc}\n  → ${outPath}`,
+    `Generated ${total} actions from ${snowLumaSrc}\n` +
+    `  → ${outPath}\n` +
+    `  ok:            ${total - stubs}\n` +
+    `  stub:          ${stubs} (in spec, marked deprecated)\n` +
+    `  unimplemented: ${skippedUnimplemented} (excluded from spec)` +
+    (skippedNames.length ? `\n    ${skippedNames.join(', ')}` : ''),
   );
 }
 

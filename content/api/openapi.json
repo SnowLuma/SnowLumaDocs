@@ -698,72 +698,6 @@
         }
       }
     },
-    "/ocr_image": {
-      "post": {
-        "summary": "OCR 图片识别 · ocr_image",
-        "description": "未实现。",
-        "operationId": "ocr_image",
-        "tags": [
-          "Extended"
-        ],
-        "requestBody": {
-          "required": false,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "additionalProperties": false
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "OneBot 标准应答信封。",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/.ocr_image": {
-      "post": {
-        "summary": "OCR 图片识别（别名） · .ocr_image",
-        "description": "未实现。",
-        "operationId": ".ocr_image",
-        "tags": [
-          "Extended"
-        ],
-        "requestBody": {
-          "required": false,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "additionalProperties": false
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "OneBot 标准应答信封。",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/_send_group_notice": {
       "post": {
         "summary": "发布群公告 · _send_group_notice",
@@ -1348,44 +1282,12 @@
         }
       }
     },
-    "/set_restart": {
-      "post": {
-        "summary": "重启 · set_restart",
-        "description": "未实现；为兼容性保留。",
-        "operationId": "set_restart",
-        "tags": [
-          "Extended"
-        ],
-        "requestBody": {
-          "required": false,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "additionalProperties": false
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "OneBot 标准应答信封。",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/clean_cache": {
       "post": {
-        "summary": "清理缓存 · clean_cache",
-        "description": "no-op，返回 ok 以兼容旧客户端。",
+        "summary": "[占位] 清理缓存 · clean_cache",
+        "description": "**⚠️ 兼容占位** —— no-op，返回 ok 以兼容旧客户端。",
         "operationId": "clean_cache",
+        "deprecated": true,
         "tags": [
           "Extended"
         ],
@@ -1587,9 +1489,10 @@
     },
     "/_mark_all_as_read": {
       "post": {
-        "summary": "标记全部已读 · _mark_all_as_read",
-        "description": "把所有未读会话标记为已读。",
+        "summary": "[占位] 标记全部已读 · _mark_all_as_read",
+        "description": "**⚠️ 兼容占位** —— 未接，stub 返回 ok。",
         "operationId": "_mark_all_as_read",
+        "deprecated": true,
         "tags": [
           "Extended"
         ],
@@ -1662,9 +1565,10 @@
     },
     "/check_url_safely": {
       "post": {
-        "summary": "URL 安全检查 · check_url_safely",
-        "description": "占位实现，始终返回安全等级 1。",
+        "summary": "[占位] URL 安全检查 · check_url_safely",
+        "description": "**⚠️ 兼容占位** —— 占位实现，始终返回安全等级 1。",
         "operationId": "check_url_safely",
+        "deprecated": true,
         "tags": [
           "Extended"
         ],
@@ -1946,9 +1850,10 @@
     },
     "/get_group_shut_list": {
       "post": {
-        "summary": "获取被禁言成员列表 · get_group_shut_list",
-        "description": "当前未实现，占位返回空列表。",
+        "summary": "[占位] 获取被禁言成员列表 · get_group_shut_list",
+        "description": "**⚠️ 兼容占位** —— 当前未实现，占位返回空列表。",
         "operationId": "get_group_shut_list",
+        "deprecated": true,
         "tags": [
           "Extended"
         ],
@@ -2073,9 +1978,10 @@
     },
     "/get_recent_contact": {
       "post": {
-        "summary": "获取最近联系人 · get_recent_contact",
-        "description": "未接 SQLite，占位返回空列表。",
+        "summary": "[占位] 获取最近联系人 · get_recent_contact",
+        "description": "**⚠️ 兼容占位** —— 未接 SQLite，占位返回空列表。",
         "operationId": "get_recent_contact",
+        "deprecated": true,
         "tags": [
           "Extended"
         ],
@@ -2328,9 +2234,10 @@
     },
     "/get_online_clients": {
       "post": {
-        "summary": "获取在线客户端 · get_online_clients",
-        "description": "占位返回空数组（NTQQ 接口不可用）。",
+        "summary": "[占位] 获取在线客户端 · get_online_clients",
+        "description": "**⚠️ 兼容占位** —— 占位返回空数组（NTQQ 接口不可用）。",
         "operationId": "get_online_clients",
+        "deprecated": true,
         "tags": [
           "Extended"
         ],
@@ -2361,9 +2268,10 @@
     },
     "/_get_model_show": {
       "post": {
-        "summary": "获取机型展示 · _get_model_show",
-        "description": "NTQQ 已弃用，占位返回空 variants。",
+        "summary": "[占位] 获取机型展示 · _get_model_show",
+        "description": "**⚠️ 兼容占位** —— NTQQ 已弃用，占位返回空 variants。",
         "operationId": "_get_model_show",
+        "deprecated": true,
         "tags": [
           "Extended"
         ],
@@ -2394,42 +2302,10 @@
     },
     "/_set_model_show": {
       "post": {
-        "summary": "设置机型展示 · _set_model_show",
-        "description": "NTQQ 已弃用，no-op。",
+        "summary": "[占位] 设置机型展示 · _set_model_show",
+        "description": "**⚠️ 兼容占位** —— NTQQ 已弃用，no-op。",
         "operationId": "_set_model_show",
-        "tags": [
-          "Extended"
-        ],
-        "requestBody": {
-          "required": false,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "additionalProperties": false
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "OneBot 标准应答信封。",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/.get_word_slices": {
-      "post": {
-        "summary": "中文分词 · .get_word_slices",
-        "description": "未实现。",
-        "operationId": ".get_word_slices",
+        "deprecated": true,
         "tags": [
           "Extended"
         ],
@@ -2568,42 +2444,10 @@
     },
     "/get_collection_list": {
       "post": {
-        "summary": "获取收藏列表 · get_collection_list",
-        "description": "未实现，占位返回空。",
+        "summary": "[占位] 获取收藏列表 · get_collection_list",
+        "description": "**⚠️ 兼容占位** —— 未实现，占位返回空。",
         "operationId": "get_collection_list",
-        "tags": [
-          "Extended"
-        ],
-        "requestBody": {
-          "required": false,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "additionalProperties": false
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "OneBot 标准应答信封。",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/create_collection": {
-      "post": {
-        "summary": "创建收藏 · create_collection",
-        "description": "未实现。",
-        "operationId": "create_collection",
+        "deprecated": true,
         "tags": [
           "Extended"
         ],
@@ -3001,113 +2845,6 @@
                 "required": [
                   "group_id"
                 ],
-                "additionalProperties": false
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "OneBot 标准应答信封。",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/trans_group_file": {
-      "post": {
-        "summary": "转存群文件 · trans_group_file",
-        "description": "未实现，占位返回。",
-        "operationId": "trans_group_file",
-        "tags": [
-          "Extended"
-        ],
-        "requestBody": {
-          "required": false,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "additionalProperties": false
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "OneBot 标准应答信封。",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/rename_group_file": {
-      "post": {
-        "summary": "重命名群文件 · rename_group_file",
-        "description": "未实现，占位返回。",
-        "operationId": "rename_group_file",
-        "tags": [
-          "Extended"
-        ],
-        "requestBody": {
-          "required": false,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "additionalProperties": false
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "OneBot 标准应答信封。",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/get_file": {
-      "post": {
-        "summary": "获取文件 · get_file",
-        "description": "按 `file_id` 查文件信息。当前为占位返回。",
-        "operationId": "get_file",
-        "tags": [
-          "Extended"
-        ],
-        "requestBody": {
-          "required": false,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "file_id": {
-                    "type": "string"
-                  },
-                  "file": {
-                    "type": "string"
-                  }
-                },
                 "additionalProperties": false
               }
             }
@@ -4238,9 +3975,10 @@
     },
     "/set_group_anonymous": {
       "post": {
-        "summary": "群匿名开关 · set_group_anonymous",
-        "description": "NTQQ 已不支持匿名功能，stub 返回 ok。",
+        "summary": "[占位] 群匿名开关 · set_group_anonymous",
+        "description": "**⚠️ 兼容占位** —— NTQQ 已不支持匿名功能，stub 返回 ok。",
         "operationId": "set_group_anonymous",
+        "deprecated": true,
         "tags": [
           "Group Admin"
         ],
@@ -4271,9 +4009,10 @@
     },
     "/set_group_anonymous_ban": {
       "post": {
-        "summary": "禁言匿名用户 · set_group_anonymous_ban",
-        "description": "NTQQ 已不支持，stub 返回 ok。",
+        "summary": "[占位] 禁言匿名用户 · set_group_anonymous_ban",
+        "description": "**⚠️ 兼容占位** —— NTQQ 已不支持，stub 返回 ok。",
         "operationId": "set_group_anonymous_ban",
+        "deprecated": true,
         "tags": [
           "Group Admin"
         ],
