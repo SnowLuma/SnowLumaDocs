@@ -877,39 +877,6 @@
         }
       }
     },
-    "/upload_foward_msg": {
-      "post": {
-        "summary": "上传合并转发（typo 别名） · upload_foward_msg",
-        "description": "兼容历史拼写，等同 `upload_forward_msg`。",
-        "operationId": "upload_foward_msg",
-        "tags": [
-          "Extended"
-        ],
-        "requestBody": {
-          "required": false,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "additionalProperties": false
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "OneBot 标准应答信封。",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/send_forward_msg": {
       "post": {
         "summary": "发送合并转发 · send_forward_msg",
@@ -1288,39 +1255,6 @@
         "description": "**⚠️ 兼容占位** —— no-op，返回 ok 以兼容旧客户端。",
         "operationId": "clean_cache",
         "deprecated": true,
-        "tags": [
-          "Extended"
-        ],
-        "requestBody": {
-          "required": false,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "additionalProperties": false
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "OneBot 标准应答信封。",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/.handle_quick_operation": {
-      "post": {
-        "summary": "快速操作（隐藏 API） · .handle_quick_operation",
-        "description": "OneBot v11 HTTP POST 上报响应里的 quick operation 入口（回复 / 撤回 / 通过 / 拒绝）。",
-        "operationId": ".handle_quick_operation",
         "tags": [
           "Extended"
         ],
@@ -2869,39 +2803,6 @@
         "summary": "发送原始数据包 · send_packet",
         "description": "Debug 接口：按 `cmd` 发送 hex 编码的 raw packet，可选等待响应。",
         "operationId": "send_packet",
-        "tags": [
-          "Extended"
-        ],
-        "requestBody": {
-          "required": false,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "additionalProperties": false
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "OneBot 标准应答信封。",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/.send_packet": {
-      "post": {
-        "summary": "发送原始数据包（别名） · .send_packet",
-        "description": "等同 `send_packet`，gocqhttp 风格的点前缀写法。",
-        "operationId": ".send_packet",
         "tags": [
           "Extended"
         ],

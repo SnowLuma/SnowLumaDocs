@@ -312,31 +312,38 @@ async function main() {
   const paths = {};
   let total = 0;
   let stubs = 0;
-  let skippedUnimplemented = 0;
   /** @type {string[]} */
-  const skippedNames = [];
+  const skippedUnimplemented = [];
+  /** @type {string[]} */
+  const skippedHidden = [];
 
   for (const file of files) {
     const source = await readFile(file, 'utf8');
     const tag = tagFor(file);
     for (const action of extractActions(file, source)) {
-      // Pure stubs that always error out aren't published. We still
-      // count them in the build log so it's obvious which surface
-      // SnowLuma has chosen NOT to expose.
-      if (DESCRIPTIONS[action.name]?.status === 'unimplemented') {
-        skippedUnimplemented++;
-        skippedNames.push(action.name);
+      const status = DESCRIPTIONS[action.name]?.status;
+      // Two reasons to drop an action from the published spec:
+      //   - unimplemented: handler returns "not yet implemented".
+      //   - hidden: OneBot/gocqhttp convention reserves dot/underscore
+      //     prefixes for internal APIs (e.g. `.handle_quick_operation`
+      //     is called by the HTTP POST report response flow, not by
+      //     direct clients). Surfacing them confuses readers.
+      if (status === 'unimplemented') {
+        skippedUnimplemented.push(action.name);
+        continue;
+      }
+      if (status === 'hidden') {
+        skippedHidden.push(action.name);
         continue;
       }
       const route = `/${action.name}`;
       if (paths[route]) {
-        // Last writer wins; aliases like `send_packet`/`.send_packet`
-        // share a handler so we end up keeping whichever was scanned
-        // last — that's fine for ref docs.
+        // Last writer wins; aliases that share a handler end up with
+        // whichever was scanned last — fine for ref docs.
       }
       paths[route] = { post: toOperation(action, tag) };
       total++;
-      if (DESCRIPTIONS[action.name]?.status === 'stub') stubs++;
+      if (status === 'stub') stubs++;
     }
   }
 
@@ -389,13 +396,16 @@ async function main() {
 
   await mkdir(path.dirname(outPath), { recursive: true });
   await writeFile(outPath, JSON.stringify(spec, null, 2) + '\n', 'utf8');
+  const fmt = (label, arr) =>
+    `  ${label}: ${arr.length}` +
+    (arr.length ? `\n    ${arr.join(', ')}` : '');
   console.log(
     `Generated ${total} actions from ${snowLumaSrc}\n` +
     `  → ${outPath}\n` +
-    `  ok:            ${total - stubs}\n` +
-    `  stub:          ${stubs} (in spec, marked deprecated)\n` +
-    `  unimplemented: ${skippedUnimplemented} (excluded from spec)` +
-    (skippedNames.length ? `\n    ${skippedNames.join(', ')}` : ''),
+    `  ok:            ${total - stubs} (published)\n` +
+    `  stub:          ${stubs} (published, marked deprecated)\n` +
+    fmt('hidden       ', skippedHidden) + '\n' +
+    fmt('unimplemented', skippedUnimplemented),
   );
 }
 

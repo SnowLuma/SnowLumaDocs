@@ -1,5 +1,5 @@
 {
-  "_doc": "每个 OneBot action 的中文描述。键是 action 名（与 registerAction 的字面量一致），值是 { summary, description?, status? }。\n\nstatus 字段:\n  - omitted (默认): 完整实现，按文档可用\n  - 'stub'        : 返回占位 / 兼容数据（如空列表、no-op），仅为客户端兼容存在；生成器会标 deprecated\n  - 'unimplemented': 直接报 not yet implemented；生成器会从 spec 中剔除，不在 API 文档展示\n\ngenerate-onebot-openapi.mjs 会按 status 过滤并修饰 summary。",
+  "_doc": "每个 OneBot action 的中文描述。键是 action 名（与 registerAction 的字面量一致），值是 { summary, description?, status? }。\n\nstatus 字段:\n  - omitted (默认): 完整实现，按文档可用\n  - 'stub'        : 返回占位 / 兼容数据（如空列表、no-op），仅为客户端兼容存在；生成器会标 deprecated\n  - 'hidden'      : OneBot/gocqhttp 约定的隐藏 / 内部 API（如点前缀 hidden APIs）；从 spec 中剔除\n  - 'unimplemented': 直接报 not yet implemented；从 spec 中剔除\n\ngenerate-onebot-openapi.mjs 会按 status 过滤并修饰 summary。",
 
   "send_msg": { "summary": "发送消息", "description": "按 `message_type` 决定群发还是私聊。`auto_escape=true` 时把 `message` 当纯文本不解析 CQ 码。" },
   "send_group_msg": { "summary": "发送群消息", "description": "向指定 `group_id` 发消息。`message` 可以是纯文本、CQ 码字符串或 OneBot 消息段数组。" },
@@ -15,7 +15,7 @@
   "send_private_forward_msg": { "summary": "发送私聊合并转发", "description": "向好友发合并转发消息。" },
   "get_forward_msg": { "summary": "获取合并转发", "description": "按 res_id / forward_id 取回合并转发的所有节点。" },
   "upload_forward_msg": { "summary": "上传合并转发", "description": "只上传不发送，返回 `res_id`，之后可在其他消息里引用。" },
-  "upload_foward_msg": { "summary": "上传合并转发（typo 别名）", "description": "兼容历史拼写，等同 `upload_forward_msg`。" },
+  "upload_foward_msg": { "summary": "上传合并转发（typo 别名）", "description": "兼容历史拼写，等同 `upload_forward_msg`。", "status": "hidden" },
   "forward_friend_single_msg": { "summary": "转发单条消息给好友", "description": "把已有消息原样转发给 `user_id`。" },
   "forward_group_single_msg": { "summary": "转发单条消息到群", "description": "把已有消息原样转发到 `group_id`。" },
 
@@ -143,7 +143,7 @@
   "download_file": { "summary": "下载文件", "description": "把 URL 或 base64 下载到本地临时目录，返回绝对路径。" },
   "click_inline_keyboard_button": { "summary": "点击内联键盘按钮", "description": "触发机器人消息上的内联按钮回调。" },
   "get_mini_app_ark": { "summary": "构造小程序 Ark", "description": "根据 type / title / desc / picUrl / jumpUrl 生成小程序 Ark JSON。" },
-  ".handle_quick_operation": { "summary": "快速操作（隐藏 API）", "description": "OneBot v11 HTTP POST 上报响应里的 quick operation 入口（回复 / 撤回 / 通过 / 拒绝）。" },
+  ".handle_quick_operation": { "summary": "快速操作（隐藏 API）", "description": "OneBot v11 HTTP POST 上报响应里的 quick operation 入口（回复 / 撤回 / 通过 / 拒绝）；不应被客户端直接调用，由上报回执流程自动触发。", "status": "hidden" },
 
   "create_collection": { "summary": "创建收藏", "description": "未实现。", "status": "unimplemented" },
   "get_collection_list": { "summary": "获取收藏列表", "description": "未实现，占位返回空。", "status": "stub" },
@@ -157,6 +157,6 @@
   "send_group_ai_record": { "summary": "发送 AI 群语音", "description": "用指定角色合成语音并直接发到群。" },
 
   "send_packet": { "summary": "发送原始数据包", "description": "Debug 接口：按 `cmd` 发送 hex 编码的 raw packet，可选等待响应。" },
-  ".send_packet": { "summary": "发送原始数据包（别名）", "description": "等同 `send_packet`，gocqhttp 风格的点前缀写法。" },
+  ".send_packet": { "summary": "发送原始数据包（别名）", "description": "等同 `send_packet`，gocqhttp 风格的点前缀写法。", "status": "hidden" },
   "bot_exit": { "summary": "退出 Bot", "description": "50ms 后调用 `process.exit(0)`。" }
 }
