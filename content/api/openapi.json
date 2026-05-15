@@ -1,0 +1,5600 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "SnowLuma OneBot API",
+    "version": "0.1.0",
+    "description": "SnowLuma 对外暴露的 OneBot v11 兼容 API。所有动作通过 HTTP POST 或 WebSocket 调用，请求体为 JSON。响应统一用 OneBot 标准应答信封。本文档由 `tools/generate-onebot-openapi.mjs` 从 `packages/core/src/onebot/actions/` 的源代码静态扫描生成。"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000",
+      "description": "默认 HTTP 端点"
+    }
+  ],
+  "tags": [
+    {
+      "name": "System",
+      "description": "系统信息与状态。"
+    },
+    {
+      "name": "Message",
+      "description": "消息发送、撤回、查询。"
+    },
+    {
+      "name": "Friend",
+      "description": "好友与陌生人。"
+    },
+    {
+      "name": "Group · Info",
+      "description": "群信息与成员。"
+    },
+    {
+      "name": "Group · Admin",
+      "description": "群管理动作。"
+    },
+    {
+      "name": "Group · File",
+      "description": "群文件。"
+    },
+    {
+      "name": "Request",
+      "description": "加好友 / 加群请求处理。"
+    },
+    {
+      "name": "Extended",
+      "description": "gocqhttp / NapCat 兼容扩展接口。"
+    }
+  ],
+  "paths": {
+    "/send_like": {
+      "post": {
+        "summary": "send_like",
+        "description": "--- Likes & Pokes ---",
+        "operationId": "send_like",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "user_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  },
+                  "times": {
+                    "type": "integer",
+                    "format": "int64"
+                  }
+                },
+                "required": [
+                  "user_id"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/friend_poke": {
+      "post": {
+        "summary": "friend_poke",
+        "operationId": "friend_poke",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "user_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  },
+                  "target_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  }
+                },
+                "required": [
+                  "user_id"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/group_poke": {
+      "post": {
+        "summary": "group_poke",
+        "operationId": "group_poke",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "group_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  },
+                  "user_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  }
+                },
+                "required": [
+                  "group_id",
+                  "user_id"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/send_poke": {
+      "post": {
+        "summary": "send_poke",
+        "operationId": "send_poke",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "group_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  },
+                  "user_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  }
+                },
+                "required": [
+                  "user_id"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/set_essence_msg": {
+      "post": {
+        "summary": "set_essence_msg",
+        "description": "--- Essence ---",
+        "operationId": "set_essence_msg",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "message_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/delete_essence_msg": {
+      "post": {
+        "summary": "delete_essence_msg",
+        "operationId": "delete_essence_msg",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "message_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/get_essence_msg_list": {
+      "post": {
+        "summary": "get_essence_msg_list",
+        "operationId": "get_essence_msg_list",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "group_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  }
+                },
+                "required": [
+                  "group_id"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/set_group_reaction": {
+      "post": {
+        "summary": "set_group_reaction",
+        "description": "--- Reactions ---",
+        "operationId": "set_group_reaction",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "group_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  },
+                  "message_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  },
+                  "code": {
+                    "type": "string"
+                  },
+                  "is_set": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "code"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/get_group_msg_history": {
+      "post": {
+        "summary": "get_group_msg_history",
+        "description": "--- History ---",
+        "operationId": "get_group_msg_history",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "group_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  },
+                  "message_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  },
+                  "count": {
+                    "type": "integer",
+                    "format": "int64"
+                  }
+                },
+                "required": [
+                  "group_id"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/get_friend_msg_history": {
+      "post": {
+        "summary": "get_friend_msg_history",
+        "operationId": "get_friend_msg_history",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "user_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  },
+                  "message_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  },
+                  "count": {
+                    "type": "integer",
+                    "format": "int64"
+                  }
+                },
+                "required": [
+                  "user_id"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/mark_group_msg_as_read": {
+      "post": {
+        "summary": "mark_group_msg_as_read",
+        "operationId": "mark_group_msg_as_read",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "message_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  },
+                  "group_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/mark_private_msg_as_read": {
+      "post": {
+        "summary": "mark_private_msg_as_read",
+        "operationId": "mark_private_msg_as_read",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "message_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  },
+                  "user_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/mark_msg_as_read": {
+      "post": {
+        "summary": "mark_msg_as_read",
+        "operationId": "mark_msg_as_read",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "message_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  },
+                  "target_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/get_rkey": {
+      "post": {
+        "summary": "get_rkey",
+        "operationId": "get_rkey",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/nc_get_rkey": {
+      "post": {
+        "summary": "nc_get_rkey",
+        "description": "so clients that follow napcat's docs work out-of-the-box.",
+        "operationId": "nc_get_rkey",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ocr_image": {
+      "post": {
+        "summary": "ocr_image",
+        "description": "--- OCR stubs ---",
+        "operationId": "ocr_image",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/.ocr_image": {
+      "post": {
+        "summary": ".ocr_image",
+        "operationId": ".ocr_image",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/_send_group_notice": {
+      "post": {
+        "summary": "_send_group_notice",
+        "description": "--- Group notice stubs ---",
+        "operationId": "_send_group_notice",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "group_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  },
+                  "content": {
+                    "type": "string"
+                  },
+                  "image": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "group_id",
+                  "content"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/_get_group_notice": {
+      "post": {
+        "summary": "_get_group_notice",
+        "operationId": "_get_group_notice",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "group_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  }
+                },
+                "required": [
+                  "group_id"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/_del_group_notice": {
+      "post": {
+        "summary": "_del_group_notice",
+        "operationId": "_del_group_notice",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "group_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  },
+                  "fid": {
+                    "type": "string"
+                  },
+                  "notice_id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "group_id",
+                  "fid"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/upload_forward_msg": {
+      "post": {
+        "summary": "upload_forward_msg",
+        "description": "--- Forward messages ---",
+        "operationId": "upload_forward_msg",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "group_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/upload_foward_msg": {
+      "post": {
+        "summary": "upload_foward_msg",
+        "operationId": "upload_foward_msg",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/send_forward_msg": {
+      "post": {
+        "summary": "send_forward_msg",
+        "operationId": "send_forward_msg",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "message_type": {
+                    "type": "string"
+                  },
+                  "group_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  },
+                  "user_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  }
+                },
+                "required": [
+                  "group_id",
+                  "user_id"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/send_group_forward_msg": {
+      "post": {
+        "summary": "send_group_forward_msg",
+        "operationId": "send_group_forward_msg",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "group_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  }
+                },
+                "required": [
+                  "group_id"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/send_private_forward_msg": {
+      "post": {
+        "summary": "send_private_forward_msg",
+        "operationId": "send_private_forward_msg",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "user_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  }
+                },
+                "required": [
+                  "user_id"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/get_forward_msg": {
+      "post": {
+        "summary": "get_forward_msg",
+        "operationId": "get_forward_msg",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/get_image": {
+      "post": {
+        "summary": "get_image",
+        "description": "--- Media ---",
+        "operationId": "get_image",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string"
+                  },
+                  "file_id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "file"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/get_record": {
+      "post": {
+        "summary": "get_record",
+        "operationId": "get_record",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string"
+                  },
+                  "file_id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "file"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/get_cookies": {
+      "post": {
+        "summary": "get_cookies",
+        "description": "--- Credentials ---",
+        "operationId": "get_cookies",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "domain": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/get_csrf_token": {
+      "post": {
+        "summary": "get_csrf_token",
+        "operationId": "get_csrf_token",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/get_credentials": {
+      "post": {
+        "summary": "get_credentials",
+        "operationId": "get_credentials",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "domain": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/set_restart": {
+      "post": {
+        "summary": "set_restart",
+        "description": "--- Utility ---",
+        "operationId": "set_restart",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/clean_cache": {
+      "post": {
+        "summary": "clean_cache",
+        "operationId": "clean_cache",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/.handle_quick_operation": {
+      "post": {
+        "summary": ".handle_quick_operation",
+        "operationId": ".handle_quick_operation",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/set_friend_remark": {
+      "post": {
+        "summary": "set_friend_remark",
+        "description": "--- NapCat-compatible extended APIs ---",
+        "operationId": "set_friend_remark",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "user_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  },
+                  "remark": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "user_id"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/set_group_remark": {
+      "post": {
+        "summary": "set_group_remark",
+        "operationId": "set_group_remark",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "group_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  },
+                  "remark": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "group_id"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/set_msg_emoji_like": {
+      "post": {
+        "summary": "set_msg_emoji_like",
+        "operationId": "set_msg_emoji_like",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "message_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  },
+                  "emoji_id": {
+                    "type": "string"
+                  },
+                  "set": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "emoji_id"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/_mark_all_as_read": {
+      "post": {
+        "summary": "_mark_all_as_read",
+        "operationId": "_mark_all_as_read",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/get_group_file_system_info": {
+      "post": {
+        "summary": "get_group_file_system_info",
+        "operationId": "get_group_file_system_info",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "group_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  }
+                },
+                "required": [
+                  "group_id"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/check_url_safely": {
+      "post": {
+        "summary": "check_url_safely",
+        "operationId": "check_url_safely",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/download_file": {
+      "post": {
+        "summary": "download_file",
+        "operationId": "download_file",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "url": {
+                    "type": "string"
+                  },
+                  "base64": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "url",
+                  "base64"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/set_qq_profile": {
+      "post": {
+        "summary": "set_qq_profile",
+        "operationId": "set_qq_profile",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "nickname": {
+                    "type": "string"
+                  },
+                  "personal_note": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/set_online_status": {
+      "post": {
+        "summary": "set_online_status",
+        "operationId": "set_online_status",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "integer",
+                    "format": "int64"
+                  },
+                  "ext_status": {
+                    "type": "integer",
+                    "format": "int64"
+                  },
+                  "battery_status": {
+                    "type": "integer",
+                    "format": "int64"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/set_diy_online_status": {
+      "post": {
+        "summary": "set_diy_online_status",
+        "description": "parity); wording is the human-readable text shown next to the icon.",
+        "operationId": "set_diy_online_status",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "face_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  },
+                  "face_type": {
+                    "type": "integer",
+                    "format": "int64"
+                  },
+                  "wording": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "face_id"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/get_group_ignored_notifies": {
+      "post": {
+        "summary": "get_group_ignored_notifies",
+        "operationId": "get_group_ignored_notifies",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/get_group_ignore_add_request": {
+      "post": {
+        "summary": "get_group_ignore_add_request",
+        "description": "category in our pipeline.",
+        "operationId": "get_group_ignore_add_request",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/get_group_shut_list": {
+      "post": {
+        "summary": "get_group_shut_list",
+        "description": "the napcat contract (empty list) so callers don't blow up.",
+        "operationId": "get_group_shut_list",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/forward_friend_single_msg": {
+      "post": {
+        "summary": "forward_friend_single_msg",
+        "operationId": "forward_friend_single_msg",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "message_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  },
+                  "user_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  }
+                },
+                "required": [
+                  "message_id",
+                  "user_id"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/forward_group_single_msg": {
+      "post": {
+        "summary": "forward_group_single_msg",
+        "operationId": "forward_group_single_msg",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "message_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  },
+                  "group_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  }
+                },
+                "required": [
+                  "message_id",
+                  "group_id"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/get_recent_contact": {
+      "post": {
+        "summary": "get_recent_contact",
+        "description": "todo 我的建议是引入数据库api   纯协议我不知道这种api怎么实现，ntQQ在实现这个方法的时候只进行了数据库查询，完全没碰网络",
+        "operationId": "get_recent_contact",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/get_profile_like": {
+      "post": {
+        "summary": "get_profile_like",
+        "operationId": "get_profile_like",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "user_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  },
+                  "start": {
+                    "type": "integer",
+                    "format": "int64"
+                  },
+                  "count": {
+                    "type": "integer",
+                    "format": "int64"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/fetch_custom_face": {
+      "post": {
+        "summary": "fetch_custom_face",
+        "operationId": "fetch_custom_face",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "count": {
+                    "type": "integer",
+                    "format": "int64"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/get_emoji_likes": {
+      "post": {
+        "summary": "get_emoji_likes",
+        "operationId": "get_emoji_likes",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "message_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  },
+                  "emoji_id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "message_id"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/fetch_emoji_like": {
+      "post": {
+        "summary": "fetch_emoji_like",
+        "operationId": "fetch_emoji_like",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "message_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  },
+                  "emojiId": {
+                    "type": "string"
+                  },
+                  "emojiType": {
+                    "type": "integer",
+                    "format": "int64"
+                  },
+                  "count": {
+                    "type": "integer",
+                    "format": "int64"
+                  },
+                  "cookie": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "message_id",
+                  "emojiId",
+                  "cookie"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/get_friends_with_category": {
+      "post": {
+        "summary": "get_friends_with_category",
+        "operationId": "get_friends_with_category",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/get_online_clients": {
+      "post": {
+        "summary": "get_online_clients",
+        "description": "/napcat 似乎也用不了？？，暂时不管了",
+        "operationId": "get_online_clients",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/_get_model_show": {
+      "post": {
+        "summary": "_get_model_show",
+        "operationId": "_get_model_show",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/_set_model_show": {
+      "post": {
+        "summary": "_set_model_show",
+        "operationId": "_set_model_show",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/.get_word_slices": {
+      "post": {
+        "summary": ".get_word_slices",
+        "operationId": ".get_word_slices",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/get_group_at_all_remain": {
+      "post": {
+        "summary": "get_group_at_all_remain",
+        "operationId": "get_group_at_all_remain",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "group_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  }
+                },
+                "required": [
+                  "group_id"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/get_unidirectional_friend_list": {
+      "post": {
+        "summary": "get_unidirectional_friend_list",
+        "operationId": "get_unidirectional_friend_list",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/set_self_longnick": {
+      "post": {
+        "summary": "set_self_longnick",
+        "operationId": "set_self_longnick",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/get_collection_list": {
+      "post": {
+        "summary": "get_collection_list",
+        "operationId": "get_collection_list",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/create_collection": {
+      "post": {
+        "summary": "create_collection",
+        "operationId": "create_collection",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/set_qq_avatar": {
+      "post": {
+        "summary": "set_qq_avatar",
+        "operationId": "set_qq_avatar",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "file"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/set_input_status": {
+      "post": {
+        "summary": "set_input_status",
+        "operationId": "set_input_status",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "user_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  },
+                  "event_type": {
+                    "type": "integer",
+                    "format": "int64"
+                  }
+                },
+                "required": [
+                  "user_id"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/translate_en2zh": {
+      "post": {
+        "summary": "translate_en2zh",
+        "operationId": "translate_en2zh",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/get_clientkey": {
+      "post": {
+        "summary": "get_clientkey",
+        "operationId": "get_clientkey",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/get_mini_app_ark": {
+      "post": {
+        "summary": "get_mini_app_ark",
+        "operationId": "get_mini_app_ark",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/click_inline_keyboard_button": {
+      "post": {
+        "summary": "click_inline_keyboard_button",
+        "operationId": "click_inline_keyboard_button",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "group_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  },
+                  "bot_appid": {
+                    "type": "integer",
+                    "format": "int64"
+                  },
+                  "msg_seq": {
+                    "type": "integer",
+                    "format": "int64"
+                  }
+                },
+                "required": [
+                  "group_id",
+                  "bot_appid",
+                  "msg_seq"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/set_group_sign": {
+      "post": {
+        "summary": "set_group_sign",
+        "operationId": "set_group_sign",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/send_group_sign": {
+      "post": {
+        "summary": "send_group_sign",
+        "operationId": "send_group_sign",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/get_group_info_ex": {
+      "post": {
+        "summary": "get_group_info_ex",
+        "operationId": "get_group_info_ex",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "group_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  }
+                },
+                "required": [
+                  "group_id"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/get_group_detail_info": {
+      "post": {
+        "summary": "get_group_detail_info",
+        "operationId": "get_group_detail_info",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "group_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  }
+                },
+                "required": [
+                  "group_id"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/trans_group_file": {
+      "post": {
+        "summary": "trans_group_file",
+        "operationId": "trans_group_file",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/rename_group_file": {
+      "post": {
+        "summary": "rename_group_file",
+        "operationId": "rename_group_file",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/get_file": {
+      "post": {
+        "summary": "get_file",
+        "operationId": "get_file",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file_id": {
+                    "type": "string"
+                  },
+                  "file": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/send_packet": {
+      "post": {
+        "summary": "send_packet",
+        "operationId": "send_packet",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/.send_packet": {
+      "post": {
+        "summary": ".send_packet",
+        "operationId": ".send_packet",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/bot_exit": {
+      "post": {
+        "summary": "bot_exit",
+        "description": "--- Bot lifecycle (napcat parity) ---",
+        "operationId": "bot_exit",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/nc_get_packet_status": {
+      "post": {
+        "summary": "nc_get_packet_status",
+        "description": "report healthy.",
+        "operationId": "nc_get_packet_status",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/delete_group_folder": {
+      "post": {
+        "summary": "delete_group_folder",
+        "description": "following napcat docs work without rewriting payloads.",
+        "operationId": "delete_group_folder",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "group_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  },
+                  "folder_id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "group_id",
+                  "folder_id"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/set_group_todo": {
+      "post": {
+        "summary": "set_group_todo",
+        "operationId": "set_group_todo",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/complete_group_todo": {
+      "post": {
+        "summary": "complete_group_todo",
+        "operationId": "complete_group_todo",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/cancel_group_todo": {
+      "post": {
+        "summary": "cancel_group_todo",
+        "operationId": "cancel_group_todo",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/nc_get_user_status": {
+      "post": {
+        "summary": "nc_get_user_status",
+        "description": "--- User online/ext status (napcat: nc_get_user_status) ---",
+        "operationId": "nc_get_user_status",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "user_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  }
+                },
+                "required": [
+                  "user_id"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/get_ai_characters": {
+      "post": {
+        "summary": "get_ai_characters",
+        "description": "--- AI voice (oidb 0x929D / 0x929B) ---",
+        "operationId": "get_ai_characters",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "group_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  },
+                  "chat_type": {
+                    "type": "integer",
+                    "format": "int64"
+                  }
+                },
+                "required": [
+                  "group_id"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/get_ai_record": {
+      "post": {
+        "summary": "get_ai_record",
+        "operationId": "get_ai_record",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "group_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  },
+                  "character": {
+                    "type": "string"
+                  },
+                  "text": {
+                    "type": "string"
+                  },
+                  "chat_type": {
+                    "type": "integer",
+                    "format": "int64"
+                  }
+                },
+                "required": [
+                  "group_id",
+                  "character",
+                  "text"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/send_group_ai_record": {
+      "post": {
+        "summary": "send_group_ai_record",
+        "description": "message_id is always 0 because the oidb call doesn't echo one back.",
+        "operationId": "send_group_ai_record",
+        "tags": [
+          "Extended"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "group_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  },
+                  "character": {
+                    "type": "string"
+                  },
+                  "text": {
+                    "type": "string"
+                  },
+                  "chat_type": {
+                    "type": "integer",
+                    "format": "int64"
+                  }
+                },
+                "required": [
+                  "group_id",
+                  "character",
+                  "text"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/get_friend_list": {
+      "post": {
+        "summary": "get_friend_list",
+        "operationId": "get_friend_list",
+        "tags": [
+          "Friend"
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/get_stranger_info": {
+      "post": {
+        "summary": "get_stranger_info",
+        "operationId": "get_stranger_info",
+        "tags": [
+          "Friend"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "user_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  }
+                },
+                "required": [
+                  "user_id"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/delete_friend": {
+      "post": {
+        "summary": "delete_friend",
+        "operationId": "delete_friend",
+        "tags": [
+          "Friend"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "user_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  },
+                  "block": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "user_id"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/set_group_kick": {
+      "post": {
+        "summary": "set_group_kick",
+        "operationId": "set_group_kick",
+        "tags": [
+          "Group · Admin"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "group_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  },
+                  "user_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  },
+                  "reject_add_request": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "group_id",
+                  "user_id"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/set_group_kick_members": {
+      "post": {
+        "summary": "set_group_kick_members",
+        "operationId": "set_group_kick_members",
+        "tags": [
+          "Group · Admin"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "group_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  },
+                  "reject_add_request": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "group_id"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/set_group_ban": {
+      "post": {
+        "summary": "set_group_ban",
+        "operationId": "set_group_ban",
+        "tags": [
+          "Group · Admin"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "group_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  },
+                  "user_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  },
+                  "duration": {
+                    "type": "integer",
+                    "format": "int64"
+                  }
+                },
+                "required": [
+                  "group_id",
+                  "user_id"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/set_group_whole_ban": {
+      "post": {
+        "summary": "set_group_whole_ban",
+        "operationId": "set_group_whole_ban",
+        "tags": [
+          "Group · Admin"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "group_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  },
+                  "enable": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "group_id"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/set_group_add_option": {
+      "post": {
+        "summary": "set_group_add_option",
+        "operationId": "set_group_add_option",
+        "tags": [
+          "Group · Admin"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "group_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  },
+                  "add_type": {
+                    "type": "integer",
+                    "format": "int64"
+                  }
+                },
+                "required": [
+                  "group_id"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/set_group_search": {
+      "post": {
+        "summary": "set_group_search",
+        "operationId": "set_group_search",
+        "tags": [
+          "Group · Admin"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "group_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  }
+                },
+                "required": [
+                  "group_id"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/set_group_admin": {
+      "post": {
+        "summary": "set_group_admin",
+        "operationId": "set_group_admin",
+        "tags": [
+          "Group · Admin"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "group_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  },
+                  "user_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  },
+                  "enable": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "group_id",
+                  "user_id"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/set_group_card": {
+      "post": {
+        "summary": "set_group_card",
+        "operationId": "set_group_card",
+        "tags": [
+          "Group · Admin"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "group_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  },
+                  "user_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  },
+                  "card": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "group_id",
+                  "user_id"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/set_group_name": {
+      "post": {
+        "summary": "set_group_name",
+        "operationId": "set_group_name",
+        "tags": [
+          "Group · Admin"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "group_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  },
+                  "group_name": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "group_id"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/set_group_leave": {
+      "post": {
+        "summary": "set_group_leave",
+        "operationId": "set_group_leave",
+        "tags": [
+          "Group · Admin"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "group_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  }
+                },
+                "required": [
+                  "group_id"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/set_group_special_title": {
+      "post": {
+        "summary": "set_group_special_title",
+        "operationId": "set_group_special_title",
+        "tags": [
+          "Group · Admin"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "group_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  },
+                  "user_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  },
+                  "special_title": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "group_id",
+                  "user_id"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/set_group_anonymous": {
+      "post": {
+        "summary": "set_group_anonymous",
+        "operationId": "set_group_anonymous",
+        "tags": [
+          "Group · Admin"
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/set_group_anonymous_ban": {
+      "post": {
+        "summary": "set_group_anonymous_ban",
+        "operationId": "set_group_anonymous_ban",
+        "tags": [
+          "Group · Admin"
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/set_group_portrait": {
+      "post": {
+        "summary": "set_group_portrait",
+        "description": "and base64:// data URIs — same surface as set_qq_avatar.",
+        "operationId": "set_group_portrait",
+        "tags": [
+          "Group · Admin"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "group_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  },
+                  "file": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "group_id",
+                  "file"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/upload_group_file": {
+      "post": {
+        "summary": "upload_group_file",
+        "operationId": "upload_group_file",
+        "tags": [
+          "Group · File"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "group_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  },
+                  "file": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "folder": {
+                    "type": "string"
+                  },
+                  "folder_id": {
+                    "type": "string"
+                  },
+                  "upload_file": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "group_id",
+                  "file"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/upload_private_file": {
+      "post": {
+        "summary": "upload_private_file",
+        "operationId": "upload_private_file",
+        "tags": [
+          "Group · File"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "user_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  },
+                  "file": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "upload_file": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "user_id",
+                  "file"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/get_group_file_url": {
+      "post": {
+        "summary": "get_group_file_url",
+        "operationId": "get_group_file_url",
+        "tags": [
+          "Group · File"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "group_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  },
+                  "file_id": {
+                    "type": "string"
+                  },
+                  "busid": {
+                    "type": "integer",
+                    "format": "int64"
+                  }
+                },
+                "required": [
+                  "group_id",
+                  "file_id"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/get_group_root_files": {
+      "post": {
+        "summary": "get_group_root_files",
+        "operationId": "get_group_root_files",
+        "tags": [
+          "Group · File"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "group_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  }
+                },
+                "required": [
+                  "group_id"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/get_group_files_by_folder": {
+      "post": {
+        "summary": "get_group_files_by_folder",
+        "operationId": "get_group_files_by_folder",
+        "tags": [
+          "Group · File"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "group_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  },
+                  "folder_id": {
+                    "type": "string"
+                  },
+                  "folder": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "group_id"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/delete_group_file": {
+      "post": {
+        "summary": "delete_group_file",
+        "operationId": "delete_group_file",
+        "tags": [
+          "Group · File"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "group_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  },
+                  "file_id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "group_id",
+                  "file_id"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/move_group_file": {
+      "post": {
+        "summary": "move_group_file",
+        "operationId": "move_group_file",
+        "tags": [
+          "Group · File"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "group_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  },
+                  "file_id": {
+                    "type": "string"
+                  },
+                  "parent_directory": {
+                    "type": "string"
+                  },
+                  "target_directory": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "group_id",
+                  "file_id",
+                  "parent_directory",
+                  "target_directory"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/create_group_file_folder": {
+      "post": {
+        "summary": "create_group_file_folder",
+        "operationId": "create_group_file_folder",
+        "tags": [
+          "Group · File"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "group_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "parent_id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "group_id",
+                  "name"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/delete_group_file_folder": {
+      "post": {
+        "summary": "delete_group_file_folder",
+        "operationId": "delete_group_file_folder",
+        "tags": [
+          "Group · File"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "group_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  },
+                  "folder_id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "group_id",
+                  "folder_id"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/rename_group_file_folder": {
+      "post": {
+        "summary": "rename_group_file_folder",
+        "operationId": "rename_group_file_folder",
+        "tags": [
+          "Group · File"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "group_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  },
+                  "folder_id": {
+                    "type": "string"
+                  },
+                  "new_folder_name": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "group_id",
+                  "folder_id"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/get_private_file_url": {
+      "post": {
+        "summary": "get_private_file_url",
+        "operationId": "get_private_file_url",
+        "tags": [
+          "Group · File"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "user_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  },
+                  "file_id": {
+                    "type": "string"
+                  },
+                  "file_hash": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "user_id",
+                  "file_id",
+                  "file_hash"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/get_group_list": {
+      "post": {
+        "summary": "get_group_list",
+        "operationId": "get_group_list",
+        "tags": [
+          "Group · Info"
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "no_cache": {
+                    "type": "boolean"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/get_group_info": {
+      "post": {
+        "summary": "get_group_info",
+        "operationId": "get_group_info",
+        "tags": [
+          "Group · Info"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "group_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  },
+                  "no_cache": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "group_id"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/get_group_member_list": {
+      "post": {
+        "summary": "get_group_member_list",
+        "operationId": "get_group_member_list",
+        "tags": [
+          "Group · Info"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "group_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  },
+                  "no_cache": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "group_id"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/get_group_member_info": {
+      "post": {
+        "summary": "get_group_member_info",
+        "operationId": "get_group_member_info",
+        "tags": [
+          "Group · Info"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "group_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  },
+                  "user_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  },
+                  "no_cache": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "group_id",
+                  "user_id"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/get_group_honor_info": {
+      "post": {
+        "summary": "get_group_honor_info",
+        "operationId": "get_group_honor_info",
+        "tags": [
+          "Group · Info"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "group_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  },
+                  "type": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "group_id"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/get_group_system_msg": {
+      "post": {
+        "summary": "get_group_system_msg",
+        "operationId": "get_group_system_msg",
+        "tags": [
+          "Group · Info"
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/get_login_info": {
+      "post": {
+        "summary": "get_login_info",
+        "operationId": "get_login_info",
+        "tags": [
+          "System"
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/get_status": {
+      "post": {
+        "summary": "get_status",
+        "operationId": "get_status",
+        "tags": [
+          "System"
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/get_version_info": {
+      "post": {
+        "summary": "get_version_info",
+        "operationId": "get_version_info",
+        "tags": [
+          "System"
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/can_send_image": {
+      "post": {
+        "summary": "can_send_image",
+        "operationId": "can_send_image",
+        "tags": [
+          "System"
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/can_send_record": {
+      "post": {
+        "summary": "can_send_record",
+        "operationId": "can_send_record",
+        "tags": [
+          "System"
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/send_msg": {
+      "post": {
+        "summary": "send_msg",
+        "operationId": "send_msg",
+        "tags": [
+          "Message"
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "message_type": {
+                    "type": "string"
+                  },
+                  "message": {
+                    "oneOf": [
+                      {
+                        "type": "string",
+                        "description": "消息文本或 CQ 码字符串"
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "additionalProperties": true
+                        },
+                        "description": "OneBot 消息段数组"
+                      }
+                    ]
+                  },
+                  "auto_escape": {
+                    "type": "boolean"
+                  },
+                  "group_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  },
+                  "user_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/send_private_msg": {
+      "post": {
+        "summary": "send_private_msg",
+        "operationId": "send_private_msg",
+        "tags": [
+          "Message"
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "user_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  },
+                  "message": {
+                    "oneOf": [
+                      {
+                        "type": "string",
+                        "description": "消息文本或 CQ 码字符串"
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "additionalProperties": true
+                        },
+                        "description": "OneBot 消息段数组"
+                      }
+                    ]
+                  },
+                  "auto_escape": {
+                    "type": "boolean"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/send_group_msg": {
+      "post": {
+        "summary": "send_group_msg",
+        "operationId": "send_group_msg",
+        "tags": [
+          "Message"
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "group_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  },
+                  "message": {
+                    "oneOf": [
+                      {
+                        "type": "string",
+                        "description": "消息文本或 CQ 码字符串"
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "additionalProperties": true
+                        },
+                        "description": "OneBot 消息段数组"
+                      }
+                    ]
+                  },
+                  "auto_escape": {
+                    "type": "boolean"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/get_msg": {
+      "post": {
+        "summary": "get_msg",
+        "operationId": "get_msg",
+        "tags": [
+          "Message"
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "message_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/delete_msg": {
+      "post": {
+        "summary": "delete_msg",
+        "operationId": "delete_msg",
+        "tags": [
+          "Message"
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "message_id": {
+                    "type": "integer",
+                    "format": "int64"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/set_friend_add_request": {
+      "post": {
+        "summary": "set_friend_add_request",
+        "operationId": "set_friend_add_request",
+        "tags": [
+          "Request"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "flag": {
+                    "type": "string"
+                  },
+                  "approve": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "flag"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/set_group_add_request": {
+      "post": {
+        "summary": "set_group_add_request",
+        "operationId": "set_group_add_request",
+        "tags": [
+          "Request"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "flag": {
+                    "type": "string"
+                  },
+                  "sub_type": {
+                    "type": "string"
+                  },
+                  "type": {
+                    "type": "string"
+                  },
+                  "approve": {
+                    "type": "boolean"
+                  },
+                  "reason": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "flag"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OneBot 标准应答信封。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ApiResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "failed"
+            ]
+          },
+          "retcode": {
+            "type": "integer",
+            "description": "0 表示成功；非 0 表示失败。"
+          },
+          "data": {
+            "description": "动作返回值，类型随动作不同；失败时为 null。"
+          },
+          "wording": {
+            "type": "string",
+            "description": "失败时的可读消息。"
+          },
+          "echo": {
+            "description": "调用方传入的 echo 值，用于异步请求关联。"
+          }
+        },
+        "required": [
+          "status",
+          "retcode",
+          "data"
+        ]
+      }
+    }
+  }
+}

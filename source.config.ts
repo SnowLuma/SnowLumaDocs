@@ -3,10 +3,9 @@ import { metaSchema, pageSchema } from 'fumadocs-core/source/schema';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 
-// MDX content sources — each defineDocs() entry produces its own typed
-// collection in `.source/`. Currently:
-//   - `docs`           : long-form prose docs under content/docs (zh + en)
-//   - `apiReference`   : the auto-generated OneBot OpenAPI pages
+// MDX content under content/docs/<locale>/...; the OpenAPI source is
+// merged in at the loader level so it lives in the same navigation
+// tree as the prose docs.
 export const docs = defineDocs({
   dir: 'content/docs',
   docs: {
@@ -14,16 +13,6 @@ export const docs = defineDocs({
     postprocess: {
       includeProcessedMarkdown: true,
     },
-  },
-  meta: {
-    schema: metaSchema,
-  },
-});
-
-export const apiReference = defineDocs({
-  dir: 'content/api',
-  docs: {
-    schema: pageSchema,
   },
   meta: {
     schema: metaSchema,

@@ -9,6 +9,7 @@ import {
 } from 'fumadocs-ui/layouts/docs/page';
 import { notFound } from 'next/navigation';
 import { getMDXComponents } from '@/components/mdx';
+import { APIPage } from '@/components/api-page';
 import type { Metadata } from 'next';
 import { createRelativeLink } from 'fumadocs-ui/mdx';
 import { gitConfig } from '@/lib/shared';
@@ -19,6 +20,22 @@ export default async function Page(
   const { lang, slug } = await props.params;
   const page = source.getPage(slug, lang);
   if (!page) notFound();
+
+  // OpenAPI-sourced pages get rendered via <APIPage>; everything else
+  // is a regular MDX page from content/docs/<lang>/.
+  if (page.type === 'openapi') {
+    return (
+      <DocsPage toc={page.data.toc} full>
+        <DocsTitle>{page.data.title}</DocsTitle>
+        <DocsDescription className="mb-0">
+          {page.data.description}
+        </DocsDescription>
+        <DocsBody>
+          <APIPage {...page.data.getAPIPageProps()} />
+        </DocsBody>
+      </DocsPage>
+    );
+  }
 
   const MDX = page.data.body;
   const markdownUrl = getPageMarkdownUrl(page).url;
