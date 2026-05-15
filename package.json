@@ -6,7 +6,8 @@
     "build": "next build",
     "dev": "next dev",
     "start": "next start",
-    "types:check": "fumadocs-mdx && next typegen && tsc --noEmit"
+    "types:check": "fumadocs-mdx && next typegen && tsc --noEmit",
+    "openapi:generate": "node tools/generate-onebot-openapi.mjs"
   },
   "dependencies": {
     "fumadocs-core": "^16.8.11",

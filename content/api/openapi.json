@@ -3,7 +3,7 @@
   "info": {
     "title": "SnowLuma OneBot API",
     "version": "0.1.0",
-    "description": "SnowLuma 对外暴露的 OneBot v11 兼容 API。所有动作通过 HTTP POST 或 WebSocket 调用，请求体为 JSON。响应统一用 OneBot 标准应答信封。本文档由 `tools/generate-onebot-openapi.mjs` 从 `packages/core/src/onebot/actions/` 的源代码静态扫描生成。"
+    "description": "SnowLuma 对外暴露的 OneBot v11 兼容 API。所有动作通过 HTTP POST 或 WebSocket 调用，请求体为 JSON。响应统一用 OneBot 标准应答信封。本文档由 SnowLumaDocs 的 `tools/generate-onebot-openapi.mjs` 从 SnowLuma 主仓的 `packages/core/src/onebot/actions/` 源代码静态扫描生成。"
   },
   "servers": [
     {
