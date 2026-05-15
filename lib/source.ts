@@ -1,11 +1,16 @@
 import { docs } from 'collections/server';
 import { loader } from 'fumadocs-core/source';
 import { lucideIconsPlugin } from 'fumadocs-core/source/lucide-icons';
+import { i18n } from './i18n';
 import { docsContentRoute, docsImageRoute, docsRoute } from './shared';
 
-// See https://fumadocs.dev/docs/headless/source-api for more info
+// See https://fumadocs.dev/docs/headless/source-api for more info.
+// With `i18n` set, the loader treats `content/docs/<lang>/...` as
+// locale-scoped pages; `source.getPages(lang)` returns the per-locale
+// slice.
 export const source = loader({
   baseUrl: docsRoute,
+  i18n,
   source: docs.toFumadocsSource(),
   plugins: [lucideIconsPlugin()],
 });

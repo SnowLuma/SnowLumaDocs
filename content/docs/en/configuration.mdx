@@ -1,0 +1,102 @@
+---
+title: Configuration
+description: OneBot instance config file layout and field reference
+---
+
+OneBot config is JSON. The first time you start an instance for a UIN, SnowLuma reads the global config and produces a per-account file.
+
+## Files
+
+```text
+config/onebot.json
+config/onebot_<uin>.json
+```
+
+- **Global**: `config/onebot.json` — the default for every account.
+- **Per-account**: `config/onebot_<uin>.json` — overrides the global file.
+- **Auto-generated**: missing per-account config or access tokens are written automatically in normalized form on first run.
+
+## Default config
+
+```json
+{
+  "httpServers": [
+    {
+      "host": "0.0.0.0",
+      "port": 3000,
+      "path": "/",
+      "accessToken": "auto-generated"
+    }
+  ],
+  "httpPostEndpoints": [],
+  "wsServers": [
+    {
+      "host": "0.0.0.0",
+      "port": 3001,
+      "path": "/",
+      "role": "universal",
+      "accessToken": "auto-generated"
+    }
+  ],
+  "wsClients": [],
+  "musicSignUrl": ""
+}
+```
+
+## httpServers
+
+Starts an OneBot HTTP API.
+
+| Field | Type | Default | Notes |
+| --- | --- | --- | --- |
+| `name` | string | - | Endpoint label. |
+| `host` | string | `0.0.0.0` | Bind address. |
+| `port` | number | `3000` | Listen port. |
+| `path` | string | `/` | API path prefix. |
+| `accessToken` | string | auto | OneBot auth token. |
+
+## wsServers
+
+Starts an OneBot WebSocket server.
+
+| Field | Type | Default | Notes |
+| --- | --- | --- | --- |
+| `name` | string | - | Endpoint label. |
+| `host` | string | `0.0.0.0` | Bind address. |
+| `port` | number | `3001` | Listen port. |
+| `path` | string | `/` | WebSocket path. |
+| `role` | string | `universal` | `api` / `event` / `universal`. |
+| `accessToken` | string | auto | Connect auth token. |
+
+## wsClients
+
+SnowLuma actively connects to reverse WebSocket servers.
+
+| Field | Type | Default | Notes |
+| --- | --- | --- | --- |
+| `name` | string | - | Endpoint label. |
+| `url` | string | - | Reverse WebSocket URL. |
+| `role` | string | `universal` | `api` / `event` / `universal`. |
+| `accessToken` | string | auto | Auth token used when connecting. |
+| `reconnectIntervalMs` | number | `5000` | Reconnect interval; values below `1000` are clamped up. |
+
+## httpPostEndpoints
+
+Reports events to HTTP POST endpoints.
+
+| Field | Type | Default | Notes |
+| --- | --- | --- | --- |
+| `name` | string | - | Endpoint label. |
+| `url` | string | - | Report URL. |
+| `accessToken` | string | - | Report auth token. |
+| `timeoutMs` | number | - | Request timeout. |
+
+## Environment variables
+
+| Var | Notes |
+| --- | --- |
+| `SNOWLUMA_VERBOSE_WARMUP=1` | More detailed friend / group / member warm-up logs. |
+
+## Port conflicts
+
+If `3000` or `3001` is already taken, change the port in the per-account config and restart.

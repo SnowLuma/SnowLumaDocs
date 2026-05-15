@@ -1,0 +1,133 @@
+---
+title: Developer guide
+description: Monorepo layout, runtime startup chain, and contribution notes
+---
+
+SnowLuma is a TypeScript + native-module hybrid. TypeScript handles runtime orchestration, the OneBot implementation, the protocol bridge, and the WebUI; native modules handle the hook, injection, and the high-performance WebSocket implementation.
+
+## Monorepo layout
+
+```text
+SnowLuma/
+├─ packages/
+│  ├─ core/        @snowluma/core
+│  ├─ websocket/   @snowluma/websocket
+│  ├─ webui/       React + Vite frontend
+│  └─ runtime/     distribution assets
+├─ native/         platform native artefacts
+├─ dist/           build output
+├─ tools/          helper scripts
+└─ package.json
+```
+
+## Core startup chain
+
+`packages/core/src/index.ts` is the core entry point.
+
+```text
+NtqqHandler
+  ↓
+BridgeManager
+  ↓
+OneBotManager
+  ↓
+OneBotInstance
+```
+
+On startup the runtime creates:
+
+- **NtqqHandler** — decodes NTQQ packets.
+- **BridgeManager** — translates NTQQ packets into bridge events and OneBot action calls.
+- **OneBotManager** — manages OneBot instances keyed by UIN.
+- **HookManager** — discovers QQ processes and performs hook injection.
+- **WebUI Server** — enabled in the full build; default port comes from the runtime config or `8080`.
+
+## Hook + native modules
+
+The native hook module is loaded via `process.dlopen()`.
+
+Filename convention:
+
+```text
+snowluma-win32-x64.node
+snowluma-win32-x64.dll
+snowluma-linux-x64.node
+snowluma-linux-x64.so
+```
+
+Search paths:
+
+```text
+native/
+dist/native/
+packages/runtime/native/
+```
+
+Native addon capabilities:
+
+- **getAllMainProcess** — enumerate QQ main processes.
+- **loadModuleManual** — manually map an injection module into the target process.
+- **unloadModuleManual** — unload an injected module.
+
+Default target process: `QQ.exe` on Windows, `qq` elsewhere.
+
+## OneBot lifecycle
+
+When the bridge layer detects a QQ session starting:
+
+1. Load `config/onebot_<uin>.json` for the UIN.
+2. Construct `OneBotInstance`.
+3. Start the HTTP / WebSocket / HTTP POST transports.
+4. Asynchronously warm up the friend list, group list, and group member list.
+5. Translate bridge events into OneBot events.
+
+When the session closes the matching OneBot instance is released.
+
+## WebSocket package
+
+`@snowluma/websocket` is the in-repo WebSocket implementation; its surface is intentionally close to the `ws` package.
+
+Exports:
+
+- **WebSocket** — client constructor.
+- **WebSocketServer** — server constructor.
+- **Server** — alias for `WebSocketServer`.
+- **InternalWebSocket** — internal connection implementation.
+
+It also depends on a platform-specific `.node` file.
+
+## Dev scripts
+
+```bash
+pnpm install
+pnpm dev
+pnpm dev:web
+pnpm build
+pnpm build:webui
+pnpm build:all
+pnpm test
+pnpm typecheck
+pnpm lint
+```
+
+## Build order
+
+The full distribution uses:
+
+```bash
+pnpm build:all
+```
+
+That builds, in order:
+
+1. `@snowluma/core`
+2. `webui`
+
+Output goes to the repo root `dist/` directory.
+
+## Contribution notes
+
+- **Don't bypass BridgeManager** — the OneBot layer should call NTQQ via the bridge.
+- **Keep configs auto-generatable** — new fields must stay backwards-compatible.
+- **Native modules are per-platform** — when adding a new platform, sync the `.node` and the injectable library.
+- **Tests first** — core OneBot behavior should be validated with `vitest`.

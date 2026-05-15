@@ -1,0 +1,62 @@
+---
+title: Introduction
+description: A Remote Protocol Framework for NTQQ
+---
+
+SnowLuma is a Remote Protocol Framework targeting NTQQ. The project is in early, fast-moving development and currently runs only in headed mode with a partial feature set.
+
+The codebase is a TypeScript + native-module hybrid: TypeScript drives the runtime, bridge, OneBot, and WebUI; native modules handle the QQ process hook, injection, and the low-level WebSocket implementation.
+
+## What you can use it for
+
+- **OneBot**: HTTP, WebSocket, reverse WebSocket, and HTTP POST event reporting.
+- **NTQQ bridge**: capture and decode NTQQ packets through the hook, then translate them into upper-layer events.
+- **Multi-account sessions**: each UIN gets an isolated OneBot instance and per-account config.
+- **WebUI**: the full build ships an in-process WebUI for status and management.
+
+## Requirements
+
+| Item | Required |
+| --- | --- |
+| Node.js | `>= 22` |
+| Package manager | `pnpm 10.x` |
+| QQ client | NTQQ, headed |
+| Native addon | A matching `.node` / `.dll` / `.so` for your platform |
+
+## Quick start
+
+```bash
+pnpm install
+pnpm build:all
+pnpm start
+```
+
+Run the core runtime in dev mode:
+
+```bash
+pnpm dev
+```
+
+Run the WebUI in dev mode:
+
+```bash
+pnpm dev:web
+```
+
+## Common scripts
+
+| Command | What it does |
+| --- | --- |
+| `pnpm dev` | Start `@snowluma/core` in dev mode. |
+| `pnpm dev:web` | Start the WebUI Vite dev server. |
+| `pnpm build` | Build the core runtime only. |
+| `pnpm build:webui` | Build the WebUI only. |
+| `pnpm build:all` | Build the full distribution (core + WebUI). |
+| `pnpm start` | Run `dist/index.mjs`. |
+| `pnpm test` | Run core tests. |
+| `pnpm typecheck` | Run type-checking. |
+| `pnpm lint` | Run the linter. |
+
+## Status
+
+SnowLuma is still in early development. If you hit a missing API, a missing platform native, or OneBot behavior that does not match the spec, check the current branch's README, configuration, and build artefacts first.
