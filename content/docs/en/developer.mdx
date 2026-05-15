@@ -3,59 +3,63 @@ title: Developer guide
 description: Monorepo layout, runtime startup chain, and contribution notes
 ---
 
-SnowLuma is a TypeScript + native-module hybrid. TypeScript handles runtime orchestration, the OneBot implementation, the protocol bridge, and the WebUI; native modules handle the hook, injection, and the high-performance WebSocket implementation.
+SnowLuma is a TypeScript + native-module hybrid. TypeScript handles runtime orchestration, the OneBot implementation, the protocol bridge, the SDK, and the WebUI; native modules cover the hook, injection, and the high-performance WebSocket implementation.
 
 ## Monorepo layout
+
+pnpm workspace with five packages:
 
 ```text
 SnowLuma/
 ├─ packages/
-│  ├─ core/        @snowluma/core
-│  ├─ websocket/   @snowluma/websocket
-│  ├─ webui/       React + Vite frontend
-│  └─ runtime/     distribution assets
-├─ native/         platform native artefacts
+│  ├─ core/        @snowluma/core       Bridge / OneBot / Hook orchestration
+│  ├─ websocket/   @snowluma/websocket  In-tree WS impl (uses native addon)
+│  ├─ sdk/         @snowluma/sdk        Typed OneBot client for external use
+│  ├─ webui/       webui                React + Vite console
+│  └─ runtime/     distribution templates (launcher, package.json, scripts)
+├─ native/         per-platform native artefacts (.node / .dll / .so)
 ├─ dist/           build output
-├─ tools/          helper scripts
+├─ tools/          helper scripts (version bump, release, etc.)
+├─ docs/           ADRs and developer notes
 └─ package.json
 ```
 
 ## Core startup chain
 
-`packages/core/src/index.ts` is the core entry point.
+Entry point: [`packages/core/src/index.ts`](https://github.com/SnowLuma/SnowLuma/blob/main/packages/core/src/index.ts).
 
 ```text
-NtqqHandler
+loadRuntimeConfig()           ← reads config/runtime.json / env
+  ↓
+HookManager(autoLoadOnDiscovery)
   ↓
 BridgeManager
   ↓
-OneBotManager
+OneBotManager                 ← spins up OneBotInstance per UIN
   ↓
-OneBotInstance
+initWebUI(port=webuiPort)     ← full builds only
 ```
 
-On startup the runtime creates:
+What the runtime creates:
 
-- **NtqqHandler** — decodes NTQQ packets.
-- **BridgeManager** — translates NTQQ packets into bridge events and OneBot action calls.
-- **OneBotManager** — manages OneBot instances keyed by UIN.
-- **HookManager** — discovers QQ processes and performs hook injection.
-- **WebUI Server** — enabled in the full build; default port comes from the runtime config or `8080`.
+- **`HookManager`** — discovers QQ main processes and injects the native addon. With `hookAutoLoad: true`, every new PID gets injected automatically.
+- **`BridgeManager`** — decodes hook messages from the named pipe into bridge events; caches rkey / contacts / group members.
+- **`OneBotManager`** — owns `OneBotInstance`s keyed by UIN; each instance has its own `MessageStore`, `MediaStore`, and `NetworkManager`.
+- **`initWebUI`** — full builds boot the WebUI; default port `5099` (override via `runtime.json.webuiPort`).
 
 ## Hook + native modules
 
-The native hook module is loaded via `process.dlopen()`.
+The native hook module is loaded via `process.dlopen()`. Source lives in the separate [`dev/nnphook`](https://github.com/SnowLuma/nnphook) repo.
 
 Filename convention:
 
 ```text
-snowluma-win32-x64.node
-snowluma-win32-x64.dll
-snowluma-linux-x64.node
-snowluma-linux-x64.so
+snowluma-win32-x64.node    snowluma-win32-x64.dll
+snowluma-linux-x64.node    snowluma-linux-x64.so
+snowluma-linux-arm64.node  snowluma-linux-arm64.so
 ```
 
-Search paths:
+Load search paths:
 
 ```text
 native/
@@ -63,71 +67,92 @@ dist/native/
 packages/runtime/native/
 ```
 
-Native addon capabilities:
+Native addon API:
 
-- **getAllMainProcess** — enumerate QQ main processes.
-- **loadModuleManual** — manually map an injection module into the target process.
-- **unloadModuleManual** — unload an injected module.
+- **`getAllMainProcess`** — enumerate QQ main processes.
+- **`loadModuleManual`** — manually map the injection module into the target process.
+- **`unloadModuleManual`** — unload an injected module.
 
-Default target process: `QQ.exe` on Windows, `qq` elsewhere.
+Default target process is `QQ.exe` on Windows, `qq` on Linux.
 
 ## OneBot lifecycle
 
-When the bridge layer detects a QQ session starting:
+When the bridge detects a QQ session starting:
 
-1. Load `config/onebot_<uin>.json` for the UIN.
+1. Load `config/onebot_<uin>.json` (or copy from global if missing).
 2. Construct `OneBotInstance`.
-3. Start the HTTP / WebSocket / HTTP POST transports.
-4. Asynchronously warm up the friend list, group list, and group member list.
-5. Translate bridge events into OneBot events.
+3. Boot HTTP / WS / reverse WS / HTTP-POST adapters per `networks.*` config.
+4. Asynchronously warm up the friend list, group list, and group members.
+5. Forward bridge events into OneBot events.
 
-When the session closes the matching OneBot instance is released.
+When the session closes the matching instance is released.
 
 ## WebSocket package
 
-`@snowluma/websocket` is the in-repo WebSocket implementation; its surface is intentionally close to the `ws` package.
+`@snowluma/websocket` is the in-repo WebSocket implementation; its surface tracks `ws` closely while routing through a native fast path.
 
 Exports:
 
-- **WebSocket** — client constructor.
-- **WebSocketServer** — server constructor.
-- **Server** — alias for `WebSocketServer`.
-- **InternalWebSocket** — internal connection implementation.
+- **`WebSocket`** — client constructor.
+- **`WebSocketServer`** — server constructor.
+- **`Server`** — alias for `WebSocketServer`.
+- **`InternalWebSocket`** — internal connection implementation.
 
-It also depends on a platform-specific `.node` file.
+Loads its own platform-specific `.node` from the same `native/` search paths.
+
+## SDK package
+
+`@snowluma/sdk` is a typed OneBot client meant for downstream consumers:
+
+- HTTP, WebSocket, and reverse-WS transports.
+- Auto-reconnect, event subscription, ack correlation.
+- Shares action types with `@snowluma/core` so they cannot drift.
+
+Standalone-publishable to npm; doesn't depend on the SnowLuma runtime.
 
 ## Dev scripts
 
 ```bash
 pnpm install
-pnpm dev
-pnpm dev:web
-pnpm build
-pnpm build:webui
-pnpm build:all
-pnpm test
-pnpm typecheck
-pnpm lint
+pnpm dev              # core dev mode
+pnpm dev:web          # WebUI dev server
+pnpm build            # core only
+pnpm build:webui      # WebUI only
+pnpm build:sdk        # SDK only
+pnpm build:all        # core + SDK + WebUI
+pnpm test             # core tests
+pnpm typecheck        # workspace typecheck
+pnpm lint             # workspace lint
 ```
 
 ## Build order
 
-The full distribution uses:
+Full distribution:
 
 ```bash
 pnpm build:all
 ```
 
-That builds, in order:
+Runs, in order:
 
-1. `@snowluma/core`
-2. `webui`
+1. `@snowluma/core` full build
+2. `@snowluma/sdk`
+3. `webui`
 
-Output goes to the repo root `dist/` directory.
+Output goes to the repo root `dist/`.
+
+## Docs site
+
+The docs site lives in a separate repo: [`SnowLuma/SnowLumaDocs`](https://github.com/SnowLuma/SnowLumaDocs). Local development usually checks it out at `dev/SnowLumaDocs/` alongside SnowLuma.
+
+Stack: Next.js 16 + Fumadocs 16 + Tailwind 4 + MDX.
+
+The OneBot API reference is generated by the docs repo's `pnpm openapi:generate`, which AST-scans `packages/core/src/onebot/actions/` and writes `content/api/openapi.json`. Re-run after adding or renaming actions.
 
 ## Contribution notes
 
-- **Don't bypass BridgeManager** — the OneBot layer should call NTQQ via the bridge.
-- **Keep configs auto-generatable** — new fields must stay backwards-compatible.
-- **Native modules are per-platform** — when adding a new platform, sync the `.node` and the injectable library.
-- **Tests first** — core OneBot behavior should be validated with `vitest`.
+- **Don't bypass `BridgeManager`** — every OneBot action should reach NTQQ through `BridgeInterface`. Keeps the OneBot layer decoupled and testable.
+- **Keep configs auto-generatable** — new fields must stay backwards-compatible; normalize them on load and write the result back.
+- **Native modules are per-platform** — when adding a platform, sync the `.node` and the injectable library.
+- **Tests first** — core OneBot behavior should be validated with `vitest`; see `packages/core/tests/`.
+- **OpenAPI automation** — after adding a `registerAction`, run `pnpm openapi:generate` in the docs repo so the API reference doesn't drift.

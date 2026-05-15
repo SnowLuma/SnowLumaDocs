@@ -1,102 +1,153 @@
 ---
 title: Configuration
-description: OneBot instance config file layout and field reference
+description: OneBot instance config and runtime config file reference
 ---
 
-OneBot config is JSON. The first time you start an instance for a UIN, SnowLuma reads the global config and produces a per-account file.
+SnowLuma stores configuration in two JSON files:
 
-## Files
+- **`config/onebot.json` + `config/onebot_<uin>.json`** — OneBot network adapters (HTTP/WebSocket listeners, reverse WS, HTTP event reporting).
+- **`config/runtime.json`** — process-level settings (WebUI port, auto-injection toggle).
+
+Both files are auto-generated on first run and normalized on every load.
+
+## OneBot config
+
+### File locations
 
 ```text
-config/onebot.json
-config/onebot_<uin>.json
+config/onebot.json          # global defaults
+config/onebot_<uin>.json    # per-account overrides
 ```
 
 - **Global**: `config/onebot.json` — the default for every account.
 - **Per-account**: `config/onebot_<uin>.json` — overrides the global file.
 - **Auto-generated**: missing per-account config or access tokens are written automatically in normalized form on first run.
 
-## Default config
+### Default config
+
+Adapters are grouped by kind under a single `networks` object:
 
 ```json
 {
-  "httpServers": [
-    {
-      "host": "0.0.0.0",
-      "port": 3000,
-      "path": "/",
-      "accessToken": "auto-generated"
-    }
-  ],
-  "httpPostEndpoints": [],
-  "wsServers": [
-    {
-      "host": "0.0.0.0",
-      "port": 3001,
-      "path": "/",
-      "role": "universal",
-      "accessToken": "auto-generated"
-    }
-  ],
-  "wsClients": [],
+  "networks": {
+    "httpServers": [
+      {
+        "name": "http-default",
+        "enabled": true,
+        "host": "0.0.0.0",
+        "port": 3000,
+        "path": "/",
+        "accessToken": "auto-generated",
+        "messageFormat": "array",
+        "reportSelfMessage": false
+      }
+    ],
+    "httpClients": [],
+    "wsServers": [
+      {
+        "name": "ws-default",
+        "enabled": true,
+        "host": "0.0.0.0",
+        "port": 3001,
+        "path": "/",
+        "role": "Universal",
+        "accessToken": "auto-generated",
+        "messageFormat": "array",
+        "reportSelfMessage": false
+      }
+    ],
+    "wsClients": []
+  },
   "musicSignUrl": ""
 }
 ```
 
-## httpServers
+<Callout type="info">
+**Migrating from the old format**: earlier versions kept `httpServers` / `wsServers` arrays at the top level and used `httpPostEndpoints` for reporting. SnowLuma detects this layout, moves the entries into the `networks` object, renames `httpPostEndpoints` to `httpClients`, and writes the result back to disk. If you maintain configs by hand, use the new shape.
+</Callout>
 
-Starts an OneBot HTTP API.
+### Shared fields
+
+Every adapter accepts these (`NetworkBase`):
 
 | Field | Type | Default | Notes |
 | --- | --- | --- | --- |
-| `name` | string | - | Endpoint label. |
+| `name` | string | required | Identifier unique within its kind array; hot-reload addresses it by `(kind, name)`. |
+| `enabled` | bool | `true` | Set `false` to keep the configuration but skip starting this adapter. |
+| `accessToken` | string | auto | OneBot bearer / `?access_token=`. |
+| `messageFormat` | string | `array` | `array` or `string` — controls whether the event `message` field is a segment array or a flattened string. |
+| `reportSelfMessage` | bool | `false` | When `true`, this adapter sees `post_type='message_sent'` events. |
+
+### `httpServers`
+
+OneBot HTTP API listener.
+
+| Field | Type | Default | Notes |
+| --- | --- | --- | --- |
 | `host` | string | `0.0.0.0` | Bind address. |
 | `port` | number | `3000` | Listen port. |
 | `path` | string | `/` | API path prefix. |
-| `accessToken` | string | auto | OneBot auth token. |
 
-## wsServers
+### `httpClients`
 
-Starts an OneBot WebSocket server.
+Push events to external endpoints (formerly `httpPostEndpoints`).
 
 | Field | Type | Default | Notes |
 | --- | --- | --- | --- |
-| `name` | string | - | Endpoint label. |
+| `url` | string | required | Report URL. |
+| `timeoutMs` | number | `5000` | Request timeout. |
+
+### `wsServers`
+
+OneBot WebSocket server.
+
+| Field | Type | Default | Notes |
+| --- | --- | --- | --- |
 | `host` | string | `0.0.0.0` | Bind address. |
 | `port` | number | `3001` | Listen port. |
 | `path` | string | `/` | WebSocket path. |
-| `role` | string | `universal` | `api` / `event` / `universal`. |
-| `accessToken` | string | auto | Connect auth token. |
+| `role` | string | `Universal` | `Api`, `Event`, or `Universal` (**TitleCase**; older lowercase values are no longer accepted). |
 
-## wsClients
+### `wsClients`
 
-SnowLuma actively connects to reverse WebSocket servers.
-
-| Field | Type | Default | Notes |
-| --- | --- | --- | --- |
-| `name` | string | - | Endpoint label. |
-| `url` | string | - | Reverse WebSocket URL. |
-| `role` | string | `universal` | `api` / `event` / `universal`. |
-| `accessToken` | string | auto | Auth token used when connecting. |
-| `reconnectIntervalMs` | number | `5000` | Reconnect interval; values below `1000` are clamped up. |
-
-## httpPostEndpoints
-
-Reports events to HTTP POST endpoints.
+Connect outbound to reverse WebSocket servers.
 
 | Field | Type | Default | Notes |
 | --- | --- | --- | --- |
-| `name` | string | - | Endpoint label. |
-| `url` | string | - | Report URL. |
-| `accessToken` | string | - | Report auth token. |
-| `timeoutMs` | number | - | Request timeout. |
+| `url` | string | required | Reverse WebSocket URL. |
+| `role` | string | `Universal` | Same values as `wsServers.role`. |
+| `reconnectIntervalMs` | number | `5000` | Reconnect interval; clamped to a `1000` minimum. |
+
+### `musicSignUrl`
+
+Optional URL for a custom music-card signing service. Empty string disables.
+
+## Runtime config (`runtime.json`)
+
+`config/runtime.json` carries process-wide settings — **not per-account**.
+
+```json
+{
+  "webuiPort": 5099,
+  "hookAutoLoad": false
+}
+```
+
+| Field | Type | Default | Notes |
+| --- | --- | --- | --- |
+| `webuiPort` | number | `5099` | WebUI listen port; out-of-range values fall back to the default. |
+| `hookAutoLoad` | bool | `false` | Auto-inject the hook into every newly discovered QQ process. The Docker image flips this on. |
 
 ## Environment variables
 
 | Var | Notes |
 | --- | --- |
-| `SNOWLUMA_VERBOSE_WARMUP=1` | More detailed friend / group / member warm-up logs. |
+| `SNOWLUMA_HOOK_AUTOLOAD` | `1` / `true` forces auto-injection on; `0` / `false` off. **Wins over `runtime.json`**, which makes Docker overrides ergonomic. |
+| `SNOWLUMA_LOG_LEVEL` | Log level (`error` / `warn` / `info` / `debug`). |
+| `SNOWLUMA_VERBOSE_WARMUP=1` | Verbose friend / group / member warm-up logs. |
+| `SNOWLUMA_DEV_MODE=1` | Enable dev mode (relaxes WebUI auth for local debugging). |
+| `SNOWLUMA_DEV_WEBUI=1` | Force-start the bundled WebUI under dev mode. |
 
 ## Port conflicts
 
-If `3000` or `3001` is already taken, change the port in the per-account config and restart.
+If `3000` / `3001` / `5099` are taken, change the matching `port` / `webuiPort` and restart. Docker users can also remap host ports via Compose (see [Docker deployment](/docs/docker)).

@@ -3,41 +3,53 @@ title: 介绍
 description: 面向 NTQQ 的 Remote Protocol Framework
 ---
 
-SnowLuma 是一个面向 NTQQ 的 Remote Protocol Framework，当前处于早期高速迭代阶段，仅支持部分功能，现阶段以有头运行方式为主。
+SnowLuma 是一个面向 NTQQ 的 Remote Protocol Framework，当前处于早期高速迭代阶段，仅支持部分功能。Windows / macOS 通过 GUI 模式运行；Linux 通过 [Docker 容器](/docs/docker) 运行（容器内是有头 Xvfb + VNC）。
 
-项目整体采用 TypeScript + 原生模块架构：TypeScript 负责运行时、桥接、OneBot 与 WebUI，原生模块负责 QQ 进程 Hook、注入和底层 WebSocket 能力。
+项目采用 TypeScript + 原生模块架构：TypeScript 负责运行时、桥接、OneBot 与 WebUI；原生模块负责 QQ 进程 Hook、注入和底层 WebSocket 能力。
 
 ## 你可以用它做什么
 
-- **接入 OneBot**：提供 HTTP、WebSocket、反向 WebSocket 与 HTTP POST 事件上报。
-- **桥接 NTQQ**：通过 Hook 捕获并解析 NTQQ 数据包，再转换为上层事件。
-- **管理多账号会话**：每个 UIN 会生成独立 OneBot 实例和账号级配置。
-- **使用 WebUI**：完整构建可启动内置 WebUI，便于查看和管理运行状态。
+- **接入 OneBot v11**：HTTP / WebSocket / 反向 WebSocket / HTTP 上报四种适配器。
+- **桥接 NTQQ**：通过 Hook 捕获并解析 NTQQ 数据包，再转换为上层事件 / 动作。
+- **多账号会话**：每个 UIN 一个独立 OneBot 实例，配置可继承全局或单独覆盖。
+- **内置 WebUI**：完整构建启动后可访问 Web 控制台查看状态、管理网络适配器。
+- **TypeScript SDK**：`@snowluma/sdk` 提供类型完备的 OneBot HTTP / WS 客户端。
 
 ## 运行要求
 
 | 项目 | 要求 |
 | --- | --- |
 | Node.js | `>= 22` |
-| 包管理器 | `pnpm 10.x` |
+| 包管理器 | `pnpm ≥ 10`（仓库锁定 `10.28.0`） |
 | QQ 客户端 | NTQQ，有头运行 |
-| 原生模块 | 需要匹配当前平台与架构的 `.node` / `.dll` / `.so` |
+| 原生模块 | 匹配当前平台与架构的 `.node` / `.dll` / `.so` |
+| 系统 | Windows / macOS 原生；Linux 通过 Docker |
 
-## 快速开始
+## 三种用法
+
+| 场景 | 推荐方式 |
+| --- | --- |
+| 部署到服务器 | [Docker 容器](/docs/docker) —— 镜像内置 QQ + Xvfb + VNC，开箱即用 |
+| 本机使用预发行版 | 从 [GitHub Release](https://github.com/SnowLuma/SnowLuma/releases) 下载对应平台的 `lite` / 完整 tarball，解压后 `node ./index.mjs` |
+| 从源码开发 | `pnpm install && pnpm dev` |
+
+## 从源码快速开始
 
 ```bash
+git clone https://github.com/SnowLuma/SnowLuma.git
+cd SnowLuma
 pnpm install
 pnpm build:all
 pnpm start
 ```
 
-开发核心运行时：
+开发模式（核心运行时 + 自动重载）：
 
 ```bash
 pnpm dev
 ```
 
-开发 WebUI：
+WebUI 单独热重载：
 
 ```bash
 pnpm dev:web
@@ -51,44 +63,55 @@ pnpm dev:web
 | `pnpm dev:web` | 启动 WebUI Vite 开发服务器。 |
 | `pnpm build` | 仅构建核心运行时。 |
 | `pnpm build:webui` | 仅构建 WebUI。 |
-| `pnpm build:all` | 构建核心与 WebUI 完整发行版。 |
+| `pnpm build:sdk` | 构建可发布的 SDK 包。 |
+| `pnpm build:all` | 构建核心 + SDK + WebUI 完整发行版。 |
 | `pnpm start` | 运行 `dist/index.mjs`。 |
 | `pnpm test` | 运行核心测试。 |
-| `pnpm typecheck` | 执行类型检查。 |
+| `pnpm typecheck` | 整仓类型检查。 |
 | `pnpm lint` | 执行 lint。 |
 
 ## 发行目录
 
-构建产物会输出到仓库根目录 `dist/`。
+`pnpm build:all` 产物输出到仓库根目录 `dist/`：
 
 ```text
 dist/
-├─ index.mjs
-├─ launcher.bat
+├─ index.mjs            # 主入口
+├─ launcher.bat         # Windows 启动器
 ├─ package.json
-└─ native/
+├─ webui/               # 内置 WebUI 静态资源
+└─ native/              # 平台原生产物
    ├─ snowluma-win32-x64.node
    ├─ snowluma-win32-x64.dll
-   └─ websocket-win32-x64.node
+   ├─ snowluma-linux-x64.node
+   ├─ snowluma-linux-x64.so
+   └─ websocket-<platform>-<arch>.node
 ```
 
-Windows 下也可以通过 `launcher.bat` 启动，它会执行：
+Windows 下也可以通过 `launcher.bat` 启动：
 
 ```bat
 node ./index.mjs
 pause
 ```
 
+GitHub Release 还会发布两类 tarball：
+
+- `SnowLuma-<TAG>-<platform>-<arch>.tar.gz` —— 含 Node.js 运行时的完整包。
+- `SnowLuma-<TAG>-<platform>-<arch>-lite.tar.gz` —— 不含 Node.js（适合容器或本机已装 Node 22+ 的用户，体积小很多）。
+
 ## 默认服务
 
-首次启动 OneBot 实例时，SnowLuma 会自动创建配置文件。
+首次启动 OneBot 实例时，SnowLuma 会自动创建 `config/onebot.json`、`config/onebot_<uin>.json` 和 `config/runtime.json`。
 
-| 服务 | 默认地址 |
-| --- | --- |
-| OneBot HTTP | `http://0.0.0.0:3000/` |
-| OneBot WebSocket | `ws://0.0.0.0:3001/` |
-| WebUI | 完整构建中默认使用运行时配置，未配置时为 `8080` |
+| 服务 | 默认地址 | 配置项 |
+| --- | --- | --- |
+| OneBot HTTP | `http://0.0.0.0:3000/` | `networks.httpServers[].port` |
+| OneBot WebSocket | `ws://0.0.0.0:3001/` | `networks.wsServers[].port` |
+| WebUI | `http://0.0.0.0:5099/` | `runtime.json` 的 `webuiPort` |
+
+详细字段说明见 [配置参考](/docs/configuration)。
 
 ## 项目状态
 
-SnowLuma 仍处于开发初期。如果你在使用时遇到接口缺失、平台原生产物缺失或 OneBot 行为不一致，请优先检查当前分支的 README、配置文件和构建产物。
+SnowLuma 仍在早期开发，破坏性更新概率较高。遇到接口缺失、平台原生产物缺失或 OneBot 行为不一致时，请优先检查当前分支的 README、配置文件和构建产物。

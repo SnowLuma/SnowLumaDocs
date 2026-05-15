@@ -3,41 +3,53 @@ title: Introduction
 description: A Remote Protocol Framework for NTQQ
 ---
 
-SnowLuma is a Remote Protocol Framework targeting NTQQ. The project is in early, fast-moving development and currently runs only in headed mode with a partial feature set.
+SnowLuma is a Remote Protocol Framework for NTQQ. It's in early, fast-moving development with a partial feature set. Windows and macOS run it natively; Linux runs it inside a [Docker container](/docs/docker) (headed QQ on Xvfb + VNC).
 
-The codebase is a TypeScript + native-module hybrid: TypeScript drives the runtime, bridge, OneBot, and WebUI; native modules handle the QQ process hook, injection, and the low-level WebSocket implementation.
+The codebase is a TypeScript + native-module hybrid: TypeScript handles the runtime, bridge, OneBot, and WebUI; native modules cover the QQ process hook, injection, and the low-level WebSocket implementation.
 
 ## What you can use it for
 
-- **OneBot**: HTTP, WebSocket, reverse WebSocket, and HTTP POST event reporting.
-- **NTQQ bridge**: capture and decode NTQQ packets through the hook, then translate them into upper-layer events.
-- **Multi-account sessions**: each UIN gets an isolated OneBot instance and per-account config.
-- **WebUI**: the full build ships an in-process WebUI for status and management.
+- **OneBot v11**: HTTP, WebSocket, reverse WebSocket, and HTTP event-reporting adapters.
+- **NTQQ bridge**: capture and decode NTQQ packets through the hook, translate them to higher-level events and actions.
+- **Multi-account sessions**: one OneBot instance per UIN, with per-account config that inherits from the global file.
+- **Built-in WebUI**: the full build ships a web console for status and adapter management.
+- **TypeScript SDK**: `@snowluma/sdk` is a typed OneBot HTTP / WS client.
 
 ## Requirements
 
 | Item | Required |
 | --- | --- |
 | Node.js | `>= 22` |
-| Package manager | `pnpm 10.x` |
+| Package manager | `pnpm ≥ 10` (repo pins `10.28.0`) |
 | QQ client | NTQQ, headed |
-| Native addon | A matching `.node` / `.dll` / `.so` for your platform |
+| Native addon | Matching `.node` / `.dll` / `.so` for your platform |
+| OS | Windows / macOS native; Linux via Docker |
 
-## Quick start
+## Three ways to run it
+
+| Use case | Recommended path |
+| --- | --- |
+| Server deployment | [Docker container](/docs/docker) — image bundles QQ + Xvfb + VNC, works out of the box |
+| Local prebuilt | Grab the matching `lite` / full tarball from [GitHub Releases](https://github.com/SnowLuma/SnowLuma/releases), unpack, `node ./index.mjs` |
+| From source | `pnpm install && pnpm dev` |
+
+## Quick start from source
 
 ```bash
+git clone https://github.com/SnowLuma/SnowLuma.git
+cd SnowLuma
 pnpm install
 pnpm build:all
 pnpm start
 ```
 
-Run the core runtime in dev mode:
+Dev mode (core with reload):
 
 ```bash
 pnpm dev
 ```
 
-Run the WebUI in dev mode:
+WebUI HMR alone:
 
 ```bash
 pnpm dev:web
@@ -51,12 +63,55 @@ pnpm dev:web
 | `pnpm dev:web` | Start the WebUI Vite dev server. |
 | `pnpm build` | Build the core runtime only. |
 | `pnpm build:webui` | Build the WebUI only. |
-| `pnpm build:all` | Build the full distribution (core + WebUI). |
+| `pnpm build:sdk` | Build the publishable SDK package. |
+| `pnpm build:all` | Build core + SDK + WebUI. |
 | `pnpm start` | Run `dist/index.mjs`. |
 | `pnpm test` | Run core tests. |
-| `pnpm typecheck` | Run type-checking. |
+| `pnpm typecheck` | Type-check the whole workspace. |
 | `pnpm lint` | Run the linter. |
+
+## Distribution layout
+
+`pnpm build:all` writes to the repo root `dist/`:
+
+```text
+dist/
+├─ index.mjs            # main entry
+├─ launcher.bat         # Windows launcher
+├─ package.json
+├─ webui/               # bundled WebUI assets
+└─ native/              # platform natives
+   ├─ snowluma-win32-x64.node
+   ├─ snowluma-win32-x64.dll
+   ├─ snowluma-linux-x64.node
+   ├─ snowluma-linux-x64.so
+   └─ websocket-<platform>-<arch>.node
+```
+
+`launcher.bat` on Windows:
+
+```bat
+node ./index.mjs
+pause
+```
+
+GitHub Releases also publish two tarball flavors per platform:
+
+- `SnowLuma-<TAG>-<platform>-<arch>.tar.gz` — full package with the bundled Node.js runtime.
+- `SnowLuma-<TAG>-<platform>-<arch>-lite.tar.gz` — no Node.js (smaller; meant for containers or machines that already have Node 22+).
+
+## Default services
+
+Starting an OneBot instance creates `config/onebot.json`, `config/onebot_<uin>.json`, and `config/runtime.json` on first run.
+
+| Service | Default URL | Configured by |
+| --- | --- | --- |
+| OneBot HTTP | `http://0.0.0.0:3000/` | `networks.httpServers[].port` |
+| OneBot WebSocket | `ws://0.0.0.0:3001/` | `networks.wsServers[].port` |
+| WebUI | `http://0.0.0.0:5099/` | `runtime.json` → `webuiPort` |
+
+Full field reference: [Configuration](/docs/configuration).
 
 ## Status
 
-SnowLuma is still in early development. If you hit a missing API, a missing platform native, or OneBot behavior that does not match the spec, check the current branch's README, configuration, and build artefacts first.
+SnowLuma is still in early development; breaking changes are common. When you hit a missing API, a missing platform native, or unexpected OneBot behavior, check the current branch's README, config files, and build artefacts first.

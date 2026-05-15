@@ -1,0 +1,251 @@
+---
+title: Docker deployment
+description: Run SnowLuma on Linux with the official Docker image
+---
+
+On Linux, SnowLuma runs **only via Docker**. The image bundles Linux QQ + Xvfb + VNC + noVNC + supervisord + the SnowLuma `lite` distribution, so the host needs nothing beyond Docker.
+
+The image build scripts and Compose template live in a separate repo: [`SnowLuma/SnowLuma.Docker.Framework`](https://github.com/SnowLuma/SnowLuma.Docker.Framework).
+
+## Image
+
+| Item | Value |
+| --- | --- |
+| Image | `motricseven7/snowluma:latest` (or a specific tag, e.g. `:v1.8.0`) |
+| Arch | `linux/amd64`, `linux/arm64` |
+| Base | `node:22-bookworm-slim` |
+| Bundled | Linux QQ, Xvfb, VNC, noVNC, supervisord, SnowLuma `lite` |
+
+The image does **not** rebuild SnowLuma — it consumes the prebuilt `lite` tarball from each SnowLuma GitHub Release, so the release and the image build are decoupled.
+
+## Ports
+
+| Port | Purpose |
+| --- | --- |
+| `5900` | VNC (remote desktop — needed to scan-login QQ) |
+| `6081` | noVNC (browser VNC, no client needed) |
+| `5099` | SnowLuma WebUI |
+| `3000` | OneBot HTTP (default) |
+| `3001` | OneBot WebSocket (default) |
+
+## One-line docker run
+
+```bash
+docker run -d \
+  --name snowluma \
+  --restart unless-stopped \
+  --shm-size=1g \
+  --cap-add=SYS_PTRACE \
+  --security-opt seccomp=unconfined \
+  -e VNC_PASSWD=vncpasswd \
+  -p 5900:5900 \
+  -p 6081:6081 \
+  -p 5099:5099 \
+  -p 3000:3000 \
+  -p 3001:3001 \
+  -v snowluma-data:/app/snowluma-data \
+  -v snowluma-qq-config:/app/.config \
+  -v snowluma-qq-data:/app/.local/share \
+  motricseven7/snowluma:latest
+```
+
+<Callout type="warn">
+`--cap-add=SYS_PTRACE` and `--security-opt seccomp=unconfined` are **mandatory**. SnowLuma's native addon uses ptrace to inject the hook into the QQ process; the default seccomp profile blocks that.
+</Callout>
+
+`--shm-size=1g` is needed for QQ's Chromium runtime — the default container `/dev/shm` is too small and QQ will crash.
+
+## docker-compose
+
+Recommended over `docker run`. The repo's `docker-compose.yml`:
+
+```yaml
+services:
+  snowluma:
+    image: ${SNOWLUMA_IMAGE:-motricseven7/snowluma:latest}
+    container_name: ${SNOWLUMA_CONTAINER:-snowluma}
+    restart: unless-stopped
+    shm_size: 1gb
+    cap_add:
+      - SYS_PTRACE
+    security_opt:
+      - seccomp=unconfined
+    environment:
+      VNC_PASSWD: ${VNC_PASSWD:-vncpasswd}
+      SNOWLUMA_UID: ${SNOWLUMA_UID:-1000}
+      SNOWLUMA_GID: ${SNOWLUMA_GID:-1000}
+      SNOWLUMA_WEBUI_PORT: ${SNOWLUMA_WEBUI_PORT:-5099}
+      SNOWLUMA_LOG_LEVEL: ${SNOWLUMA_LOG_LEVEL:-info}
+      SNOWLUMA_SCREEN: ${SNOWLUMA_SCREEN:-1920x1080x16}
+      SNOWLUMA_HOOK_AUTOLOAD: ${SNOWLUMA_HOOK_AUTOLOAD:-1}
+    ports:
+      - "${VNC_PORT:-5900}:5900"
+      - "${NOVNC_PORT:-6081}:6081"
+      - "${SNOWLUMA_WEBUI_HOST_PORT:-5099}:${SNOWLUMA_WEBUI_PORT:-5099}"
+      - "${ONEBOT_HTTP_PORT:-3000}:3000"
+      - "${ONEBOT_WS_PORT:-3001}:3001"
+    volumes:
+      - snowluma-data:/app/snowluma-data
+      - snowluma-qq-config:/app/.config
+      - snowluma-qq-data:/app/.local/share
+
+volumes:
+  snowluma-data:
+  snowluma-qq-config:
+  snowluma-qq-data:
+```
+
+Start:
+
+```bash
+docker compose up -d
+```
+
+Upgrade:
+
+```bash
+docker compose pull
+docker compose up -d
+```
+
+## Environment variables
+
+| Var | Default | Notes |
+| --- | --- | --- |
+| `VNC_PASSWD` | `vncpasswd` | VNC / noVNC login password. **Change this**, otherwise anyone can see your QQ desktop. |
+| `SNOWLUMA_UID` | `1000` | uid of the in-container `snowluma` user. Match it to the host owner of your mounted volumes. |
+| `SNOWLUMA_GID` | `1000` | gid of the in-container `snowluma` user. |
+| `SNOWLUMA_WEBUI_PORT` | `5099` | WebUI listen port (inside the container). |
+| `SNOWLUMA_LOG_LEVEL` | `info` | `error` / `warn` / `info` / `debug`. |
+| `SNOWLUMA_SCREEN` | `1920x1080x16` | Xvfb resolution + color depth. |
+| `SNOWLUMA_HOOK_AUTOLOAD` | `1` | Image opts into auto-injection by default. Set `0` to fall back to the manual Load workflow. |
+
+Environment variables override `runtime.json`, so they're the ergonomic knob in Docker.
+
+## Volumes
+
+| Volume | Container path | Contents |
+| --- | --- | --- |
+| `snowluma-data` | `/app/snowluma-data` | SnowLuma config, cache, SQLite. Includes `config/onebot.json` and `config/runtime.json`. |
+| `snowluma-qq-config` | `/app/.config` | QQ client config. |
+| `snowluma-qq-data` | `/app/.local/share` | QQ user data (login state, cache). |
+
+**Don't delete these on upgrade** — you'll lose login state and configuration.
+
+## First-time login
+
+1. Open `http://<host>:6081/` (noVNC) and enter `VNC_PASSWD`.
+2. Inside the remote desktop you'll see QQ already running. Scan the QR to log in.
+3. Once login completes the hook auto-switches from passive observation to working mode — no need to click Load in the WebUI.
+4. Open `http://<host>:5099/` for the SnowLuma WebUI.
+
+### Finding the WebUI bootstrap password
+
+On a fresh data volume the first launch logs a one-time password:
+
+```bash
+docker logs snowluma 2>&1 | grep -E "临时密码|initial credentials" | tail -n 1
+```
+
+Just the password string:
+
+```bash
+docker logs snowluma 2>&1 | \
+  sed -nE 's/.*(临时密码: |initial credentials: user=admin password=)([^[:space:]]+).*/\2/p' | tail -n 1
+```
+
+<Callout type="info">
+The bootstrap password is logged **only on a brand-new data volume's first boot**. Reusing the volume or restarting won't regenerate it.
+</Callout>
+
+## Auto-injection
+
+The image defaults to `SNOWLUMA_HOOK_AUTOLOAD=1`: when the container starts, the hook is injected into the QQ process in passive-observe mode. Once you scan-login, the hook auto-promotes to working mode. supervisor also restarts QQ on crash through the same flow.
+
+### Turning it off
+
+If you prefer the legacy "manual Load via WebUI" workflow:
+
+```bash
+docker run -e SNOWLUMA_HOOK_AUTOLOAD=0 ... motricseven7/snowluma:latest
+```
+
+Or set `SNOWLUMA_HOOK_AUTOLOAD: 0` in `docker-compose.yml`, or edit `/app/snowluma-data/config/runtime.json` inside the volume to `"hookAutoLoad": false`. Environment variables win.
+
+## Common ops
+
+Shell into the container:
+
+```bash
+docker exec -it snowluma bash
+```
+
+Follow logs:
+
+```bash
+docker logs -f snowluma
+```
+
+Just SnowLuma's own logs (filter out QQ's noisy output):
+
+```bash
+docker logs -f snowluma 2>&1 | grep -v "QtNetwork\|GLib\|libQt6"
+```
+
+Browse the data directory:
+
+```bash
+docker exec -it snowluma bash -c "cd /app/snowluma-data && ls -la"
+```
+
+Edit OneBot config and restart:
+
+```bash
+# edit /app/snowluma-data/config/onebot_<uin>.json
+docker restart snowluma
+```
+
+## Port remapping
+
+If a host port is taken, just shift the host side; container ports stay the same. Example moving OneBot HTTP to host `8080`:
+
+```yaml
+ports:
+  - "8080:3000"   # host 8080 → container 3000
+```
+
+Or via env (the Compose template already supports it):
+
+```bash
+ONEBOT_HTTP_PORT=8080 docker compose up -d
+```
+
+## Building the image yourself
+
+Useful when you need an unreleased SnowLuma build:
+
+```bash
+# Build the lite tarball in the SnowLuma main repo
+pnpm build:all
+
+# Drop it into the Docker repo root with the expected name
+cp dist/SnowLuma-*-linux-x64-lite.tar.gz \
+   ../SnowLuma.Docker.Framework/SnowLuma.Framework.tar.gz
+
+cd ../SnowLuma.Docker.Framework
+./scripts/build-image.sh
+```
+
+Or let the script pull the latest release:
+
+```bash
+SNOWLUMA_TAG=v1.8.0 ./scripts/build-image.sh
+```
+
+Multi-arch manifests are merged by CI (`.github/workflows/docker-image.yml`); the local script only builds a single platform.
+
+## Security notes
+
+- SnowLuma's native addon injects code into the QQ process; the container needs `SYS_PTRACE` and `seccomp=unconfined`. Only run on trusted hosts.
+- The default `VNC_PASSWD` (`vncpasswd`) **must** be changed before exposing the container to anything other than localhost — otherwise your QQ desktop is wide open.
+- Comply with NTQQ / Tencent's terms of service plus SnowLuma's and its dependencies' open-source licenses.
