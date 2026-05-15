@@ -28,6 +28,30 @@ The image does **not** rebuild SnowLuma — it consumes the prebuilt `lite` tarb
 | `3000` | OneBot HTTP (default) |
 | `3001` | OneBot WebSocket (default) |
 
+## Host setup: relax the ptrace policy
+
+<Callout type="warn">
+**Do this before starting the container, otherwise hook injection will fail at runtime.**
+</Callout>
+
+SnowLuma's native addon uses `ptrace` to inject the hook into the in-container QQ process. Modern Linux distros (Ubuntu / Debian / Arch / …) ship with `kernel.yama.ptrace_scope` set to `1` or higher, which means **even with `--cap-add=SYS_PTRACE` on the container, the host kernel still blocks the ptrace call**.
+
+Run **once** on the host:
+
+```bash
+echo 'kernel.yama.ptrace_scope=0' | sudo tee /etc/sysctl.d/99-snowluma-ptrace.conf
+sudo sysctl --system
+```
+
+Verify:
+
+```bash
+sysctl kernel.yama.ptrace_scope
+# expected: kernel.yama.ptrace_scope = 0
+```
+
+Writing to `/etc/sysctl.d/99-snowluma-ptrace.conf` keeps the setting across reboots. If your host has stricter security requirements (multi-tenant, internet-facing), prefer a dedicated isolated host (bare metal / VM) over relaxing the system-wide policy.
+
 ## One-line docker run
 
 ```bash

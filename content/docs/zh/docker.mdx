@@ -28,6 +28,30 @@ SnowLuma 在 Linux 上**只通过 Docker 运行**。镜像内置 Linux QQ + Xvfb
 | `3000` | OneBot HTTP（默认） |
 | `3001` | OneBot WebSocket（默认） |
 
+## 宿主机准备：放开 ptrace 限制
+
+<Callout type="warn">
+**这一步必须先做，否则容器起来后 hook 注入会失败。**
+</Callout>
+
+SnowLuma 的 native addon 通过 `ptrace` 把 hook 注入到容器内的 QQ 进程。现代 Linux 发行版（Ubuntu / Debian / Arch 等）默认把 `kernel.yama.ptrace_scope` 设为 `1` 或更高，**即使容器启动加了 `--cap-add=SYS_PTRACE`，注入也会被宿主内核拦掉**。
+
+在宿主机上**只需要执行一次**：
+
+```bash
+echo 'kernel.yama.ptrace_scope=0' | sudo tee /etc/sysctl.d/99-snowluma-ptrace.conf
+sudo sysctl --system
+```
+
+验证是否生效：
+
+```bash
+sysctl kernel.yama.ptrace_scope
+# 期望输出：kernel.yama.ptrace_scope = 0
+```
+
+写到 `/etc/sysctl.d/99-snowluma-ptrace.conf` 是为了让设置在重启后自动恢复。如果你的环境对宿主机安全有更严格要求（比如多租户、面向公网），请考虑使用受信任的隔离机制（独立物理机 / VM）替代这一步。
+
 ## 一行 docker run
 
 ```bash
