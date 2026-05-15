@@ -1,4 +1,11 @@
 {
   "title": "Docs",
-  "pages": ["index", "docker", "configuration", "developer"]
+  "pages": [
+    "index",
+    "docker",
+    "configuration",
+    "developer",
+    "---API Reference---",
+    "..."
+  ]
 }
