@@ -182,6 +182,79 @@ docker logs snowluma 2>&1 | \
 临时密码**只在全新数据卷首次启动时**输出一次。复用旧卷 / 重启都不会重新生成。
 </Callout>
 
+## 多开 QQ（多账号）
+
+Linux QQ 自带单实例锁：在已有 QQ 跑着的桌面里直接再点一次 QQ 图标，只会把已有窗口聚焦，**起不来第二个进程**。锁文件落在 `$HOME/.config/QQ/SingletonLock`，所以解法是给第二个实例一个**独立的 `HOME`**。
+
+SnowLuma 一侧不需要任何额外配置：[HookManager](https://github.com/SnowLuma/SnowLuma/blob/main/packages/core/src/hook/hook-manager.ts) 会遍历所有 QQ 主进程，新启动一个就自动注入一个，每个 UIN 拉一个独立 `OneBotInstance`，配置存到对应的 `config/onebot_<uin>.json`。
+
+### 在 noVNC 桌面里启第二个 QQ
+
+1. 在 noVNC 桌面里打开终端（任务栏右键 / 用 `xterm` / 按容器内任意终端快捷键）。
+2. 用独立 `HOME` 起新 QQ：
+
+   ```bash
+   mkdir -p /app/qq-acct2
+   HOME=/app/qq-acct2 qq --no-sandbox &
+   disown
+   ```
+
+3. 一个新 QQ 登录窗口会出现，扫码 / 账密登录另一个号即可。
+4. 登录完成后 SnowLuma 自动注入并按新 UIN 起一个 OneBot 实例。
+
+`disown` 让 QQ 与终端解绑 —— 关掉终端窗口 QQ 不会跟着退出。
+
+### 让它持久化
+
+上面那条命令里 `/app/qq-acct2` 是容器内路径，**容器重建会丢**。要持久化，在 `docker-compose.yml` 给每个账号加独立卷：
+
+```yaml
+services:
+  snowluma:
+    # ... 原有配置 ...
+    volumes:
+      - snowluma-data:/app/snowluma-data
+      - snowluma-qq-config:/app/.config         # 主账号
+      - snowluma-qq-data:/app/.local/share      # 主账号
+      - snowluma-qq2:/app/qq-acct2              # 第二个账号的完整 HOME
+      - snowluma-qq3:/app/qq-acct3              # 第三个账号 ...
+
+volumes:
+  snowluma-data:
+  snowluma-qq-config:
+  snowluma-qq-data:
+  snowluma-qq2:
+  snowluma-qq3:
+```
+
+之后每次需要拉起第二个号，在 noVNC 终端跑：
+
+```bash
+HOME=/app/qq-acct2 qq --no-sandbox &
+disown
+```
+
+### 开机自动拉所有账号
+
+把上面的命令写成一个 shell 脚本，放进持久卷 `/app/snowluma-data/start-extra-qq.sh`：
+
+```bash
+#!/bin/sh
+for home in /app/qq-acct2 /app/qq-acct3; do
+  [ -d "$home" ] || continue
+  HOME="$home" qq --no-sandbox >/dev/null 2>&1 &
+done
+```
+
+然后在 noVNC 桌面进系统的开机自启目录（XFCE 是 `~/.config/autostart/`）放一个 desktop 入口指向这个脚本。或者更稳的：把脚本加到 `supervisord.conf` 作为新的 program。后者需要重建镜像，前者重启容器就生效。
+
+### 限制 & 注意
+
+- **每个 QQ 实例独占自己的 `HOME`** —— 别让两个 QQ 共用同一个 `HOME`，会冲突。
+- **资源**：每个 QQ 进程跑 Chromium 大概吃 300-500MB 内存，`--shm-size` 主账号 1GB 够用，多开建议加到 `2gb` 或更高。
+- **noVNC 同屏可见**：多个 QQ 窗口都在同一个 Xvfb 桌面里，VNC 进去可以分别操作。如果只想登一次就走，登完后把 QQ 窗口最小化即可，不会影响 hook。
+- **WebUI 自动列出所有 UIN**：SnowLuma 不需要单独配置就能识别新登录的账号，WebUI / `get_login_info` 都会出现新 UIN。
+
 ## 自动注入
 
 镜像默认开 `SNOWLUMA_HOOK_AUTOLOAD=1`：容器一启动就把 hook 注入 QQ 主进程（被动观察），扫码登录完成后 hook 自动切到工作模式。supervisor 让 QQ 崩溃自动重启时也走同样流程。

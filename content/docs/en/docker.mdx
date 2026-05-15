@@ -182,6 +182,79 @@ docker logs snowluma 2>&1 | \
 The bootstrap password is logged **only on a brand-new data volume's first boot**. Reusing the volume or restarting won't regenerate it.
 </Callout>
 
+## Running multiple QQ accounts
+
+Linux QQ ships a single-instance lock — clicking the QQ icon again on a desktop that already has one running just focuses the existing window, it doesn't start a second process. The lock file lives at `$HOME/.config/QQ/SingletonLock`, so the solution is to give each instance its **own `HOME`**.
+
+SnowLuma needs no extra configuration: [HookManager](https://github.com/SnowLuma/SnowLuma/blob/main/packages/core/src/hook/hook-manager.ts) walks every QQ main process it can find, injects the hook into each, and spins up a separate `OneBotInstance` per UIN with its own `config/onebot_<uin>.json`.
+
+### Launch a second QQ from the noVNC desktop
+
+1. Open a terminal inside the noVNC desktop (right-click the taskbar / launch `xterm` / use the in-container terminal shortcut).
+2. Start a new QQ under an isolated `HOME`:
+
+   ```bash
+   mkdir -p /app/qq-acct2
+   HOME=/app/qq-acct2 qq --no-sandbox &
+   disown
+   ```
+
+3. A fresh QQ login window appears — scan-login or password-login the second account.
+4. SnowLuma auto-injects the hook and stands up a per-UIN OneBot instance.
+
+`disown` detaches the QQ process from the terminal so closing the terminal won't kill it.
+
+### Persisting across container restarts
+
+`/app/qq-acct2` is an in-container path; recreating the container wipes it. Mount a dedicated volume per extra account in `docker-compose.yml`:
+
+```yaml
+services:
+  snowluma:
+    # ... existing config ...
+    volumes:
+      - snowluma-data:/app/snowluma-data
+      - snowluma-qq-config:/app/.config         # primary account
+      - snowluma-qq-data:/app/.local/share      # primary account
+      - snowluma-qq2:/app/qq-acct2              # second account's full HOME
+      - snowluma-qq3:/app/qq-acct3              # third account...
+
+volumes:
+  snowluma-data:
+  snowluma-qq-config:
+  snowluma-qq-data:
+  snowluma-qq2:
+  snowluma-qq3:
+```
+
+After that, bringing the second account up only takes the same one-liner in the noVNC terminal:
+
+```bash
+HOME=/app/qq-acct2 qq --no-sandbox &
+disown
+```
+
+### Auto-starting every account on boot
+
+Save the script to a persisted volume, e.g. `/app/snowluma-data/start-extra-qq.sh`:
+
+```bash
+#!/bin/sh
+for home in /app/qq-acct2 /app/qq-acct3; do
+  [ -d "$home" ] || continue
+  HOME="$home" qq --no-sandbox >/dev/null 2>&1 &
+done
+```
+
+Hook it into the desktop's autostart (XFCE: drop a `.desktop` into `~/.config/autostart/`) for an in-DE solution, or add a new program block to `supervisord.conf` and rebuild the image for a more reliable boot-up wire.
+
+### Caveats
+
+- **One HOME per QQ instance** — never share a `HOME` between two QQs; they'll fight over the lock file.
+- **Resources**: each QQ is a full Chromium process, ~300-500 MB RAM. The default `--shm-size=1g` is fine for one; bump to `2gb`+ for multi-account.
+- **All windows share the same Xvfb desktop**: noVNC shows every QQ window; minimize the ones you've already logged into. Hook keeps working regardless of window state.
+- **WebUI lists every UIN automatically**: no manual configuration — SnowLuma surfaces each new account in the WebUI and `get_login_info` returns the new UINs once login completes.
+
 ## Auto-injection
 
 The image defaults to `SNOWLUMA_HOOK_AUTOLOAD=1`: when the container starts, the hook is injected into the QQ process in passive-observe mode. Once you scan-login, the hook auto-promotes to working mode. supervisor also restarts QQ on crash through the same flow.
