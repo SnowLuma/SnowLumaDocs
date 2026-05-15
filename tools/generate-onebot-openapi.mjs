@@ -40,6 +40,20 @@ import ts from 'typescript';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const docsRoot = path.resolve(__dirname, '..');
 
+// Per-action Chinese summary + description, keyed by action name.
+// Format: { [action]: { summary: '...', description?: '...' } }.
+// Anything missing here falls back to using the action name as the
+// summary and whatever leading comment was extracted from the source.
+const descriptionsPath = path.join(__dirname, 'onebot-action-descriptions.json');
+const RAW_DESCRIPTIONS = JSON.parse(
+  await readFile(descriptionsPath, 'utf8'),
+);
+// `_doc` is a meta entry explaining the file format; everything else
+// (including legitimate gocqhttp `_send_group_notice` etc.) is real.
+const DESCRIPTIONS = Object.fromEntries(
+  Object.entries(RAW_DESCRIPTIONS).filter(([key]) => key !== '_doc'),
+);
+
 // Locate the SnowLuma source tree.
 //   1. $SNOWLUMA_SRC overrides everything.
 //   2. Otherwise assume the docs repo lives under <SnowLuma>/dev/ —
@@ -86,14 +100,15 @@ const TYPE_MAP = {
   },
 };
 
-/** Pick a tag for an action from its file location. */
+/** Pick a tag for an action from its file location. ASCII-only — non-ASCII
+ *  characters get URL-encoded and break Next dev-server routing. */
 function tagFor(file) {
   const base = path.basename(file, '.ts');
   switch (base) {
     case 'friend':       return 'Friend';
-    case 'group-admin':  return 'Group · Admin';
-    case 'group-file':   return 'Group · File';
-    case 'group-info':   return 'Group · Info';
+    case 'group-admin':  return 'Group Admin';
+    case 'group-file':   return 'Group File';
+    case 'group-info':   return 'Group Info';
     case 'info':         return 'System';
     case 'message':      return 'Message';
     case 'request':      return 'Request';
@@ -252,9 +267,17 @@ function toOperation(action, tag) {
       }
     : { type: 'object', additionalProperties: false };
 
+  // Prefer the curated Chinese description from the i18n file. Fall back
+  // to the action name + the leading-comment text from the source.
+  const localized = DESCRIPTIONS[action.name];
+  const summary = localized?.summary
+    ? `${localized.summary} · ${action.name}`
+    : action.name;
+  const description = localized?.description ?? action.comment;
+
   return {
-    summary: action.name,
-    description: action.comment,
+    summary,
+    description,
     operationId: action.name,
     tags: [tag],
     requestBody: {
@@ -317,9 +340,9 @@ async function main() {
       { name: 'System', description: '系统信息与状态。' },
       { name: 'Message', description: '消息发送、撤回、查询。' },
       { name: 'Friend', description: '好友与陌生人。' },
-      { name: 'Group · Info', description: '群信息与成员。' },
-      { name: 'Group · Admin', description: '群管理动作。' },
-      { name: 'Group · File', description: '群文件。' },
+      { name: 'Group Info', description: '群信息与成员。' },
+      { name: 'Group Admin', description: '群管理动作。' },
+      { name: 'Group File', description: '群文件。' },
       { name: 'Request', description: '加好友 / 加群请求处理。' },
       { name: 'Extended', description: 'gocqhttp / NapCat 兼容扩展接口。' },
     ],

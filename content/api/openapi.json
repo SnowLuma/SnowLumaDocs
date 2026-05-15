@@ -25,15 +25,15 @@
       "description": "好友与陌生人。"
     },
     {
-      "name": "Group · Info",
+      "name": "Group Info",
       "description": "群信息与成员。"
     },
     {
-      "name": "Group · Admin",
+      "name": "Group Admin",
       "description": "群管理动作。"
     },
     {
-      "name": "Group · File",
+      "name": "Group File",
       "description": "群文件。"
     },
     {
@@ -48,8 +48,8 @@
   "paths": {
     "/send_like": {
       "post": {
-        "summary": "send_like",
-        "description": "--- Likes & Pokes ---",
+        "summary": "点赞 · send_like",
+        "description": "给指定 QQ 号点赞，`times` 控制次数（每天有上限）。",
         "operationId": "send_like",
         "tags": [
           "Extended"
@@ -94,7 +94,8 @@
     },
     "/friend_poke": {
       "post": {
-        "summary": "friend_poke",
+        "summary": "戳一戳（好友） · friend_poke",
+        "description": "戳一戳好友。`target_id` 可选，默认戳 `user_id` 自己。",
         "operationId": "friend_poke",
         "tags": [
           "Extended"
@@ -139,7 +140,8 @@
     },
     "/group_poke": {
       "post": {
-        "summary": "group_poke",
+        "summary": "戳一戳（群） · group_poke",
+        "description": "在群里戳一戳指定成员。",
         "operationId": "group_poke",
         "tags": [
           "Extended"
@@ -185,7 +187,8 @@
     },
     "/send_poke": {
       "post": {
-        "summary": "send_poke",
+        "summary": "戳一戳（统一接口） · send_poke",
+        "description": "传 `group_id` 自动走群戳；只传 `user_id` 走好友戳。",
         "operationId": "send_poke",
         "tags": [
           "Extended"
@@ -230,8 +233,8 @@
     },
     "/set_essence_msg": {
       "post": {
-        "summary": "set_essence_msg",
-        "description": "--- Essence ---",
+        "summary": "设置精华消息 · set_essence_msg",
+        "description": "把消息加入群精华，需群主 / 管理员。",
         "operationId": "set_essence_msg",
         "tags": [
           "Extended"
@@ -269,7 +272,8 @@
     },
     "/delete_essence_msg": {
       "post": {
-        "summary": "delete_essence_msg",
+        "summary": "取消精华消息 · delete_essence_msg",
+        "description": "把消息移出群精华。",
         "operationId": "delete_essence_msg",
         "tags": [
           "Extended"
@@ -307,7 +311,8 @@
     },
     "/get_essence_msg_list": {
       "post": {
-        "summary": "get_essence_msg_list",
+        "summary": "获取精华消息列表 · get_essence_msg_list",
+        "description": "拉取群所有精华消息。",
         "operationId": "get_essence_msg_list",
         "tags": [
           "Extended"
@@ -348,8 +353,8 @@
     },
     "/set_group_reaction": {
       "post": {
-        "summary": "set_group_reaction",
-        "description": "--- Reactions ---",
+        "summary": "群表情回应（别名） · set_group_reaction",
+        "description": "`set_msg_emoji_like` 的兼容别名，napcat 习惯写法。",
         "operationId": "set_group_reaction",
         "tags": [
           "Extended"
@@ -400,8 +405,8 @@
     },
     "/get_group_msg_history": {
       "post": {
-        "summary": "get_group_msg_history",
-        "description": "--- History ---",
+        "summary": "获取群消息历史 · get_group_msg_history",
+        "description": "拉取 `group_id` 的最近 `count` 条消息，以 `message_id` 为锚向前取。",
         "operationId": "get_group_msg_history",
         "tags": [
           "Extended"
@@ -450,7 +455,8 @@
     },
     "/get_friend_msg_history": {
       "post": {
-        "summary": "get_friend_msg_history",
+        "summary": "获取好友消息历史 · get_friend_msg_history",
+        "description": "拉取与 `user_id` 的私聊最近 `count` 条消息。",
         "operationId": "get_friend_msg_history",
         "tags": [
           "Extended"
@@ -499,7 +505,8 @@
     },
     "/mark_group_msg_as_read": {
       "post": {
-        "summary": "mark_group_msg_as_read",
+        "summary": "标记群消息已读 · mark_group_msg_as_read",
+        "description": "把指定群的消息标记为已读。",
         "operationId": "mark_group_msg_as_read",
         "tags": [
           "Extended"
@@ -541,7 +548,8 @@
     },
     "/mark_private_msg_as_read": {
       "post": {
-        "summary": "mark_private_msg_as_read",
+        "summary": "标记私聊已读 · mark_private_msg_as_read",
+        "description": "把与指定用户的私聊标记为已读。",
         "operationId": "mark_private_msg_as_read",
         "tags": [
           "Extended"
@@ -583,7 +591,8 @@
     },
     "/mark_msg_as_read": {
       "post": {
-        "summary": "mark_msg_as_read",
+        "summary": "标记消息已读 · mark_msg_as_read",
+        "description": "按 `message_id` 自动分流群 / 私聊的已读标记。",
         "operationId": "mark_msg_as_read",
         "tags": [
           "Extended"
@@ -625,7 +634,8 @@
     },
     "/get_rkey": {
       "post": {
-        "summary": "get_rkey",
+        "summary": "获取 RKey · get_rkey",
+        "description": "返回当前下载 rkey 列表（图片 / 语音 / 视频）。",
         "operationId": "get_rkey",
         "tags": [
           "Extended"
@@ -657,8 +667,8 @@
     },
     "/nc_get_rkey": {
       "post": {
-        "summary": "nc_get_rkey",
-        "description": "so clients that follow napcat's docs work out-of-the-box.",
+        "summary": "获取 RKey（NapCat 兼容） · nc_get_rkey",
+        "description": "等同 `get_rkey`。",
         "operationId": "nc_get_rkey",
         "tags": [
           "Extended"
@@ -690,8 +700,8 @@
     },
     "/ocr_image": {
       "post": {
-        "summary": "ocr_image",
-        "description": "--- OCR stubs ---",
+        "summary": "OCR 图片识别 · ocr_image",
+        "description": "未实现。",
         "operationId": "ocr_image",
         "tags": [
           "Extended"
@@ -723,7 +733,8 @@
     },
     "/.ocr_image": {
       "post": {
-        "summary": ".ocr_image",
+        "summary": "OCR 图片识别（别名） · .ocr_image",
+        "description": "未实现。",
         "operationId": ".ocr_image",
         "tags": [
           "Extended"
@@ -755,8 +766,8 @@
     },
     "/_send_group_notice": {
       "post": {
-        "summary": "_send_group_notice",
-        "description": "--- Group notice stubs ---",
+        "summary": "发布群公告 · _send_group_notice",
+        "description": "通过 Web API 发布群公告。支持 `image`、`pinned`、`type`、`confirm_required` 等选项。",
         "operationId": "_send_group_notice",
         "tags": [
           "Extended"
@@ -804,7 +815,8 @@
     },
     "/_get_group_notice": {
       "post": {
-        "summary": "_get_group_notice",
+        "summary": "获取群公告 · _get_group_notice",
+        "description": "返回群公告列表。",
         "operationId": "_get_group_notice",
         "tags": [
           "Extended"
@@ -845,7 +857,8 @@
     },
     "/_del_group_notice": {
       "post": {
-        "summary": "_del_group_notice",
+        "summary": "删除群公告 · _del_group_notice",
+        "description": "按 `fid` / `notice_id` 删除群公告。",
         "operationId": "_del_group_notice",
         "tags": [
           "Extended"
@@ -893,8 +906,8 @@
     },
     "/upload_forward_msg": {
       "post": {
-        "summary": "upload_forward_msg",
-        "description": "--- Forward messages ---",
+        "summary": "上传合并转发 · upload_forward_msg",
+        "description": "只上传不发送，返回 `res_id`，之后可在其他消息里引用。",
         "operationId": "upload_forward_msg",
         "tags": [
           "Extended"
@@ -932,7 +945,8 @@
     },
     "/upload_foward_msg": {
       "post": {
-        "summary": "upload_foward_msg",
+        "summary": "上传合并转发（typo 别名） · upload_foward_msg",
+        "description": "兼容历史拼写，等同 `upload_forward_msg`。",
         "operationId": "upload_foward_msg",
         "tags": [
           "Extended"
@@ -964,7 +978,8 @@
     },
     "/send_forward_msg": {
       "post": {
-        "summary": "send_forward_msg",
+        "summary": "发送合并转发 · send_forward_msg",
+        "description": "按 `message_type` 自动路由到群 / 私聊。`messages` 是节点数组，每个节点含 `user_id` + `nickname` + `content`。",
         "operationId": "send_forward_msg",
         "tags": [
           "Extended"
@@ -1013,7 +1028,8 @@
     },
     "/send_group_forward_msg": {
       "post": {
-        "summary": "send_group_forward_msg",
+        "summary": "发送群合并转发 · send_group_forward_msg",
+        "description": "向群发合并转发消息。",
         "operationId": "send_group_forward_msg",
         "tags": [
           "Extended"
@@ -1054,7 +1070,8 @@
     },
     "/send_private_forward_msg": {
       "post": {
-        "summary": "send_private_forward_msg",
+        "summary": "发送私聊合并转发 · send_private_forward_msg",
+        "description": "向好友发合并转发消息。",
         "operationId": "send_private_forward_msg",
         "tags": [
           "Extended"
@@ -1095,7 +1112,8 @@
     },
     "/get_forward_msg": {
       "post": {
-        "summary": "get_forward_msg",
+        "summary": "获取合并转发 · get_forward_msg",
+        "description": "按 res_id / forward_id 取回合并转发的所有节点。",
         "operationId": "get_forward_msg",
         "tags": [
           "Extended"
@@ -1135,8 +1153,8 @@
     },
     "/get_image": {
       "post": {
-        "summary": "get_image",
-        "description": "--- Media ---",
+        "summary": "获取图片信息 · get_image",
+        "description": "按 `file` / `file_id` 从消息缓存里查图片元信息和本地路径。",
         "operationId": "get_image",
         "tags": [
           "Extended"
@@ -1179,7 +1197,8 @@
     },
     "/get_record": {
       "post": {
-        "summary": "get_record",
+        "summary": "获取语音信息 · get_record",
+        "description": "按 `file` / `file_id` 查语音段元信息。",
         "operationId": "get_record",
         "tags": [
           "Extended"
@@ -1222,8 +1241,8 @@
     },
     "/get_cookies": {
       "post": {
-        "summary": "get_cookies",
-        "description": "--- Credentials ---",
+        "summary": "获取 Cookies · get_cookies",
+        "description": "按 `domain` 查 cookies。",
         "operationId": "get_cookies",
         "tags": [
           "Extended"
@@ -1260,7 +1279,8 @@
     },
     "/get_csrf_token": {
       "post": {
-        "summary": "get_csrf_token",
+        "summary": "获取 CSRF Token · get_csrf_token",
+        "description": "返回 bkn（g_tk），用于调 QQ 内部 Web API。",
         "operationId": "get_csrf_token",
         "tags": [
           "Extended"
@@ -1292,7 +1312,8 @@
     },
     "/get_credentials": {
       "post": {
-        "summary": "get_credentials",
+        "summary": "获取凭证 · get_credentials",
+        "description": "一次返回 cookies + CSRF token。",
         "operationId": "get_credentials",
         "tags": [
           "Extended"
@@ -1329,8 +1350,8 @@
     },
     "/set_restart": {
       "post": {
-        "summary": "set_restart",
-        "description": "--- Utility ---",
+        "summary": "重启 · set_restart",
+        "description": "未实现；为兼容性保留。",
         "operationId": "set_restart",
         "tags": [
           "Extended"
@@ -1362,7 +1383,8 @@
     },
     "/clean_cache": {
       "post": {
-        "summary": "clean_cache",
+        "summary": "清理缓存 · clean_cache",
+        "description": "no-op，返回 ok 以兼容旧客户端。",
         "operationId": "clean_cache",
         "tags": [
           "Extended"
@@ -1394,7 +1416,8 @@
     },
     "/.handle_quick_operation": {
       "post": {
-        "summary": ".handle_quick_operation",
+        "summary": "快速操作（隐藏 API） · .handle_quick_operation",
+        "description": "OneBot v11 HTTP POST 上报响应里的 quick operation 入口（回复 / 撤回 / 通过 / 拒绝）。",
         "operationId": ".handle_quick_operation",
         "tags": [
           "Extended"
@@ -1426,8 +1449,8 @@
     },
     "/set_friend_remark": {
       "post": {
-        "summary": "set_friend_remark",
-        "description": "--- NapCat-compatible extended APIs ---",
+        "summary": "设置好友备注 · set_friend_remark",
+        "description": "改本地好友备注名。",
         "operationId": "set_friend_remark",
         "tags": [
           "Extended"
@@ -1471,7 +1494,8 @@
     },
     "/set_group_remark": {
       "post": {
-        "summary": "set_group_remark",
+        "summary": "设置群备注 · set_group_remark",
+        "description": "改本地群备注，不影响群名。",
         "operationId": "set_group_remark",
         "tags": [
           "Extended"
@@ -1515,7 +1539,8 @@
     },
     "/set_msg_emoji_like": {
       "post": {
-        "summary": "set_msg_emoji_like",
+        "summary": "对消息回应表情 · set_msg_emoji_like",
+        "description": "为指定消息加 / 取消表情回应。`set=true` 添加，`false` 移除。仅群聊支持。",
         "operationId": "set_msg_emoji_like",
         "tags": [
           "Extended"
@@ -1562,7 +1587,8 @@
     },
     "/_mark_all_as_read": {
       "post": {
-        "summary": "_mark_all_as_read",
+        "summary": "标记全部已读 · _mark_all_as_read",
+        "description": "把所有未读会话标记为已读。",
         "operationId": "_mark_all_as_read",
         "tags": [
           "Extended"
@@ -1594,7 +1620,8 @@
     },
     "/get_group_file_system_info": {
       "post": {
-        "summary": "get_group_file_system_info",
+        "summary": "群文件系统信息 · get_group_file_system_info",
+        "description": "返回群文件数量、配额等。",
         "operationId": "get_group_file_system_info",
         "tags": [
           "Extended"
@@ -1635,7 +1662,8 @@
     },
     "/check_url_safely": {
       "post": {
-        "summary": "check_url_safely",
+        "summary": "URL 安全检查 · check_url_safely",
+        "description": "占位实现，始终返回安全等级 1。",
         "operationId": "check_url_safely",
         "tags": [
           "Extended"
@@ -1667,7 +1695,8 @@
     },
     "/download_file": {
       "post": {
-        "summary": "download_file",
+        "summary": "下载文件 · download_file",
+        "description": "把 URL 或 base64 下载到本地临时目录，返回绝对路径。",
         "operationId": "download_file",
         "tags": [
           "Extended"
@@ -1714,7 +1743,8 @@
     },
     "/set_qq_profile": {
       "post": {
-        "summary": "set_qq_profile",
+        "summary": "设置 QQ 资料 · set_qq_profile",
+        "description": "改昵称、签名等基本资料。",
         "operationId": "set_qq_profile",
         "tags": [
           "Extended"
@@ -1754,7 +1784,8 @@
     },
     "/set_online_status": {
       "post": {
-        "summary": "set_online_status",
+        "summary": "设置在线状态 · set_online_status",
+        "description": "改在线 / 离开 / 隐身等基础状态。",
         "operationId": "set_online_status",
         "tags": [
           "Extended"
@@ -1800,8 +1831,8 @@
     },
     "/set_diy_online_status": {
       "post": {
-        "summary": "set_diy_online_status",
-        "description": "parity); wording is the human-readable text shown next to the icon.",
+        "summary": "设置自定义在线状态 · set_diy_online_status",
+        "description": "DIY 状态：图标 ID + 文案。`face_id` 必填。",
         "operationId": "set_diy_online_status",
         "tags": [
           "Extended"
@@ -1849,7 +1880,8 @@
     },
     "/get_group_ignored_notifies": {
       "post": {
-        "summary": "get_group_ignored_notifies",
+        "summary": "获取忽略的入群通知 · get_group_ignored_notifies",
+        "description": "返回被过滤掉的入群请求（机器人 / 黑名单等）。",
         "operationId": "get_group_ignored_notifies",
         "tags": [
           "Extended"
@@ -1881,8 +1913,8 @@
     },
     "/get_group_ignore_add_request": {
       "post": {
-        "summary": "get_group_ignore_add_request",
-        "description": "category in our pipeline.",
+        "summary": "获取被忽略的加群请求 · get_group_ignore_add_request",
+        "description": "等同 `get_group_ignored_notifies`，napcat 命名。",
         "operationId": "get_group_ignore_add_request",
         "tags": [
           "Extended"
@@ -1914,8 +1946,8 @@
     },
     "/get_group_shut_list": {
       "post": {
-        "summary": "get_group_shut_list",
-        "description": "the napcat contract (empty list) so callers don't blow up.",
+        "summary": "获取被禁言成员列表 · get_group_shut_list",
+        "description": "当前未实现，占位返回空列表。",
         "operationId": "get_group_shut_list",
         "tags": [
           "Extended"
@@ -1947,7 +1979,8 @@
     },
     "/forward_friend_single_msg": {
       "post": {
-        "summary": "forward_friend_single_msg",
+        "summary": "转发单条消息给好友 · forward_friend_single_msg",
+        "description": "把已有消息原样转发给 `user_id`。",
         "operationId": "forward_friend_single_msg",
         "tags": [
           "Extended"
@@ -1993,7 +2026,8 @@
     },
     "/forward_group_single_msg": {
       "post": {
-        "summary": "forward_group_single_msg",
+        "summary": "转发单条消息到群 · forward_group_single_msg",
+        "description": "把已有消息原样转发到 `group_id`。",
         "operationId": "forward_group_single_msg",
         "tags": [
           "Extended"
@@ -2039,8 +2073,8 @@
     },
     "/get_recent_contact": {
       "post": {
-        "summary": "get_recent_contact",
-        "description": "todo 我的建议是引入数据库api   纯协议我不知道这种api怎么实现，ntQQ在实现这个方法的时候只进行了数据库查询，完全没碰网络",
+        "summary": "获取最近联系人 · get_recent_contact",
+        "description": "未接 SQLite，占位返回空列表。",
         "operationId": "get_recent_contact",
         "tags": [
           "Extended"
@@ -2072,7 +2106,8 @@
     },
     "/get_profile_like": {
       "post": {
-        "summary": "get_profile_like",
+        "summary": "获取点赞信息 · get_profile_like",
+        "description": "查指定用户的点赞历史。",
         "operationId": "get_profile_like",
         "tags": [
           "Extended"
@@ -2118,7 +2153,8 @@
     },
     "/fetch_custom_face": {
       "post": {
-        "summary": "fetch_custom_face",
+        "summary": "拉取自定义表情 · fetch_custom_face",
+        "description": "返回账号自定义表情包列表。",
         "operationId": "fetch_custom_face",
         "tags": [
           "Extended"
@@ -2156,7 +2192,8 @@
     },
     "/get_emoji_likes": {
       "post": {
-        "summary": "get_emoji_likes",
+        "summary": "获取表情回应列表 · get_emoji_likes",
+        "description": "按消息 ID + emoji ID 查谁对该消息加了该表情。",
         "operationId": "get_emoji_likes",
         "tags": [
           "Extended"
@@ -2200,7 +2237,8 @@
     },
     "/fetch_emoji_like": {
       "post": {
-        "summary": "fetch_emoji_like",
+        "summary": "拉取表情回应（别名） · fetch_emoji_like",
+        "description": "等同 `get_emoji_likes`。",
         "operationId": "fetch_emoji_like",
         "tags": [
           "Extended"
@@ -2257,7 +2295,8 @@
     },
     "/get_friends_with_category": {
       "post": {
-        "summary": "get_friends_with_category",
+        "summary": "获取分组好友列表 · get_friends_with_category",
+        "description": "按好友分组返回好友列表。",
         "operationId": "get_friends_with_category",
         "tags": [
           "Extended"
@@ -2289,8 +2328,8 @@
     },
     "/get_online_clients": {
       "post": {
-        "summary": "get_online_clients",
-        "description": "/napcat 似乎也用不了？？，暂时不管了",
+        "summary": "获取在线客户端 · get_online_clients",
+        "description": "占位返回空数组（NTQQ 接口不可用）。",
         "operationId": "get_online_clients",
         "tags": [
           "Extended"
@@ -2322,7 +2361,8 @@
     },
     "/_get_model_show": {
       "post": {
-        "summary": "_get_model_show",
+        "summary": "获取机型展示 · _get_model_show",
+        "description": "NTQQ 已弃用，占位返回空 variants。",
         "operationId": "_get_model_show",
         "tags": [
           "Extended"
@@ -2354,7 +2394,8 @@
     },
     "/_set_model_show": {
       "post": {
-        "summary": "_set_model_show",
+        "summary": "设置机型展示 · _set_model_show",
+        "description": "NTQQ 已弃用，no-op。",
         "operationId": "_set_model_show",
         "tags": [
           "Extended"
@@ -2386,7 +2427,8 @@
     },
     "/.get_word_slices": {
       "post": {
-        "summary": ".get_word_slices",
+        "summary": "中文分词 · .get_word_slices",
+        "description": "未实现。",
         "operationId": ".get_word_slices",
         "tags": [
           "Extended"
@@ -2418,7 +2460,8 @@
     },
     "/get_group_at_all_remain": {
       "post": {
-        "summary": "get_group_at_all_remain",
+        "summary": "查询 @全体剩余次数 · get_group_at_all_remain",
+        "description": "返回当前账号在该群的 @全体使用名额。",
         "operationId": "get_group_at_all_remain",
         "tags": [
           "Extended"
@@ -2459,7 +2502,8 @@
     },
     "/get_unidirectional_friend_list": {
       "post": {
-        "summary": "get_unidirectional_friend_list",
+        "summary": "获取单向好友列表 · get_unidirectional_friend_list",
+        "description": "返回曾经加但被对方删除的单向好友。",
         "operationId": "get_unidirectional_friend_list",
         "tags": [
           "Extended"
@@ -2491,7 +2535,8 @@
     },
     "/set_self_longnick": {
       "post": {
-        "summary": "set_self_longnick",
+        "summary": "设置长签名 · set_self_longnick",
+        "description": "改 QQ 个人长签名（个性签名）。",
         "operationId": "set_self_longnick",
         "tags": [
           "Extended"
@@ -2523,7 +2568,8 @@
     },
     "/get_collection_list": {
       "post": {
-        "summary": "get_collection_list",
+        "summary": "获取收藏列表 · get_collection_list",
+        "description": "未实现，占位返回空。",
         "operationId": "get_collection_list",
         "tags": [
           "Extended"
@@ -2555,7 +2601,8 @@
     },
     "/create_collection": {
       "post": {
-        "summary": "create_collection",
+        "summary": "创建收藏 · create_collection",
+        "description": "未实现。",
         "operationId": "create_collection",
         "tags": [
           "Extended"
@@ -2587,7 +2634,8 @@
     },
     "/set_qq_avatar": {
       "post": {
-        "summary": "set_qq_avatar",
+        "summary": "设置 QQ 头像 · set_qq_avatar",
+        "description": "通过 highway cmdId 90 上传个人头像。",
         "operationId": "set_qq_avatar",
         "tags": [
           "Extended"
@@ -2627,7 +2675,8 @@
     },
     "/set_input_status": {
       "post": {
-        "summary": "set_input_status",
+        "summary": "设置输入中状态 · set_input_status",
+        "description": "向 `user_id` 发送 \"正在输入...\" 状态。",
         "operationId": "set_input_status",
         "tags": [
           "Extended"
@@ -2672,7 +2721,8 @@
     },
     "/translate_en2zh": {
       "post": {
-        "summary": "translate_en2zh",
+        "summary": "英译中 · translate_en2zh",
+        "description": "调用 QQ 内置英译中。",
         "operationId": "translate_en2zh",
         "tags": [
           "Extended"
@@ -2704,7 +2754,8 @@
     },
     "/get_clientkey": {
       "post": {
-        "summary": "get_clientkey",
+        "summary": "获取 ClientKey · get_clientkey",
+        "description": "返回当前 client key（用于 OAuth）。",
         "operationId": "get_clientkey",
         "tags": [
           "Extended"
@@ -2736,7 +2787,8 @@
     },
     "/get_mini_app_ark": {
       "post": {
-        "summary": "get_mini_app_ark",
+        "summary": "构造小程序 Ark · get_mini_app_ark",
+        "description": "根据 type / title / desc / picUrl / jumpUrl 生成小程序 Ark JSON。",
         "operationId": "get_mini_app_ark",
         "tags": [
           "Extended"
@@ -2768,7 +2820,8 @@
     },
     "/click_inline_keyboard_button": {
       "post": {
-        "summary": "click_inline_keyboard_button",
+        "summary": "点击内联键盘按钮 · click_inline_keyboard_button",
+        "description": "触发机器人消息上的内联按钮回调。",
         "operationId": "click_inline_keyboard_button",
         "tags": [
           "Extended"
@@ -2819,7 +2872,8 @@
     },
     "/set_group_sign": {
       "post": {
-        "summary": "set_group_sign",
+        "summary": "群签到 · set_group_sign",
+        "description": "在群里签到，每日一次。",
         "operationId": "set_group_sign",
         "tags": [
           "Extended"
@@ -2851,7 +2905,8 @@
     },
     "/send_group_sign": {
       "post": {
-        "summary": "send_group_sign",
+        "summary": "群签到（兼容别名） · send_group_sign",
+        "description": "等同 `set_group_sign`。",
         "operationId": "send_group_sign",
         "tags": [
           "Extended"
@@ -2883,7 +2938,8 @@
     },
     "/get_group_info_ex": {
       "post": {
-        "summary": "get_group_info_ex",
+        "summary": "获取群信息（扩展） · get_group_info_ex",
+        "description": "返回扩展字段（公告、入群方式、机器人选项等）。",
         "operationId": "get_group_info_ex",
         "tags": [
           "Extended"
@@ -2924,7 +2980,8 @@
     },
     "/get_group_detail_info": {
       "post": {
-        "summary": "get_group_detail_info",
+        "summary": "获取群详细信息 · get_group_detail_info",
+        "description": "更全的群信息字段（创建时间、群类型等）。",
         "operationId": "get_group_detail_info",
         "tags": [
           "Extended"
@@ -2965,7 +3022,8 @@
     },
     "/trans_group_file": {
       "post": {
-        "summary": "trans_group_file",
+        "summary": "转存群文件 · trans_group_file",
+        "description": "未实现，占位返回。",
         "operationId": "trans_group_file",
         "tags": [
           "Extended"
@@ -2997,7 +3055,8 @@
     },
     "/rename_group_file": {
       "post": {
-        "summary": "rename_group_file",
+        "summary": "重命名群文件 · rename_group_file",
+        "description": "未实现，占位返回。",
         "operationId": "rename_group_file",
         "tags": [
           "Extended"
@@ -3029,7 +3088,8 @@
     },
     "/get_file": {
       "post": {
-        "summary": "get_file",
+        "summary": "获取文件 · get_file",
+        "description": "按 `file_id` 查文件信息。当前为占位返回。",
         "operationId": "get_file",
         "tags": [
           "Extended"
@@ -3069,7 +3129,8 @@
     },
     "/send_packet": {
       "post": {
-        "summary": "send_packet",
+        "summary": "发送原始数据包 · send_packet",
+        "description": "Debug 接口：按 `cmd` 发送 hex 编码的 raw packet，可选等待响应。",
         "operationId": "send_packet",
         "tags": [
           "Extended"
@@ -3101,7 +3162,8 @@
     },
     "/.send_packet": {
       "post": {
-        "summary": ".send_packet",
+        "summary": "发送原始数据包（别名） · .send_packet",
+        "description": "等同 `send_packet`，gocqhttp 风格的点前缀写法。",
         "operationId": ".send_packet",
         "tags": [
           "Extended"
@@ -3133,8 +3195,8 @@
     },
     "/bot_exit": {
       "post": {
-        "summary": "bot_exit",
-        "description": "--- Bot lifecycle (napcat parity) ---",
+        "summary": "退出 Bot · bot_exit",
+        "description": "50ms 后调用 `process.exit(0)`。",
         "operationId": "bot_exit",
         "tags": [
           "Extended"
@@ -3166,8 +3228,8 @@
     },
     "/nc_get_packet_status": {
       "post": {
-        "summary": "nc_get_packet_status",
-        "description": "report healthy.",
+        "summary": "Packet 状态（NapCat 兼容） · nc_get_packet_status",
+        "description": "SnowLuma 没有独立 packet 后端，始终返回 ok。",
         "operationId": "nc_get_packet_status",
         "tags": [
           "Extended"
@@ -3199,8 +3261,8 @@
     },
     "/delete_group_folder": {
       "post": {
-        "summary": "delete_group_folder",
-        "description": "following napcat docs work without rewriting payloads.",
+        "summary": "删除群文件夹（别名） · delete_group_folder",
+        "description": "等同 `delete_group_file_folder`，napcat 命名。",
         "operationId": "delete_group_folder",
         "tags": [
           "Extended"
@@ -3245,7 +3307,8 @@
     },
     "/set_group_todo": {
       "post": {
-        "summary": "set_group_todo",
+        "summary": "设置群待办 · set_group_todo",
+        "description": "把指定消息标记为群待办。",
         "operationId": "set_group_todo",
         "tags": [
           "Extended"
@@ -3277,7 +3340,8 @@
     },
     "/complete_group_todo": {
       "post": {
-        "summary": "complete_group_todo",
+        "summary": "完成群待办 · complete_group_todo",
+        "description": "把待办标记为已完成。",
         "operationId": "complete_group_todo",
         "tags": [
           "Extended"
@@ -3309,7 +3373,8 @@
     },
     "/cancel_group_todo": {
       "post": {
-        "summary": "cancel_group_todo",
+        "summary": "取消群待办 · cancel_group_todo",
+        "description": "撤销群待办。",
         "operationId": "cancel_group_todo",
         "tags": [
           "Extended"
@@ -3341,8 +3406,8 @@
     },
     "/nc_get_user_status": {
       "post": {
-        "summary": "nc_get_user_status",
-        "description": "--- User online/ext status (napcat: nc_get_user_status) ---",
+        "summary": "用户在线状态 · nc_get_user_status",
+        "description": "查询 QQ 号的在线 / 离线 / 自定义状态（oidb 0xFE1_2）。",
         "operationId": "nc_get_user_status",
         "tags": [
           "Extended"
@@ -3383,8 +3448,8 @@
     },
     "/get_ai_characters": {
       "post": {
-        "summary": "get_ai_characters",
-        "description": "--- AI voice (oidb 0x929D / 0x929B) ---",
+        "summary": "获取 AI 角色列表 · get_ai_characters",
+        "description": "返回群可用的 AI 语音角色（按 `chat_type` 区分）。",
         "operationId": "get_ai_characters",
         "tags": [
           "Extended"
@@ -3429,7 +3494,8 @@
     },
     "/get_ai_record": {
       "post": {
-        "summary": "get_ai_record",
+        "summary": "获取 AI 语音 URL · get_ai_record",
+        "description": "用指定角色把 `text` 转语音，返回下载 URL。",
         "operationId": "get_ai_record",
         "tags": [
           "Extended"
@@ -3482,8 +3548,8 @@
     },
     "/send_group_ai_record": {
       "post": {
-        "summary": "send_group_ai_record",
-        "description": "message_id is always 0 because the oidb call doesn't echo one back.",
+        "summary": "发送 AI 群语音 · send_group_ai_record",
+        "description": "用指定角色合成语音并直接发到群。",
         "operationId": "send_group_ai_record",
         "tags": [
           "Extended"
@@ -3536,7 +3602,8 @@
     },
     "/get_friend_list": {
       "post": {
-        "summary": "get_friend_list",
+        "summary": "获取好友列表 · get_friend_list",
+        "description": "返回当前账号的好友 QQ 号、昵称、备注。",
         "operationId": "get_friend_list",
         "tags": [
           "Friend"
@@ -3568,7 +3635,8 @@
     },
     "/get_stranger_info": {
       "post": {
-        "summary": "get_stranger_info",
+        "summary": "获取陌生人信息 · get_stranger_info",
+        "description": "按 QQ 号查询非好友的基本资料。",
         "operationId": "get_stranger_info",
         "tags": [
           "Friend"
@@ -3609,7 +3677,8 @@
     },
     "/delete_friend": {
       "post": {
-        "summary": "delete_friend",
+        "summary": "删除好友 · delete_friend",
+        "description": "解除好友关系。`block=true` 同时拉黑。",
         "operationId": "delete_friend",
         "tags": [
           "Friend"
@@ -3653,10 +3722,11 @@
     },
     "/set_group_kick": {
       "post": {
-        "summary": "set_group_kick",
+        "summary": "踢出群成员 · set_group_kick",
+        "description": "把 `user_id` 踢出群。`reject_add_request=true` 同时加入黑名单。",
         "operationId": "set_group_kick",
         "tags": [
-          "Group · Admin"
+          "Group Admin"
         ],
         "requestBody": {
           "required": true,
@@ -3702,10 +3772,11 @@
     },
     "/set_group_kick_members": {
       "post": {
-        "summary": "set_group_kick_members",
+        "summary": "批量踢出群成员 · set_group_kick_members",
+        "description": "一次踢出多个 `user_ids`。",
         "operationId": "set_group_kick_members",
         "tags": [
-          "Group · Admin"
+          "Group Admin"
         ],
         "requestBody": {
           "required": true,
@@ -3746,10 +3817,11 @@
     },
     "/set_group_ban": {
       "post": {
-        "summary": "set_group_ban",
+        "summary": "禁言群成员 · set_group_ban",
+        "description": "禁言 `duration` 秒。`duration=0` 解除禁言。",
         "operationId": "set_group_ban",
         "tags": [
-          "Group · Admin"
+          "Group Admin"
         ],
         "requestBody": {
           "required": true,
@@ -3796,10 +3868,11 @@
     },
     "/set_group_whole_ban": {
       "post": {
-        "summary": "set_group_whole_ban",
+        "summary": "全员禁言 · set_group_whole_ban",
+        "description": "`enable=true` 开启全员禁言。",
         "operationId": "set_group_whole_ban",
         "tags": [
-          "Group · Admin"
+          "Group Admin"
         ],
         "requestBody": {
           "required": true,
@@ -3840,10 +3913,11 @@
     },
     "/set_group_add_option": {
       "post": {
-        "summary": "set_group_add_option",
+        "summary": "设置加群方式 · set_group_add_option",
+        "description": "改群的加群审核方式（任何人 / 需验证 / 不允许等）。",
         "operationId": "set_group_add_option",
         "tags": [
-          "Group · Admin"
+          "Group Admin"
         ],
         "requestBody": {
           "required": true,
@@ -3885,10 +3959,11 @@
     },
     "/set_group_search": {
       "post": {
-        "summary": "set_group_search",
+        "summary": "设置群搜索 · set_group_search",
+        "description": "切换群是否可被搜索到。",
         "operationId": "set_group_search",
         "tags": [
-          "Group · Admin"
+          "Group Admin"
         ],
         "requestBody": {
           "required": true,
@@ -3926,10 +4001,11 @@
     },
     "/set_group_admin": {
       "post": {
-        "summary": "set_group_admin",
+        "summary": "设置 / 取消管理员 · set_group_admin",
+        "description": "`enable=true` 设为管理员，`false` 取消。需群主。",
         "operationId": "set_group_admin",
         "tags": [
-          "Group · Admin"
+          "Group Admin"
         ],
         "requestBody": {
           "required": true,
@@ -3975,10 +4051,11 @@
     },
     "/set_group_card": {
       "post": {
-        "summary": "set_group_card",
+        "summary": "设置群名片 · set_group_card",
+        "description": "改群成员的群名片。空字符串清空。",
         "operationId": "set_group_card",
         "tags": [
-          "Group · Admin"
+          "Group Admin"
         ],
         "requestBody": {
           "required": true,
@@ -4024,10 +4101,11 @@
     },
     "/set_group_name": {
       "post": {
-        "summary": "set_group_name",
+        "summary": "设置群名 · set_group_name",
+        "description": "改群名称，需群主 / 管理员。",
         "operationId": "set_group_name",
         "tags": [
-          "Group · Admin"
+          "Group Admin"
         ],
         "requestBody": {
           "required": true,
@@ -4068,10 +4146,11 @@
     },
     "/set_group_leave": {
       "post": {
-        "summary": "set_group_leave",
+        "summary": "退群 / 解散群 · set_group_leave",
+        "description": "群主退群会自动解散群。",
         "operationId": "set_group_leave",
         "tags": [
-          "Group · Admin"
+          "Group Admin"
         ],
         "requestBody": {
           "required": true,
@@ -4109,10 +4188,11 @@
     },
     "/set_group_special_title": {
       "post": {
-        "summary": "set_group_special_title",
+        "summary": "设置专属头衔 · set_group_special_title",
+        "description": "给群成员设置专属头衔。需群主。",
         "operationId": "set_group_special_title",
         "tags": [
-          "Group · Admin"
+          "Group Admin"
         ],
         "requestBody": {
           "required": true,
@@ -4158,10 +4238,11 @@
     },
     "/set_group_anonymous": {
       "post": {
-        "summary": "set_group_anonymous",
+        "summary": "群匿名开关 · set_group_anonymous",
+        "description": "NTQQ 已不支持匿名功能，stub 返回 ok。",
         "operationId": "set_group_anonymous",
         "tags": [
-          "Group · Admin"
+          "Group Admin"
         ],
         "requestBody": {
           "required": false,
@@ -4190,10 +4271,11 @@
     },
     "/set_group_anonymous_ban": {
       "post": {
-        "summary": "set_group_anonymous_ban",
+        "summary": "禁言匿名用户 · set_group_anonymous_ban",
+        "description": "NTQQ 已不支持，stub 返回 ok。",
         "operationId": "set_group_anonymous_ban",
         "tags": [
-          "Group · Admin"
+          "Group Admin"
         ],
         "requestBody": {
           "required": false,
@@ -4222,11 +4304,11 @@
     },
     "/set_group_portrait": {
       "post": {
-        "summary": "set_group_portrait",
-        "description": "and base64:// data URIs — same surface as set_qq_avatar.",
+        "summary": "设置群头像 · set_group_portrait",
+        "description": "通过 highway cmdId 3000 上传群头像。`file` 支持本地路径 / URL / base64。",
         "operationId": "set_group_portrait",
         "tags": [
-          "Group · Admin"
+          "Group Admin"
         ],
         "requestBody": {
           "required": true,
@@ -4268,10 +4350,11 @@
     },
     "/upload_group_file": {
       "post": {
-        "summary": "upload_group_file",
+        "summary": "上传群文件 · upload_group_file",
+        "description": "向群文件夹上传文件。`folder` 默认根目录。",
         "operationId": "upload_group_file",
         "tags": [
-          "Group · File"
+          "Group File"
         ],
         "requestBody": {
           "required": true,
@@ -4325,10 +4408,11 @@
     },
     "/upload_private_file": {
       "post": {
-        "summary": "upload_private_file",
+        "summary": "上传私聊文件 · upload_private_file",
+        "description": "向好友 / 临时会话上传文件。",
         "operationId": "upload_private_file",
         "tags": [
-          "Group · File"
+          "Group File"
         ],
         "requestBody": {
           "required": true,
@@ -4376,10 +4460,11 @@
     },
     "/get_group_file_url": {
       "post": {
-        "summary": "get_group_file_url",
+        "summary": "获取群文件下载链接 · get_group_file_url",
+        "description": "按 `file_id` 拿群文件下载 URL。",
         "operationId": "get_group_file_url",
         "tags": [
-          "Group · File"
+          "Group File"
         ],
         "requestBody": {
           "required": true,
@@ -4425,10 +4510,11 @@
     },
     "/get_group_root_files": {
       "post": {
-        "summary": "get_group_root_files",
+        "summary": "获取群根目录文件 · get_group_root_files",
+        "description": "列出群文件根目录的文件 / 子文件夹。",
         "operationId": "get_group_root_files",
         "tags": [
-          "Group · File"
+          "Group File"
         ],
         "requestBody": {
           "required": true,
@@ -4466,10 +4552,11 @@
     },
     "/get_group_files_by_folder": {
       "post": {
-        "summary": "get_group_files_by_folder",
+        "summary": "获取指定文件夹文件 · get_group_files_by_folder",
+        "description": "列出指定 `folder_id` 下的内容。",
         "operationId": "get_group_files_by_folder",
         "tags": [
-          "Group · File"
+          "Group File"
         ],
         "requestBody": {
           "required": true,
@@ -4513,10 +4600,11 @@
     },
     "/delete_group_file": {
       "post": {
-        "summary": "delete_group_file",
+        "summary": "删除群文件 · delete_group_file",
+        "description": "按 `file_id` 删除群文件。",
         "operationId": "delete_group_file",
         "tags": [
-          "Group · File"
+          "Group File"
         ],
         "requestBody": {
           "required": true,
@@ -4558,10 +4646,11 @@
     },
     "/move_group_file": {
       "post": {
-        "summary": "move_group_file",
+        "summary": "移动群文件 · move_group_file",
+        "description": "把 `file_id` 从 `parent_directory` 移到 `target_directory`。",
         "operationId": "move_group_file",
         "tags": [
-          "Group · File"
+          "Group File"
         ],
         "requestBody": {
           "required": true,
@@ -4611,10 +4700,11 @@
     },
     "/create_group_file_folder": {
       "post": {
-        "summary": "create_group_file_folder",
+        "summary": "创建群文件夹 · create_group_file_folder",
+        "description": "在 `parent_id` 下新建文件夹。",
         "operationId": "create_group_file_folder",
         "tags": [
-          "Group · File"
+          "Group File"
         ],
         "requestBody": {
           "required": true,
@@ -4659,10 +4749,11 @@
     },
     "/delete_group_file_folder": {
       "post": {
-        "summary": "delete_group_file_folder",
+        "summary": "删除群文件夹 · delete_group_file_folder",
+        "description": "按 `folder_id` 删除群文件夹。",
         "operationId": "delete_group_file_folder",
         "tags": [
-          "Group · File"
+          "Group File"
         ],
         "requestBody": {
           "required": true,
@@ -4704,10 +4795,11 @@
     },
     "/rename_group_file_folder": {
       "post": {
-        "summary": "rename_group_file_folder",
+        "summary": "重命名群文件夹 · rename_group_file_folder",
+        "description": "改群文件夹名字。",
         "operationId": "rename_group_file_folder",
         "tags": [
-          "Group · File"
+          "Group File"
         ],
         "requestBody": {
           "required": true,
@@ -4755,10 +4847,11 @@
     },
     "/get_private_file_url": {
       "post": {
-        "summary": "get_private_file_url",
+        "summary": "获取私聊文件下载链接 · get_private_file_url",
+        "description": "按 `file_id` + `file_hash` 拿私聊文件下载 URL。",
         "operationId": "get_private_file_url",
         "tags": [
-          "Group · File"
+          "Group File"
         ],
         "requestBody": {
           "required": true,
@@ -4804,10 +4897,11 @@
     },
     "/get_group_list": {
       "post": {
-        "summary": "get_group_list",
+        "summary": "获取群列表 · get_group_list",
+        "description": "返回当前账号加入的所有群。",
         "operationId": "get_group_list",
         "tags": [
-          "Group · Info"
+          "Group Info"
         ],
         "requestBody": {
           "required": false,
@@ -4841,10 +4935,11 @@
     },
     "/get_group_info": {
       "post": {
-        "summary": "get_group_info",
+        "summary": "获取群信息 · get_group_info",
+        "description": "按 `group_id` 查群名、成员数、上限。",
         "operationId": "get_group_info",
         "tags": [
-          "Group · Info"
+          "Group Info"
         ],
         "requestBody": {
           "required": true,
@@ -4885,10 +4980,11 @@
     },
     "/get_group_member_list": {
       "post": {
-        "summary": "get_group_member_list",
+        "summary": "获取群成员列表 · get_group_member_list",
+        "description": "列出群所有成员。`no_cache=true` 强制刷新。",
         "operationId": "get_group_member_list",
         "tags": [
-          "Group · Info"
+          "Group Info"
         ],
         "requestBody": {
           "required": true,
@@ -4929,10 +5025,11 @@
     },
     "/get_group_member_info": {
       "post": {
-        "summary": "get_group_member_info",
+        "summary": "获取群成员信息 · get_group_member_info",
+        "description": "查指定成员的群名片、加群时间、角色等。",
         "operationId": "get_group_member_info",
         "tags": [
-          "Group · Info"
+          "Group Info"
         ],
         "requestBody": {
           "required": true,
@@ -4978,10 +5075,11 @@
     },
     "/get_group_honor_info": {
       "post": {
-        "summary": "get_group_honor_info",
+        "summary": "获取群荣誉信息 · get_group_honor_info",
+        "description": "返回龙王、群聊之火、快乐源泉等荣誉名单。`type` 选择类别。",
         "operationId": "get_group_honor_info",
         "tags": [
-          "Group · Info"
+          "Group Info"
         ],
         "requestBody": {
           "required": true,
@@ -5022,10 +5120,11 @@
     },
     "/get_group_system_msg": {
       "post": {
-        "summary": "get_group_system_msg",
+        "summary": "获取入群请求 · get_group_system_msg",
+        "description": "返回未处理的入群 / 邀请请求列表。",
         "operationId": "get_group_system_msg",
         "tags": [
-          "Group · Info"
+          "Group Info"
         ],
         "requestBody": {
           "required": false,
@@ -5054,7 +5153,8 @@
     },
     "/get_login_info": {
       "post": {
-        "summary": "get_login_info",
+        "summary": "获取登录信息 · get_login_info",
+        "description": "返回当前账号 QQ 号、昵称。",
         "operationId": "get_login_info",
         "tags": [
           "System"
@@ -5086,7 +5186,8 @@
     },
     "/get_status": {
       "post": {
-        "summary": "get_status",
+        "summary": "获取运行状态 · get_status",
+        "description": "返回 SnowLuma 在线状态、是否好友、消息接收等。",
         "operationId": "get_status",
         "tags": [
           "System"
@@ -5118,7 +5219,8 @@
     },
     "/get_version_info": {
       "post": {
-        "summary": "get_version_info",
+        "summary": "获取版本信息 · get_version_info",
+        "description": "返回 SnowLuma 版本号、协议版本等。",
         "operationId": "get_version_info",
         "tags": [
           "System"
@@ -5150,7 +5252,8 @@
     },
     "/can_send_image": {
       "post": {
-        "summary": "can_send_image",
+        "summary": "是否可发图片 · can_send_image",
+        "description": "兼容性接口，始终返回 true。",
         "operationId": "can_send_image",
         "tags": [
           "System"
@@ -5182,7 +5285,8 @@
     },
     "/can_send_record": {
       "post": {
-        "summary": "can_send_record",
+        "summary": "是否可发语音 · can_send_record",
+        "description": "兼容性接口，始终返回 true。",
         "operationId": "can_send_record",
         "tags": [
           "System"
@@ -5214,7 +5318,8 @@
     },
     "/send_msg": {
       "post": {
-        "summary": "send_msg",
+        "summary": "发送消息 · send_msg",
+        "description": "按 `message_type` 决定群发还是私聊。`auto_escape=true` 时把 `message` 当纯文本不解析 CQ 码。",
         "operationId": "send_msg",
         "tags": [
           "Message"
@@ -5278,7 +5383,8 @@
     },
     "/send_private_msg": {
       "post": {
-        "summary": "send_private_msg",
+        "summary": "发送私聊消息 · send_private_msg",
+        "description": "向 `user_id` 发私聊。临时会话需要先有共同群。",
         "operationId": "send_private_msg",
         "tags": [
           "Message"
@@ -5335,7 +5441,8 @@
     },
     "/send_group_msg": {
       "post": {
-        "summary": "send_group_msg",
+        "summary": "发送群消息 · send_group_msg",
+        "description": "向指定 `group_id` 发消息。`message` 可以是纯文本、CQ 码字符串或 OneBot 消息段数组。",
         "operationId": "send_group_msg",
         "tags": [
           "Message"
@@ -5392,7 +5499,8 @@
     },
     "/get_msg": {
       "post": {
-        "summary": "get_msg",
+        "summary": "获取消息 · get_msg",
+        "description": "按 `message_id` 取一条历史消息的完整内容，含发送者、时间、消息段数组。",
         "operationId": "get_msg",
         "tags": [
           "Message"
@@ -5430,7 +5538,8 @@
     },
     "/delete_msg": {
       "post": {
-        "summary": "delete_msg",
+        "summary": "撤回消息 · delete_msg",
+        "description": "按 `message_id` 撤回消息。群消息需要管理员权限或在 2 分钟内。",
         "operationId": "delete_msg",
         "tags": [
           "Message"
@@ -5468,7 +5577,8 @@
     },
     "/set_friend_add_request": {
       "post": {
-        "summary": "set_friend_add_request",
+        "summary": "处理好友申请 · set_friend_add_request",
+        "description": "同意 / 拒绝好友申请。`flag` 来自事件。",
         "operationId": "set_friend_add_request",
         "tags": [
           "Request"
@@ -5511,7 +5621,8 @@
     },
     "/set_group_add_request": {
       "post": {
-        "summary": "set_group_add_request",
+        "summary": "处理加群请求 · set_group_add_request",
+        "description": "同意 / 拒绝加群或邀请请求。`flag` 来自事件，`approve` 决定通过与否。",
         "operationId": "set_group_add_request",
         "tags": [
           "Request"
