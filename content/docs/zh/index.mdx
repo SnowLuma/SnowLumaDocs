@@ -3,9 +3,7 @@ title: 介绍
 description: 面向 NTQQ 的 Remote Protocol Framework
 ---
 
-SnowLuma 是一个面向 NTQQ 的 Remote Protocol Framework，当前处于早期高速迭代阶段，仅支持部分功能。Windows / macOS 通过 GUI 模式运行；Linux 通过 [Docker 容器](/docs/docker) 运行（容器内是有头 Xvfb + VNC）。
-
-项目采用 TypeScript + 原生模块架构：TypeScript 负责运行时、桥接、OneBot 与 WebUI；原生模块负责 QQ 进程 Hook、注入和底层 WebSocket 能力。
+SnowLuma 是一个高性能的下一代远程协议框架，旨在桥接 NTQQ 协议与 OneBot 生态系统。为机器人开发提供结构化的 API。
 
 ## 你可以用它做什么
 
@@ -15,60 +13,12 @@ SnowLuma 是一个面向 NTQQ 的 Remote Protocol Framework，当前处于早期
 - **内置 WebUI**：完整构建启动后可访问 Web 控制台查看状态、管理网络适配器。
 - **TypeScript SDK**：`@snowluma/sdk` 提供类型完备的 OneBot HTTP / WS 客户端。
 
-## 运行要求
-
-| 项目 | 要求 |
-| --- | --- |
-| Node.js | `>= 22` |
-| 包管理器 | `pnpm ≥ 10`（仓库锁定 `10.28.0`） |
-| QQ 客户端 | NTQQ，有头运行 |
-| 原生模块 | 匹配当前平台与架构的 `.node` / `.dll` / `.so` |
-| 系统 | Windows / macOS 原生；Linux 通过 Docker |
-
 ## 三种用法
 
 | 场景 | 推荐方式 |
 | --- | --- |
 | 部署到服务器 | [Docker 容器](/docs/docker) —— 镜像内置 QQ + Xvfb + VNC，开箱即用 |
 | 本机使用预发行版 | 从 [GitHub Release](https://github.com/SnowLuma/SnowLuma/releases) 下载对应平台的 `lite` / 完整 tarball，解压后 `node ./index.mjs` |
-| 从源码开发 | `pnpm install && pnpm dev` |
-
-## 从源码快速开始
-
-```bash
-git clone https://github.com/SnowLuma/SnowLuma.git
-cd SnowLuma
-pnpm install
-pnpm build:all
-pnpm start
-```
-
-开发模式（核心运行时 + 自动重载）：
-
-```bash
-pnpm dev
-```
-
-WebUI 单独热重载：
-
-```bash
-pnpm dev:web
-```
-
-## 常用命令
-
-| 命令 | 说明 |
-| --- | --- |
-| `pnpm dev` | 启动 `@snowluma/core` 开发模式。 |
-| `pnpm dev:web` | 启动 WebUI Vite 开发服务器。 |
-| `pnpm build` | 仅构建核心运行时。 |
-| `pnpm build:webui` | 仅构建 WebUI。 |
-| `pnpm build:sdk` | 构建可发布的 SDK 包。 |
-| `pnpm build:all` | 构建核心 + SDK + WebUI 完整发行版。 |
-| `pnpm start` | 运行 `dist/index.mjs`。 |
-| `pnpm test` | 运行核心测试。 |
-| `pnpm typecheck` | 整仓类型检查。 |
-| `pnpm lint` | 执行 lint。 |
 
 ## 发行目录
 
