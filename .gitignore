@@ -1,13 +1,13 @@
 # deps
 /node_modules
 
-# generated content
-.source
+# Rspress
+doc_build
+.rspress_cache
 
 # test & build
 /coverage
-/.next/
-/out/
+/dist
 /build
 *.tsbuildinfo
 
@@ -19,8 +19,9 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
 
 # others
 .env*.local
 .vercel
-next-env.d.ts
+.claude/settings.local.json

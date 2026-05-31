@@ -1,0 +1,17 @@
+[
+  {
+    "type": "file",
+    "name": "docker",
+    "label": "Docker Deployment"
+  },
+  {
+    "type": "file",
+    "name": "configuration",
+    "label": "Configuration"
+  },
+  {
+    "type": "file",
+    "name": "developer",
+    "label": "Developer Guide"
+  }
+]

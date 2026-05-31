@@ -25,26 +25,20 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v4
         with:
-          # Fumadocs 16 / Next 16 require Node >= 22.
           node-version: 22
           cache: pnpm
 
       - name: Install dependencies
-        # The repo lives standalone in CI (no parent monorepo), so the
-        # in-repo `.npmrc` (`ignore-workspace=true`) and `--frozen-lockfile`
-        # both apply by default. Pin explicitly anyway for safety.
         run: pnpm install --frozen-lockfile
 
-      - name: Build (Next.js static export)
+      - name: Build (Rspress)
         run: pnpm build
 
       - name: Deploy to GitHub Pages
         env:
           PAGES_DEPLOY_TOKEN: ${{ secrets.PAGES_DEPLOY_TOKEN }}
         run: |
-          # Next.js static export lands in `out/`, not `dist/`.
-          cd out
-          # Disable Jekyll on GitHub Pages so `_next/` paths are served.
+          cd doc_build
           touch .nojekyll
           git init
           git config user.name "github-actions[bot]"

@@ -1,0 +1,125 @@
+:root {
+  --banner-duration: 0.8s;
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@800&display=swap');
+
+.splash-container {
+  position: fixed;
+  inset: 0;
+  background-color: #ffffff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+  overflow: hidden;
+}
+
+[data-theme='dark'] .splash-container {
+  background-color: #121212;
+}
+
+.splash-container.fade-out {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.8s ease, visibility 0.8s;
+  pointer-events: none;
+}
+
+.splash-banner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 30px;
+}
+
+/* Vertical Lines */
+.banner-line {
+  width: 1px;
+  background-color: #000000;
+  height: 0;
+  opacity: 0.8;
+  transition: all 0.8s cubic-bezier(0.645, 0.045, 0.355, 1);
+}
+
+[data-theme='dark'] .banner-line {
+  background-color: #ffffff;
+}
+
+.banner-line.active {
+  height: 120px;
+}
+
+.banner-line.exit {
+  height: 0;
+  opacity: 0;
+}
+
+/* SVG Content Dynamic Motion */
+.splash-svg-content {
+  width: 380px;
+  height: 120px;
+  opacity: 0;
+  transform: scale(0.95);
+  transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.svg-active {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.svg-exit {
+  opacity: 0;
+  transform: scale(1.1) translateY(-20px);
+  filter: blur(10px);
+}
+
+/* Character Splitting Motion for SVG Layers */
+.text-layer-back {
+  animation: char-split-left 1.2s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+}
+
+.text-layer-front {
+  animation: char-split-right 1.2s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+}
+
+@keyframes char-split-left {
+  from { transform: translateX(30px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes char-split-right {
+  from { transform: translateX(-30px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+.title-font {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 52px;
+  font-weight: 800;
+  letter-spacing: -0.05em;
+  text-anchor: middle;
+}
+
+.star-fx {
+  animation: floatAnimation 4s ease-in-out infinite;
+}
+
+.star-top {
+  transform-origin: 265px 25px;
+  fill: #BF94E4; /* 紫色 */
+}
+
+.star-bottom {
+  transform-origin: 45px 95px;
+  animation-delay: 0.5s;
+  fill: #FFB7C5; /* 粉色 */
+}
+
+@keyframes floatAnimation {
+  0% { transform: translateY(0px) rotate(0deg); opacity: 0.9; }
+  50% { transform: translateY(-8px) rotate(10deg); opacity: 1; }
+  100% { transform: translateY(0px) rotate(0deg); opacity: 0.9; }
+}
+

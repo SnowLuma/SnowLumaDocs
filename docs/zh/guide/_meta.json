@@ -1,0 +1,17 @@
+[
+  {
+    "type": "file",
+    "name": "docker",
+    "label": "Docker 部署"
+  },
+  {
+    "type": "file",
+    "name": "configuration",
+    "label": "配置参考"
+  },
+  {
+    "type": "file",
+    "name": "developer",
+    "label": "开发者指南"
+  }
+]

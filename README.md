@@ -1,6 +1,6 @@
 # SnowLumaDocs
 
-SnowLuma 文档站。基于 [Fumadocs](https://fumadocs.dev)（Next.js 16 + MDX）。
+SnowLuma 文档站。基于 [Rspress](https://rspress.dev)。
 
 ## 本地开发
 
@@ -9,23 +9,27 @@ pnpm install
 pnpm dev
 ```
 
-打开 http://localhost:3000
+打开 http://localhost:5173
 
 ## 构建
 
 ```bash
 pnpm build
-pnpm start
+pnpm preview
 ```
 
 ## 内容位置
 
-文档源文件位于 `content/docs/`，按 `meta.json` 中的顺序在侧边栏排列。新增页面时同步更新 `meta.json` 即可。
+文档源文件位于 `docs/` 目录下，按语言组织：
+
+- `docs/zh/` - 简体中文文档
+- `docs/en/` - 英文文档
+
+每个语言目录下的 `_meta.json` 文件定义了侧边栏的结构和顺序。
 
 ## 技术栈
 
-- Next.js 16 (App Router)
-- Fumadocs Core / UI / MDX
-- React 19
-- Tailwind CSS 4
+- Rspress
+- React
 - TypeScript
+- remark-math / rehype-katex (数学公式支持)

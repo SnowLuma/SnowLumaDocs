@@ -1,8 +1,7 @@
 #!/usr/bin/env node
 // Scan every `h.registerAction('<name>', async (params) => { ... })`
 // in `<SnowLuma>/packages/core/src/onebot/actions/` and emit an
-// OpenAPI 3.1 document that Fumadocs OpenAPI can compile into MDX
-// pages.
+// OpenAPI 3.1 document for the docs site.
 //
 // The docs site is a separate repository from SnowLuma proper. By
 // default this script looks for SnowLuma at `../../` (relative to
@@ -12,7 +11,7 @@
 // Override the source location:
 //   SNOWLUMA_SRC=/abs/path/to/SnowLuma pnpm openapi:generate
 //
-// The generated `content/api/openapi.json` is committed, so the
+// The generated `docs/public/api/openapi.json` is committed, so the
 // production docs build (which doesn't have access to SnowLuma's
 // source tree) doesn't need to run this — only developers do, when
 // a `registerAction` call is added or renamed.
@@ -29,7 +28,7 @@
 //
 // Usage:
 //   pnpm openapi:generate
-//   pnpm openapi:generate ./content/api/openapi.json   # explicit output
+//   pnpm openapi:generate ./docs/public/api/openapi.json   # explicit output
 
 import { readFile, readdir, writeFile, mkdir } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
@@ -81,7 +80,7 @@ function resolveSnowLumaSrc() {
 
 const snowLumaSrc = resolveSnowLumaSrc();
 const actionsDir = path.join(snowLumaSrc, 'packages/core/src/onebot/actions');
-const defaultOut = path.join(docsRoot, 'content/api/openapi.json');
+const defaultOut = path.join(docsRoot, 'docs/public/api/openapi.json');
 const outPath = path.resolve(docsRoot, process.argv[2] ?? defaultOut);
 
 const TYPE_MAP = {

@@ -3,40 +3,23 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "build": "next build",
-    "dev": "next dev",
-    "start": "next start",
-    "types:check": "fumadocs-mdx && next typegen && tsc --noEmit",
+    "dev": "rspress dev --port 5173",
+    "build": "rspress build",
+    "preview": "rspress preview",
     "openapi:generate": "node tools/generate-onebot-openapi.mjs"
   },
   "dependencies": {
-    "@orama/orama": "^3.1.18",
-    "@orama/tokenizers": "^3.1.18",
-    "fumadocs-core": "^16.8.11",
-    "fumadocs-mdx": "^15.0.5",
-    "fumadocs-openapi": "^10.8.3",
-    "fumadocs-typescript": "^5.2.6",
-    "fumadocs-ui": "^16.8.11",
-    "katex": "^0.16.46",
-    "lucide-react": "^1.14.0",
-    "mermaid": "^11.15.0",
-    "next": "16.2.6",
-    "next-themes": "^0.4.6",
-    "react": "^19.2.6",
-    "react-dom": "^19.2.6",
-    "rehype-katex": "^7.0.1",
-    "remark-math": "^6.0.0",
-    "shiki": "^4.0.2",
-    "tailwind-merge": "^3.6.0"
+    "rspress": "^1.30.1"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4.3.0",
-    "@types/mdx": "^2.0.13",
     "@types/node": "^25.6.2",
-    "@types/react": "^19.2.14",
+    "@types/react": "^19.2.15",
     "@types/react-dom": "^19.2.3",
-    "postcss": "^8.5.14",
-    "tailwindcss": "^4.3.0",
-    "typescript": "^6.0.3"
+    "katex": "^0.17.0",
+    "rehype-katex": "^7.0.1",
+    "remark-math": "^6.0.0",
+    "typescript": "^6.0.3",
+    "vfile": "5.3.7",
+    "vfile-message": "3.1.4"
   }
 }
