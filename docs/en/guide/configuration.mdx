@@ -70,6 +70,7 @@ Adapters are grouped by kind under a single `networks` object:
 
 Every adapter accepts these (`NetworkBase`):
 
+
 | Field | Type | Default | Notes |
 | --- | --- | --- | --- |
 | `name` | string | required | Identifier unique within its kind array; hot-reload addresses it by `(kind, name)`. |
@@ -82,6 +83,7 @@ Every adapter accepts these (`NetworkBase`):
 
 OneBot HTTP API listener.
 
+
 | Field | Type | Default | Notes |
 | --- | --- | --- | --- |
 | `host` | string | `0.0.0.0` | Bind address. |
@@ -92,6 +94,7 @@ OneBot HTTP API listener.
 
 Push events to external endpoints (formerly `httpPostEndpoints`).
 
+
 | Field | Type | Default | Notes |
 | --- | --- | --- | --- |
 | `url` | string | required | Report URL. |
@@ -100,6 +103,7 @@ Push events to external endpoints (formerly `httpPostEndpoints`).
 ### `wsServers`
 
 OneBot WebSocket server.
+
 
 | Field | Type | Default | Notes |
 | --- | --- | --- | --- |
@@ -111,6 +115,7 @@ OneBot WebSocket server.
 ### `wsClients`
 
 Connect outbound to reverse WebSocket servers.
+
 
 | Field | Type | Default | Notes |
 | --- | --- | --- | --- |
@@ -133,12 +138,14 @@ Optional URL for a custom music-card signing service. Empty string disables.
 }
 ```
 
+
 | Field | Type | Default | Notes |
 | --- | --- | --- | --- |
 | `webuiPort` | number | `5099` | WebUI listen port; out-of-range values fall back to the default. |
 | `hookAutoLoad` | bool | `false` | Auto-inject the hook into every newly discovered QQ process. The Docker image flips this on. |
 
 ## Environment variables
+
 
 | Var | Notes |
 | --- | --- |
@@ -151,3 +158,5 @@ Optional URL for a custom music-card signing service. Empty string disables.
 ## Port conflicts
 
 If `3000` / `3001` / `5099` are taken, change the matching `port` / `webuiPort` and restart. Docker users can also remap host ports via Compose (see [Docker deployment](/en/guide/docker)).
+
+

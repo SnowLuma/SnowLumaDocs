@@ -1,0 +1,36 @@
+/* 隐藏默认 Logo 图片 */
+:global(.rspress-nav-left .rspress-nav-logo) {
+  display: none !important;
+}
+
+:global(.rspress-nav-left a) {
+  display: flex !important;
+  align-items: center;
+  text-decoration: none !important;
+  height: 100%;
+}
+
+:global(.custom-nav-logo) {
+  display: flex;
+  align-items: center;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 1.4rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+:global(.custom-nav-logo .snow) {
+  color: #3b82f6 !important;
+}
+
+:global(.custom-nav-logo .luma) {
+  color: #1a1a1a !important;
+}
+
+[data-theme='dark'] :global(.custom-nav-logo .luma) {
+  color: #f8f9fa !important;
+}
+
+[data-theme='dark'] :global(.custom-nav-logo .snow) {
+  color: #60a5fa !important;
+}

@@ -9,6 +9,7 @@ The image build scripts and Compose template live in a separate repo: [`SnowLuma
 
 ## Image
 
+
 | Item | Value |
 | --- | --- |
 | Image | `motricseven7/snowluma:latest` (or a specific tag, e.g. `:v1.8.0`) |
@@ -19,6 +20,7 @@ The image build scripts and Compose template live in a separate repo: [`SnowLuma
 The image does **not** rebuild SnowLuma — it consumes the prebuilt `lite` tarball from each SnowLuma GitHub Release, so the release and the image build are decoupled.
 
 ## Ports
+
 
 | Port | Purpose |
 | --- | --- |
@@ -134,6 +136,7 @@ docker compose up -d
 
 ## Environment variables
 
+
 | Var | Default | Notes |
 | --- | --- | --- |
 | `VNC_PASSWD` | `vncpasswd` | VNC / noVNC login password. **Change this**, otherwise anyone can see your QQ desktop. |
@@ -147,6 +150,7 @@ docker compose up -d
 Environment variables override `runtime.json`, so they're the ergonomic knob in Docker.
 
 ## Volumes
+
 
 | Volume | Container path | Contents |
 | --- | --- | --- |
@@ -346,3 +350,5 @@ Multi-arch manifests are merged by CI (`.github/workflows/docker-image.yml`); th
 - SnowLuma's native addon injects code into the QQ process; the container needs `SYS_PTRACE` and `seccomp=unconfined`. Only run on trusted hosts.
 - The default `VNC_PASSWD` (`vncpasswd`) **must** be changed before exposing the container to anything other than localhost — otherwise your QQ desktop is wide open.
 - Comply with NTQQ / Tencent's terms of service plus SnowLuma's and its dependencies' open-source licenses.
+
+

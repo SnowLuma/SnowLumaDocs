@@ -7,10 +7,17 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const Splash: React.FC = () => {
   const [status, setStatus] = useState<AnimationStatus>('enter');
-  const [visible, setVisible] = useState(true);
+  const [visible, setVisible] = useState(false);
 
   useEffect(() => {
+    // 检查 SessionStorage 确定本次会话是否已经播放过动画
+    const hasPlayed = sessionStorage.getItem('splash-played');
+    if (hasPlayed) {
+      return;
+    }
+
     const runAnimation = async () => {
+      setVisible(true);
       // 1. Lines extend
       await sleep(50);
       setStatus('active');
@@ -28,6 +35,9 @@ const Splash: React.FC = () => {
       // 5. Final fade out component
       await sleep(800);
       setVisible(false);
+      
+      // 标记已播放
+      sessionStorage.setItem('splash-played', 'true');
     };
 
     runAnimation();

@@ -8,10 +8,6 @@ export default defineConfig({
   title: 'SnowLuma',
   description: '面向 NTQQ 的 Remote Protocol Framework',
   icon: '/logo.svg',
-  logo: {
-    light: '/logo.svg',
-    dark: '/logo.svg',
-  },
   lang: 'zh',
   themeConfig: {
     socialLinks: [
@@ -42,6 +38,7 @@ export default defineConfig({
   },
   globalUIComponents: [
     path.join(__dirname, 'docs', 'components', 'Splash.tsx'),
+    path.join(__dirname, 'docs', 'components', 'NavLogo.tsx'),
   ],
   locales: [
     {
