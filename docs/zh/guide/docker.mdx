@@ -9,26 +9,24 @@ SnowLuma 在 Linux 上**只通过 Docker 运行**。镜像内置 Linux QQ + Xvfb
 
 ## 镜像信息
 
-
-| 项 | 值 |
-| --- | --- |
-| 镜像 | `motricseven7/snowluma:latest` (或具体 tag `:v1.8.0`) |
-| 架构 | `linux/amd64`、`linux/arm64` |
-| 基础 | `node:22-bookworm-slim` |
+| 项   | 值                                                              |
+| ---- | --------------------------------------------------------------- |
+| 镜像 | `motricseven7/snowluma:latest` (或具体 tag `:v1.8.0`)           |
+| 架构 | `linux/amd64`、`linux/arm64`                                    |
+| 基础 | `node:22-bookworm-slim`                                         |
 | 内置 | Linux QQ、Xvfb、VNC、noVNC、supervisord、SnowLuma `lite` 发行包 |
 
 镜像不在容器内重新编译 SnowLuma —— 它消费主仓 GitHub Release 的预编译 `lite` tarball，所以发版与镜像构建解耦。
 
 ## 端口
 
-
-| 端口 | 用途 |
-| --- | --- |
-| `5900` | VNC（远程桌面，密码登录 QQ 用） |
+| 端口   | 用途                                |
+| ------ | ----------------------------------- |
+| `5900` | VNC（远程桌面，密码登录 QQ 用）     |
 | `6081` | noVNC（浏览器版 VNC，无客户端访问） |
-| `5099` | SnowLuma WebUI |
-| `3000` | OneBot HTTP（默认） |
-| `3001` | OneBot WebSocket（默认） |
+| `5099` | SnowLuma WebUI                      |
+| `3000` | OneBot HTTP（默认）                 |
+| `3001` | OneBot WebSocket（默认）            |
 
 ## 宿主机准备：放开 ptrace 限制
 
@@ -136,27 +134,25 @@ docker compose up -d
 
 ## 环境变量
 
-
-| 变量 | 默认 | 说明 |
-| --- | --- | --- |
-| `VNC_PASSWD` | `vncpasswd` | VNC / noVNC 登录密码。**改成自己的**，不然别人也能进容器里看你 QQ。 |
-| `SNOWLUMA_UID` | `1000` | 容器内 `snowluma` 用户的 uid。和你挂载卷的宿主属主匹配。 |
-| `SNOWLUMA_GID` | `1000` | 容器内 `snowluma` 用户的 gid。 |
-| `SNOWLUMA_WEBUI_PORT` | `5099` | WebUI 监听端口（容器内）。 |
-| `SNOWLUMA_LOG_LEVEL` | `info` | `error` / `warn` / `info` / `debug`。 |
-| `SNOWLUMA_SCREEN` | `1920x1080x16` | Xvfb 分辨率 + 色深。 |
-| `SNOWLUMA_HOOK_AUTOLOAD` | `1` | 镜像默认开自动注入。设 `0` 切回手动 Load 流程。 |
+| 变量                     | 默认           | 说明                                                                |
+| ------------------------ | -------------- | ------------------------------------------------------------------- |
+| `VNC_PASSWD`             | `vncpasswd`    | VNC / noVNC 登录密码。**改成自己的**，不然别人也能进容器里看你 QQ。 |
+| `SNOWLUMA_UID`           | `1000`         | 容器内 `snowluma` 用户的 uid。和你挂载卷的宿主属主匹配。            |
+| `SNOWLUMA_GID`           | `1000`         | 容器内 `snowluma` 用户的 gid。                                      |
+| `SNOWLUMA_WEBUI_PORT`    | `5099`         | WebUI 监听端口（容器内）。                                          |
+| `SNOWLUMA_LOG_LEVEL`     | `info`         | `error` / `warn` / `info` / `debug`。                               |
+| `SNOWLUMA_SCREEN`        | `1920x1080x16` | Xvfb 分辨率 + 色深。                                                |
+| `SNOWLUMA_HOOK_AUTOLOAD` | `1`            | 镜像默认开自动注入。设 `0` 切回手动 Load 流程。                     |
 
 环境变量优先级高于 `runtime.json`，所以 Docker 用环境变量覆盖最方便。
 
 ## 数据卷
 
-
-| 卷 | 容器路径 | 内容 |
-| --- | --- | --- |
-| `snowluma-data` | `/app/snowluma-data` | SnowLuma 配置、缓存、SDB 等。`config/onebot.json` 和 `config/runtime.json` 都在这里。 |
-| `snowluma-qq-config` | `/app/.config` | QQ 客户端配置。 |
-| `snowluma-qq-data` | `/app/.local/share` | QQ 用户数据（登录态、缓存等）。 |
+| 卷                   | 容器路径             | 内容                                                                                  |
+| -------------------- | -------------------- | ------------------------------------------------------------------------------------- |
+| `snowluma-data`      | `/app/snowluma-data` | SnowLuma 配置、缓存、SDB 等。`config/onebot.json` 和 `config/runtime.json` 都在这里。 |
+| `snowluma-qq-config` | `/app/.config`       | QQ 客户端配置。                                                                       |
+| `snowluma-qq-data`   | `/app/.local/share`  | QQ 用户数据（登录态、缓存等）。                                                       |
 
 **升级镜像不要删这三个卷**，否则会丢登录态和配置。
 
@@ -218,10 +214,10 @@ services:
     # ... 原有配置 ...
     volumes:
       - snowluma-data:/app/snowluma-data
-      - snowluma-qq-config:/app/.config         # 主账号
-      - snowluma-qq-data:/app/.local/share      # 主账号
-      - snowluma-qq2:/app/qq-acct2              # 第二个账号的完整 HOME
-      - snowluma-qq3:/app/qq-acct3              # 第三个账号 ...
+      - snowluma-qq-config:/app/.config # 主账号
+      - snowluma-qq-data:/app/.local/share # 主账号
+      - snowluma-qq2:/app/qq-acct2 # 第二个账号的完整 HOME
+      - snowluma-qq3:/app/qq-acct3 # 第三个账号 ...
 
 volumes:
   snowluma-data:
@@ -311,7 +307,7 @@ docker restart snowluma
 
 ```yaml
 ports:
-  - "8080:3000"   # 宿主 8080 → 容器 3000
+  - "8080:3000" # 宿主 8080 → 容器 3000
 ```
 
 或通过环境变量（Compose 模板已支持）：
@@ -348,5 +344,3 @@ SNOWLUMA_TAG=v1.8.0 ./scripts/build-image.sh
 - SnowLuma 用 native addon 把代码注入 QQ 进程；容器启动需要 `SYS_PTRACE` 能力和 `seccomp=unconfined`。仅在受信任的宿主上运行。
 - VNC / noVNC 默认密码 `vncpasswd` **务必改掉**，否则你的 QQ 桌面在公网上裸奔。
 - 请遵守 NTQQ / Tencent 的使用许可，以及 SnowLuma 与依赖项的开源协议。
-
-

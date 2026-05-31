@@ -9,26 +9,24 @@ The image build scripts and Compose template live in a separate repo: [`SnowLuma
 
 ## Image
 
-
-| Item | Value |
-| --- | --- |
-| Image | `motricseven7/snowluma:latest` (or a specific tag, e.g. `:v1.8.0`) |
-| Arch | `linux/amd64`, `linux/arm64` |
-| Base | `node:22-bookworm-slim` |
-| Bundled | Linux QQ, Xvfb, VNC, noVNC, supervisord, SnowLuma `lite` |
+| Item    | Value                                                              |
+| ------- | ------------------------------------------------------------------ |
+| Image   | `motricseven7/snowluma:latest` (or a specific tag, e.g. `:v1.8.0`) |
+| Arch    | `linux/amd64`, `linux/arm64`                                       |
+| Base    | `node:22-bookworm-slim`                                            |
+| Bundled | Linux QQ, Xvfb, VNC, noVNC, supervisord, SnowLuma `lite`           |
 
 The image does **not** rebuild SnowLuma — it consumes the prebuilt `lite` tarball from each SnowLuma GitHub Release, so the release and the image build are decoupled.
 
 ## Ports
 
-
-| Port | Purpose |
-| --- | --- |
+| Port   | Purpose                                        |
+| ------ | ---------------------------------------------- |
 | `5900` | VNC (remote desktop — needed to scan-login QQ) |
-| `6081` | noVNC (browser VNC, no client needed) |
-| `5099` | SnowLuma WebUI |
-| `3000` | OneBot HTTP (default) |
-| `3001` | OneBot WebSocket (default) |
+| `6081` | noVNC (browser VNC, no client needed)          |
+| `5099` | SnowLuma WebUI                                 |
+| `3000` | OneBot HTTP (default)                          |
+| `3001` | OneBot WebSocket (default)                     |
 
 ## Host setup: relax the ptrace policy
 
@@ -136,27 +134,25 @@ docker compose up -d
 
 ## Environment variables
 
-
-| Var | Default | Notes |
-| --- | --- | --- |
-| `VNC_PASSWD` | `vncpasswd` | VNC / noVNC login password. **Change this**, otherwise anyone can see your QQ desktop. |
-| `SNOWLUMA_UID` | `1000` | uid of the in-container `snowluma` user. Match it to the host owner of your mounted volumes. |
-| `SNOWLUMA_GID` | `1000` | gid of the in-container `snowluma` user. |
-| `SNOWLUMA_WEBUI_PORT` | `5099` | WebUI listen port (inside the container). |
-| `SNOWLUMA_LOG_LEVEL` | `info` | `error` / `warn` / `info` / `debug`. |
-| `SNOWLUMA_SCREEN` | `1920x1080x16` | Xvfb resolution + color depth. |
-| `SNOWLUMA_HOOK_AUTOLOAD` | `1` | Image opts into auto-injection by default. Set `0` to fall back to the manual Load workflow. |
+| Var                      | Default        | Notes                                                                                        |
+| ------------------------ | -------------- | -------------------------------------------------------------------------------------------- |
+| `VNC_PASSWD`             | `vncpasswd`    | VNC / noVNC login password. **Change this**, otherwise anyone can see your QQ desktop.       |
+| `SNOWLUMA_UID`           | `1000`         | uid of the in-container `snowluma` user. Match it to the host owner of your mounted volumes. |
+| `SNOWLUMA_GID`           | `1000`         | gid of the in-container `snowluma` user.                                                     |
+| `SNOWLUMA_WEBUI_PORT`    | `5099`         | WebUI listen port (inside the container).                                                    |
+| `SNOWLUMA_LOG_LEVEL`     | `info`         | `error` / `warn` / `info` / `debug`.                                                         |
+| `SNOWLUMA_SCREEN`        | `1920x1080x16` | Xvfb resolution + color depth.                                                               |
+| `SNOWLUMA_HOOK_AUTOLOAD` | `1`            | Image opts into auto-injection by default. Set `0` to fall back to the manual Load workflow. |
 
 Environment variables override `runtime.json`, so they're the ergonomic knob in Docker.
 
 ## Volumes
 
-
-| Volume | Container path | Contents |
-| --- | --- | --- |
-| `snowluma-data` | `/app/snowluma-data` | SnowLuma config, cache, SQLite. Includes `config/onebot.json` and `config/runtime.json`. |
-| `snowluma-qq-config` | `/app/.config` | QQ client config. |
-| `snowluma-qq-data` | `/app/.local/share` | QQ user data (login state, cache). |
+| Volume               | Container path       | Contents                                                                                 |
+| -------------------- | -------------------- | ---------------------------------------------------------------------------------------- |
+| `snowluma-data`      | `/app/snowluma-data` | SnowLuma config, cache, SQLite. Includes `config/onebot.json` and `config/runtime.json`. |
+| `snowluma-qq-config` | `/app/.config`       | QQ client config.                                                                        |
+| `snowluma-qq-data`   | `/app/.local/share`  | QQ user data (login state, cache).                                                       |
 
 **Don't delete these on upgrade** — you'll lose login state and configuration.
 
@@ -218,10 +214,10 @@ services:
     # ... existing config ...
     volumes:
       - snowluma-data:/app/snowluma-data
-      - snowluma-qq-config:/app/.config         # primary account
-      - snowluma-qq-data:/app/.local/share      # primary account
-      - snowluma-qq2:/app/qq-acct2              # second account's full HOME
-      - snowluma-qq3:/app/qq-acct3              # third account...
+      - snowluma-qq-config:/app/.config # primary account
+      - snowluma-qq-data:/app/.local/share # primary account
+      - snowluma-qq2:/app/qq-acct2 # second account's full HOME
+      - snowluma-qq3:/app/qq-acct3 # third account...
 
 volumes:
   snowluma-data:
@@ -312,7 +308,7 @@ If a host port is taken, just shift the host side; container ports stay the same
 
 ```yaml
 ports:
-  - "8080:3000"   # host 8080 → container 3000
+  - "8080:3000" # host 8080 → container 3000
 ```
 
 Or via env (the Compose template already supports it):
@@ -350,5 +346,3 @@ Multi-arch manifests are merged by CI (`.github/workflows/docker-image.yml`); th
 - SnowLuma's native addon injects code into the QQ process; the container needs `SYS_PTRACE` and `seccomp=unconfined`. Only run on trusted hosts.
 - The default `VNC_PASSWD` (`vncpasswd`) **must** be changed before exposing the container to anything other than localhost — otherwise your QQ desktop is wide open.
 - Comply with NTQQ / Tencent's terms of service plus SnowLuma's and its dependencies' open-source licenses.
-
-
