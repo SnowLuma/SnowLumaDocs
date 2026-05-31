@@ -16,9 +16,6 @@
     "@types/react": "^19.2.15",
     "@types/react-dom": "^19.2.3",
     "katex": "^0.16.0",
-    "prettier": "^3.8.3",
-    "rehype-katex": "^6.0.3",
-    "remark-math": "^5.1.1",
     "typescript": "^6.0.3"
   }
 }

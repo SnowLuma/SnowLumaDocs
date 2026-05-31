@@ -1,8 +1,5 @@
 import * as path from 'path';
 import { defineConfig } from 'rspress/config';
-import remarkMath from 'remark-math';
-import rehypeKatex from 'rehype-katex';
-
 export default defineConfig({
   root: path.join(__dirname, 'docs'),
   title: 'SnowLuma',
@@ -53,9 +50,5 @@ export default defineConfig({
       title: 'SnowLuma',
       description: 'A Remote Protocol Framework for NTQQ',
     },
-  ],
-  markdown: {
-    remarkPlugins: [remarkMath],
-    rehypePlugins: [rehypeKatex],
-  },
+  ]
 });
