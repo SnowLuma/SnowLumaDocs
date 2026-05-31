@@ -32,9 +32,9 @@ SnowLuma 在 Linux 上**只通过 Docker 运行**。镜像内置 Linux QQ + Xvfb
 
 ## 宿主机准备：放开 ptrace 限制
 
-<Callout type="warn">
+:::warning
 **这一步必须先做，否则容器起来后 hook 注入会失败。**
-</Callout>
+:::
 
 SnowLuma 的 native addon 通过 `ptrace` 把 hook 注入到容器内的 QQ 进程。现代 Linux 发行版（Ubuntu / Debian / Arch 等）默认把 `kernel.yama.ptrace_scope` 设为 `1` 或更高，**即使容器启动加了 `--cap-add=SYS_PTRACE`，注入也会被宿主内核拦掉**。
 
@@ -75,9 +75,9 @@ docker run -d \
   motricseven7/snowluma:latest
 ```
 
-<Callout type="warn">
+:::warning
 `--cap-add=SYS_PTRACE` 和 `--security-opt seccomp=unconfined` **不能省**。SnowLuma 的 native addon 通过 ptrace 把 hook 注入 QQ 进程，默认 seccomp profile 会拦截。
-</Callout>
+:::
 
 `--shm-size=1g` 是 QQ（基于 Chromium）的运行要求，容器默认 `/dev/shm` 太小会崩。
 
@@ -182,9 +182,9 @@ docker logs snowluma 2>&1 | \
   sed -nE 's/.*(临时密码: |initial credentials: user=admin password=)([^[:space:]]+).*/\2/p' | tail -n 1
 ```
 
-<Callout type="info">
+:::info
 临时密码**只在全新数据卷首次启动时**输出一次。复用旧卷 / 重启都不会重新生成。
-</Callout>
+:::
 
 ## 多开 QQ（多账号）
 

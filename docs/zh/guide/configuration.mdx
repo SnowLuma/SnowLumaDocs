@@ -62,9 +62,9 @@ config/onebot_<uin>.json    # 账号级覆盖
 }
 ```
 
-<Callout type="info">
+:::info
 **从旧格式迁移**：早期版本把 `httpServers` / `wsServers` 等数组直接放在顶层，`httpPostEndpoints` 用于上报。当 SnowLuma 检测到这种结构时会自动迁移到新的 `networks` 对象并把 `httpPostEndpoints` 改名为 `httpClients`，回写到磁盘。手动维护配置请直接用新格式。
-</Callout>
+:::
 
 ### 通用字段
 
