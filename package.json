@@ -15,12 +15,10 @@
     "@types/node": "^25.6.2",
     "@types/react": "^19.2.15",
     "@types/react-dom": "^19.2.3",
-    "katex": "^0.17.0",
+    "katex": "^0.16.0",
     "prettier": "^3.8.3",
-    "rehype-katex": "^7.0.1",
-    "remark-math": "^6.0.0",
-    "typescript": "^6.0.3",
-    "vfile": "5.3.7",
-    "vfile-message": "3.1.4"
+    "rehype-katex": "^6.0.3",
+    "remark-math": "^5.1.1",
+    "typescript": "^6.0.3"
   }
 }
