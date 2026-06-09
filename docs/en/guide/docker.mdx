@@ -28,29 +28,29 @@ The image does **not** rebuild SnowLuma — it consumes the prebuilt `lite` tarb
 | `3000` | OneBot HTTP (default)                          |
 | `3001` | OneBot WebSocket (default)                     |
 
-## Host setup: relax the ptrace policy
+## ptrace permissions
 
 :::warning
-**Do this before starting the container, otherwise hook injection will fail at runtime.**
+`--cap-add=SYS_PTRACE` and `--security-opt seccomp=unconfined` are still required.
 :::
 
-SnowLuma's native addon uses `ptrace` to inject the hook into the in-container QQ process. Modern Linux distros (Ubuntu / Debian / Arch / …) ship with `kernel.yama.ptrace_scope` set to `1` or higher, which means **even with `--cap-add=SYS_PTRACE` on the container, the host kernel still blocks the ptrace call**.
+SnowLuma's native addon uses `ptrace` to inject the hook into the in-container QQ process. The official image grants `cap_sys_ptrace` to `/usr/local/bin/node`, so SnowLuma can run as the unprivileged `snowluma` user while still injecting within the container's capability boundary.
 
-Run **once** on the host:
-
-```bash
-echo 'kernel.yama.ptrace_scope=0' | sudo tee /etc/sysctl.d/99-snowluma-ptrace.conf
-sudo sysctl --system
-```
-
-Verify:
+With current official images, you no longer need to change the host's `kernel.yama.ptrace_scope`. Keep these container options instead:
 
 ```bash
-sysctl kernel.yama.ptrace_scope
-# expected: kernel.yama.ptrace_scope = 0
+--cap-add=SYS_PTRACE
+--security-opt seccomp=unconfined
 ```
 
-Writing to `/etc/sysctl.d/99-snowluma-ptrace.conf` keeps the setting across reboots. If your host has stricter security requirements (multi-tenant, internet-facing), prefer a dedicated isolated host (bare metal / VM) over relaxing the system-wide policy.
+To verify the file capability inside the container:
+
+```bash
+docker exec snowluma getcap /usr/local/bin/node
+# expected to include: cap_sys_ptrace=ep
+```
+
+If an old image still asks you to relax the host sysctl, upgrade the image first. Changing `kernel.yama.ptrace_scope` should only be a temporary troubleshooting fallback when upgrading is not possible.
 
 ## One-line docker run
 
@@ -102,6 +102,8 @@ services:
       SNOWLUMA_LOG_LEVEL: ${SNOWLUMA_LOG_LEVEL:-info}
       SNOWLUMA_SCREEN: ${SNOWLUMA_SCREEN:-1920x1080x16}
       SNOWLUMA_HOOK_AUTOLOAD: ${SNOWLUMA_HOOK_AUTOLOAD:-1}
+      SNOWLUMA_EXTRA_QQ_HOMES: "${SNOWLUMA_EXTRA_QQ_HOMES:-}"
+      SNOWLUMA_QQ_FLAGS: "${SNOWLUMA_QQ_FLAGS:---disable-gpu --disable-software-rasterizer --disable-gpu-compositing}"
     ports:
       - "${VNC_PORT:-5900}:5900"
       - "${NOVNC_PORT:-6081}:6081"
@@ -143,6 +145,8 @@ docker compose up -d
 | `SNOWLUMA_LOG_LEVEL`     | `info`         | `error` / `warn` / `info` / `debug`.                                                         |
 | `SNOWLUMA_SCREEN`        | `1920x1080x16` | Xvfb resolution + color depth.                                                               |
 | `SNOWLUMA_HOOK_AUTOLOAD` | `1`            | Image opts into auto-injection by default. Set `0` to fall back to the manual Load workflow. |
+| `SNOWLUMA_EXTRA_QQ_HOMES` | empty          | Comma- or space-separated extra QQ `/app/...` `HOME` paths for auto-starting multiple accounts. |
+| `SNOWLUMA_QQ_FLAGS`      | see below      | Flags passed to Linux QQ. The default disables GPU / SwiftShader software rendering.          |
 
 Environment variables override `runtime.json`, so they're the ergonomic knob in Docker.
 
@@ -188,30 +192,16 @@ Linux QQ ships a single-instance lock — clicking the QQ icon again on a deskto
 
 SnowLuma needs no extra configuration: [HookManager](https://github.com/SnowLuma/SnowLuma/blob/main/packages/core/src/hook/hook-manager.ts) walks every QQ main process it can find, injects the hook into each, and spins up a separate `OneBotInstance` per UIN with its own `config/onebot_<uin>.json`.
 
-### Launch a second QQ from the noVNC desktop
+### Recommended: auto-start through an environment variable
 
-1. Open a terminal inside the noVNC desktop (right-click the taskbar / launch `xterm` / use the in-container terminal shortcut).
-2. Start a new QQ under an isolated `HOME`:
-
-   ```bash
-   mkdir -p /app/qq-acct2
-   HOME=/app/qq-acct2 qq --no-sandbox &
-   disown
-   ```
-
-3. A fresh QQ login window appears — scan-login or password-login the second account.
-4. SnowLuma auto-injects the hook and stands up a per-UIN OneBot instance.
-
-`disown` detaches the QQ process from the terminal so closing the terminal won't kill it.
-
-### Persisting across container restarts
-
-`/app/qq-acct2` is an in-container path; recreating the container wipes it. Mount a dedicated volume per extra account in `docker-compose.yml`:
+Mount one dedicated volume per extra account, then list the corresponding container paths in `SNOWLUMA_EXTRA_QQ_HOMES`. The list can be comma- or space-separated:
 
 ```yaml
 services:
   snowluma:
     # ... existing config ...
+    environment:
+      SNOWLUMA_EXTRA_QQ_HOMES: /app/qq-acct2,/app/qq-acct3
     volumes:
       - snowluma-data:/app/snowluma-data
       - snowluma-qq-config:/app/.config # primary account
@@ -227,26 +217,28 @@ volumes:
   snowluma-qq3:
 ```
 
-After that, bringing the second account up only takes the same one-liner in the noVNC terminal:
+On boot, the container generates one supervisor program per extra `HOME`. Each extra QQ runs as the `snowluma` user with the same `DISPLAY=:1` and the same `SNOWLUMA_QQ_FLAGS`, so injection won't fail because a manual `docker exec` accidentally launched QQ as root.
+
+Check process status:
 
 ```bash
-HOME=/app/qq-acct2 qq --no-sandbox &
-disown
+docker exec snowluma supervisorctl status
+# qq, qq-extra-1, qq-extra-2, and snowluma should be RUNNING or starting
 ```
 
-### Auto-starting every account on boot
+### Temporarily launch one extra account by hand
 
-Save the script to a persisted volume, e.g. `/app/snowluma-data/start-extra-qq.sh`:
+For a one-off launch, keep the user and environment explicit. The important bit is: **do not run the extra QQ as root**.
 
 ```bash
-#!/bin/sh
-for home in /app/qq-acct2 /app/qq-acct3; do
-  [ -d "$home" ] || continue
-  HOME="$home" qq --no-sandbox >/dev/null 2>&1 &
-done
+docker exec -u snowluma \
+  -e DISPLAY=:1 \
+  -e HOME=/app/qq-acct2 \
+  -d snowluma \
+  sh -lc 'qq --no-sandbox ${SNOWLUMA_QQ_FLAGS}'
 ```
 
-Hook it into the desktop's autostart (XFCE: drop a `.desktop` into `~/.config/autostart/`) for an in-DE solution, or add a new program block to `supervisord.conf` and rebuild the image for a more reliable boot-up wire.
+If `/app/qq-acct2` is not mounted to a volume, recreating the container loses that account's login state. For long-term use, prefer the Compose setup above.
 
 ### Caveats
 
@@ -254,6 +246,7 @@ Hook it into the desktop's autostart (XFCE: drop a `.desktop` into `~/.config/au
 - **Resources**: each QQ is a full Chromium process, ~300-500 MB RAM. The default `--shm-size=1g` is fine for one; bump to `2gb`+ for multi-account.
 - **All windows share the same Xvfb desktop**: noVNC shows every QQ window; minimize the ones you've already logged into. Hook keeps working regardless of window state.
 - **WebUI lists every UIN automatically**: no manual configuration — SnowLuma surfaces each new account in the WebUI and `get_login_info` returns the new UINs once login completes.
+- **Do not rely on desktop autostart folders**: the image uses `fluxbox`, not an XFCE/GNOME session. `~/.config/autostart/*.desktop` may not be read. Let supervisor handle multi-account boot instead.
 
 ## Auto-injection
 
