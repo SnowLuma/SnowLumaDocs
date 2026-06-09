@@ -1,0 +1,154 @@
+---
+title: MCP Usage
+description: Connect SnowLuma's OneBot action catalog and optional execution tools to MCP clients
+---
+
+SnowLuma publishes `@snowluma/mcp`, a stdio MCP server. It exposes SnowLuma's OneBot action catalog to MCP-capable clients, so an LLM can look up action docs, parameters, constraints, and JSON Schemas on demand. When you explicitly point it at a running OneBot HTTP endpoint, it can also call actions on a live SnowLuma instance.
+
+Source: [`packages/mcp`](https://github.com/SnowLuma/SnowLuma/tree/main/packages/mcp).
+
+## Modes
+
+| Mode | When it is active | What it can do |
+| ---- | ----------------- | -------------- |
+| `docs` | Default when `SNOWLUMA_MCP_ENDPOINT` is not set | Catalog only: action docs, search, categories, and the full catalog resource. It does not contact a live SnowLuma instance. |
+| `read` | Endpoint is set and `SNOWLUMA_MCP_MODE` is not explicitly set | Adds execution for read-only actions such as `get_*` and `can_*`. |
+| `write` | `SNOWLUMA_MCP_MODE=write` | Allows any known action, including side-effecting operations like sending messages or changing group settings. |
+
+:::warning
+Write mode exposes `invoke_action` to your MCP client. Enable it only when you trust the current client, model, and session.
+:::
+
+## Requirements
+
+- An MCP client that supports stdio MCP servers, such as Claude Desktop, Cline, or another MCP-capable client.
+- The machine running the MCP client needs `npx` and Node.js `>= 22`.
+- Docs-only mode does not require SnowLuma to be running.
+- Execution mode connects to the **OneBot HTTP endpoint**, not the WebUI port. With Docker defaults this is `http://127.0.0.1:3000/`; the WebUI defaults to `5099` and is only for management.
+
+## Docs-only mode
+
+You do not need a running SnowLuma instance or a OneBot endpoint. Add this to your MCP client:
+
+```json
+{
+  "mcpServers": {
+    "snowluma": {
+      "command": "npx",
+      "args": ["-y", "@snowluma/mcp"]
+    }
+  }
+}
+```
+
+Available tools:
+
+| Tool | Notes |
+| ---- | ----- |
+| `list_actions({ category? })` | Lightweight action index, optionally filtered by category. |
+| `get_action({ name })` | Full docs for one action, including parameter docs, cross-field constraints, return notes, and `inputSchema`. |
+| `search_actions({ query })` | Search by action name, summary, or alias. |
+| `list_categories()` | List categories and action counts. |
+
+It also exposes the `snowluma://onebot/actions` resource, which contains the full action catalog for the current package version.
+
+## Connect to SnowLuma
+
+To let MCP call real actions, make sure SnowLuma's OneBot HTTP server is reachable. With the default Docker port mapping, an MCP client running on the host usually uses:
+
+```text
+http://127.0.0.1:3000/
+```
+
+If the MCP client runs elsewhere, replace `127.0.0.1` with the server IP or domain. The HTTP access token is available in the WebUI network adapter settings, or in `config/onebot.json` / `config/onebot_<uin>.json` under `httpServers[].accessToken`.
+
+Read-mode config:
+
+```json
+{
+  "mcpServers": {
+    "snowluma": {
+      "command": "npx",
+      "args": ["-y", "@snowluma/mcp"],
+      "env": {
+        "SNOWLUMA_MCP_ENDPOINT": "http://127.0.0.1:3000/",
+        "SNOWLUMA_MCP_TOKEN": "your-access-token"
+      }
+    }
+  }
+}
+```
+
+This adds one execution tool:
+
+| Tool | Notes |
+| ---- | ----- |
+| `query_action({ action, params? })` | Calls only actions marked read-only and returns the full OneBot response. |
+
+## Enable write mode
+
+Write mode is explicit:
+
+```json
+{
+  "mcpServers": {
+    "snowluma": {
+      "command": "npx",
+      "args": ["-y", "@snowluma/mcp"],
+      "env": {
+        "SNOWLUMA_MCP_ENDPOINT": "http://127.0.0.1:3000/",
+        "SNOWLUMA_MCP_TOKEN": "your-access-token",
+        "SNOWLUMA_MCP_MODE": "write"
+      }
+    }
+  }
+}
+```
+
+Write mode adds:
+
+| Tool | Notes |
+| ---- | ----- |
+| `invoke_action({ action, params? })` | Calls any known action, including operations that may send messages, kick users, or change group settings. |
+
+Keep manual approval enabled for `invoke_action` when your MCP client supports approval policies. `query_action` can usually be auto-approved according to your client policy.
+
+## Environment variables
+
+| Variable | Meaning |
+| -------- | ------- |
+| `SNOWLUMA_MCP_ENDPOINT` | OneBot HTTP endpoint, for example `http://127.0.0.1:3000/`. If absent, the server stays in docs-only mode. |
+| `SNOWLUMA_MCP_TOKEN` | OneBot access token. Sent as `Authorization: Bearer ...`. |
+| `SNOWLUMA_MCP_TIMEOUT_MS` | Per-request timeout. Default: `30000` ms. |
+| `SNOWLUMA_MCP_MODE` | `docs` / `read` / `write`. Defaults to `read` when an endpoint is set, otherwise `docs`. |
+
+## Suggested workflow
+
+A typical session:
+
+1. Use `search_actions` or `list_actions` to find an action.
+2. Use `get_action` to inspect its parameter schema and constraints.
+3. Use `query_action` for read-only calls.
+4. Switch to write mode and use `invoke_action` only when you deliberately want side effects.
+
+Example prompts:
+
+```text
+What parameters does get_group_member_list require?
+```
+
+```text
+Use SnowLuma to query the current login info.
+```
+
+```text
+Send "service started" to group 123456, but show me the exact parameters before calling it.
+```
+
+## Safety boundaries
+
+- The MCP server only calls actions present in the generated catalog. Unknown actions are rejected.
+- `query_action` accepts only actions explicitly marked read-only.
+- `invoke_action` is refused outside write mode, even if a client tries to call it directly.
+- OneBot logical failures are returned as response data; only network or transport failures become MCP errors.
+- The catalog is a build-time snapshot generated from `@snowluma/onebot`, so it updates with SnowLuma releases.

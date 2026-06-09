@@ -11,6 +11,11 @@
   },
   {
     "type": "file",
+    "name": "mcp",
+    "label": "MCP 使用"
+  },
+  {
+    "type": "file",
     "name": "developer",
     "label": "开发者指南"
   }

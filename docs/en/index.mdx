@@ -14,6 +14,7 @@ The codebase is a TypeScript + native-module hybrid: TypeScript handles the runt
 - **Multi-account sessions**: one OneBot instance per UIN, with per-account config that inherits from the global file.
 - **Built-in WebUI**: the full build ships a web console for status and adapter management.
 - **TypeScript SDK**: `@snowluma/sdk` is a typed OneBot HTTP / WS client.
+- **MCP integration**: `@snowluma/mcp` lets MCP clients query OneBot action docs and optionally call a live instance.
 
 ## Requirements
 
@@ -30,6 +31,7 @@ The codebase is a TypeScript + native-module hybrid: TypeScript handles the runt
 | Use case          | Recommended path                                                                                                                          |
 | ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
 | Server deployment | [Docker container](/en/guide/docker) — image bundles QQ + Xvfb + VNC, works out of the box                                                |
+| AI client access  | [MCP Usage](/en/guide/mcp) — query OneBot action docs or connect an HTTP endpoint for read / write execution                              |
 | Local prebuilt    | Grab the matching `lite` / full tarball from [GitHub Releases](https://github.com/SnowLuma/SnowLuma/releases), unpack, `node ./index.mjs` |
 | From source       | `pnpm install && pnpm dev`                                                                                                                |
 
