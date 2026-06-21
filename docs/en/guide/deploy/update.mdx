@@ -1,0 +1,61 @@
+---
+title: Updating
+description: Upgrade SnowLuma on every deployment path without losing your login or config
+---
+
+There's one core rule for upgrading SnowLuma: **replace the program, not the data**. Your login, per-account config, and runtime config all live in the data dir / data volumes — keep them and you won't have to re-scan a QR or reconfigure.
+
+:::info
+The WebUI surfaces an update check, so you can see when a new version is available.
+:::
+
+## Docker
+
+Easiest. With Compose:
+
+```bash
+docker compose pull
+docker compose up -d
+```
+
+Or pull the image manually and recreate the container:
+
+```bash
+docker pull motricseven7/snowluma:latest
+docker stop snowluma && docker rm snowluma
+# Recreate with the exact same docker run command (volumes unchanged)
+```
+
+:::danger
+**Do not delete the data volumes** (`snowluma-data`, `snowluma-qq-config`, `snowluma-qq-data`). Deleting them loses your login and config. `docker rm` only removes the container, not the volumes — recreate with the same volume names and it picks up right where it left off.
+:::
+
+## Manual tarball
+
+1. Download the new release tarball for your platform / arch from [GitHub Releases](https://github.com/SnowLuma/SnowLuma/releases) — same flavor (full or lite) you were using.
+2. Replace the program files (`index.mjs`, `webui/`, `native/`, etc.), but **keep your config / data dir** (`config/` and its sibling data).
+3. Restart: `node ./index.mjs` (on Windows you can also double-click `launcher.bat`).
+
+:::tip
+Keep your data dir outside the unpacked folder, or back it up before upgrading, so you can replace the whole directory without accidentally wiping config.
+:::
+
+## Build from source
+
+```bash
+git pull
+pnpm install
+pnpm build:all
+```
+
+`dist/` is regenerated (`index.mjs`, `launcher.bat`, `webui/`, `native/`). Again, **leave your data dir untouched** and just restart.
+
+## Version pinning and the QQ version
+
+:::warning
+The bundled QQ version is **pinned** to the native hook. Upgrading SnowLuma itself is safe, but **do not manually update the QQ** inside the container / environment — once QQ's version changes, the version-pinned native hook may break.
+
+The Docker image already freezes the QQ version by black-holing QQ's silent hot-update host (see [Linux manual deployment](/en/guide/deploy/linux-manual)). On manual / non-Docker setups you should likewise prevent QQ from auto-updating.
+:::
+
+In production, pin a specific image / release tag (e.g. `motricseven7/snowluma:v1.10.0`) instead of riding `:latest`, so upgrades are explicit, controlled, and rollback-able.

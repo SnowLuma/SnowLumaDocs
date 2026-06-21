@@ -102,13 +102,7 @@ Windows 默认目标进程名 `QQ.exe`；Linux 是 `qq`。
 
 ## SDK 包
 
-`@snowluma/sdk` 是面向第三方的 OneBot 客户端，类型完备：
-
-- HTTP / WebSocket / 反向 WS 三种传输。
-- 自动重连、事件订阅、ack 关联。
-- 与 SnowLuma 核心共享 action 类型，避免漂移。
-
-可以独立 `pnpm publish` 到 npm，不依赖 SnowLuma 运行时。
+`@snowluma/sdk` 是面向第三方的类型完备 OneBot 客户端，可独立发布到 npm、不依赖 SnowLuma 运行时。它在 monorepo 里构建（见下方 `pnpm build:sdk` / `build:all`），消费侧用法见 [SDK 文档](/zh/sdk/)。
 
 ## 开发命令
 

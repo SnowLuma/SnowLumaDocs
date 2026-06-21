@@ -1,0 +1,82 @@
+---
+title: 手机部署（Android，实验性）
+description: 在 Android 上通过 Termux + proot Ubuntu 手动跑 SnowLuma
+---
+
+:::warning
+手机部署是**实验性、进阶**用法，资源消耗大，并不适合大多数人。如果你有一台 PC / 服务器，请优先用 [Docker 部署](/zh/guide/deploy/docker)。本页只是说明在 Android 上"能跑"的现实路径，并诚实地交代它的限制。
+:::
+
+## 现实情况：Docker 在手机上基本跑不动
+
+先把期望摆正：
+
+- **无 root 的 Linux 用户态在 Android 上很容易**——用 Termux + `proot-distro` 装一个 Ubuntu 即可。
+- **但真正的 Docker（dockerd）在 proot 下跑不起来。** proot 只是一个基于 ptrace 的系统调用模拟器，没有 namespaces / cgroups / netfilter，而这些正是容器运行时所依赖的。
+- 想在手机上跑**真 Docker**只能上虚拟机（Termux 里的 QEMU，或 Podroid 这类 App）。但手机一般没有 KVM，只能走 TCG 软件模拟，**非常慢**，对绝大多数用户不实用。Google AVF 的"Linux 终端"是真 VM，但其官方镜像在 2026 年仍不是开箱即用的容器环境。
+
+**因此手机上的现实推荐：Termux + proot Ubuntu，然后在里面按 [Linux 手动部署](/zh/guide/deploy/linux-manual) 流程手动跑 SnowLuma。** 手机上的 Docker 留给极客折腾，不在本页推荐范围。
+
+各平台对比见 [部署方式选择](/zh/guide/deploy/)。
+
+## 第一步：装 Termux
+
+:::danger
+**别从 Google Play 装 Termux。** Play 商店里的版本早已停更、有已知问题。请从 **F-Droid** 或 Termux 的 GitHub Releases 安装。
+:::
+
+- F-Droid：[https://f-droid.org/packages/com.termux/](https://f-droid.org/packages/com.termux/)
+- GitHub：[https://github.com/termux/termux-app/releases](https://github.com/termux/termux-app/releases)
+
+装好后先更新一下：
+
+```bash
+pkg update && pkg upgrade
+```
+
+## 第二步：装 proot Ubuntu
+
+```bash
+pkg install proot-distro
+proot-distro install ubuntu
+proot-distro login ubuntu
+```
+
+进去之后你就在一个 Ubuntu 用户态里了。文档见 [https://github.com/termux/proot-distro](https://github.com/termux/proot-distro) 与 [https://wiki.termux.com](https://wiki.termux.com)。
+
+## 第三步：在 proot Ubuntu 里跑 Linux 手动流程
+
+剩下的步骤和 [Linux 手动部署](/zh/guide/deploy/linux-manual) **完全一致**，在 proot Ubuntu 里依次做：
+
+1. 安装 Node 24 LTS。
+2. 安装 Linux QQ（`.deb`）及 Electron / CJK 依赖（Ubuntu 24.04 注意 `libasound2t64`）。
+3. 起 Xvfb + fluxbox + x11vnc + noVNC，用浏览器扫码。
+4. 给 node 授予 `cap_sys_ptrace`。
+5. 冻结 QQ 热更新（`/etc/hosts` black-hole `qqpatch.gtimg.cn`）。
+6. 下载并解包 SnowLuma `-lite` linux tarball，`node ./index.mjs`。
+7. 拉起 QQ、扫码、打开 WebUI。
+
+由于一切都在手机本机，noVNC / WebUI 直接用 `http://localhost:6081` / `http://localhost:5099` 在手机浏览器里打开即可。
+
+请直接照搬 [Linux 手动部署](/zh/guide/deploy/linux-manual) 的完整命令，本页不再重复。
+
+## 诚实的限制说明
+
+- **ptrace 注入在 proot 下可能受限。** SnowLuma 的 hook 靠 ptrace 注入 QQ 进程，而 proot 本身就是个 ptrace 模拟层——两者叠加时注入是否成功**高度取决于设备、内核与 proot 版本**，不保证可用。这是本路径最大的不确定点。
+- **资源吃紧。** QQ 是基于 Chromium 的 Electron 应用，外加一整套 Xvfb + VNC + Node，对手机内存 / 发热 / 电量压力很大。低端机基本带不动。
+- **arm64。** 手机基本都是 arm64，记得 Node、Linux QQ、SnowLuma 都要选 `arm64` 版本。
+- **会话保活。** Termux 进程可能被系统省电策略杀掉；用 Termux 的 wake-lock，并考虑关掉该 App 的电池优化。
+- **架构选错就跑不起来。** lite tarball 选 `linux-arm64-lite`，QQ `.deb` 选 arm64。
+
+整体而言：**手机部署可以作为尝鲜 / 应急，但不是稳定生产方案。** 想长期稳定，请用 PC / 服务器上的 [Docker 部署](/zh/guide/deploy/docker)。
+
+## 关于"手机上的 Docker"
+
+如果你执意要在手机上跑 Docker，唯一可行方向是在 Termux 里用 QEMU 起一个 x86_64/arm64 的 Linux 虚拟机、在 VM 里装真 Docker，再按 [Docker 部署](/zh/guide/deploy/docker) 操作。但没有 KVM 的纯软件模拟非常慢，**不推荐**，这里仅作说明，不展开。
+
+## 相关链接
+
+- [部署方式选择](/zh/guide/deploy/)
+- [Linux 手动部署](/zh/guide/deploy/linux-manual) — 本页的核心步骤都在这里
+- [Docker 部署](/zh/guide/deploy/docker) — 真正推荐的方式
+- [配置说明](/zh/guide/configuration)

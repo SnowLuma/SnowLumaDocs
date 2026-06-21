@@ -102,13 +102,7 @@ Loads its own platform-specific `.node` from the same `native/` search paths.
 
 ## SDK package
 
-`@snowluma/sdk` is a typed OneBot client meant for downstream consumers:
-
-- HTTP, WebSocket, and reverse-WS transports.
-- Auto-reconnect, event subscription, ack correlation.
-- Shares action types with `@snowluma/core` so they cannot drift.
-
-Standalone-publishable to npm; doesn't depend on the SnowLuma runtime.
+`@snowluma/sdk` is a typed OneBot client for downstream consumers — standalone-publishable to npm and independent of the SnowLuma runtime. It's built inside the monorepo (see `pnpm build:sdk` / `build:all` below); for consumer-side usage see the [SDK docs](/en/sdk/).
 
 ## Dev scripts
 

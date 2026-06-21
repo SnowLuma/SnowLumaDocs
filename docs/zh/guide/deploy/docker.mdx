@@ -11,7 +11,7 @@ SnowLuma 在 Linux 上**只通过 Docker 运行**。镜像内置 Linux QQ + Xvfb
 
 | 项   | 值                                                              |
 | ---- | --------------------------------------------------------------- |
-| 镜像 | `motricseven7/snowluma:latest` (或具体 tag `:v1.8.0`)           |
+| 镜像 | `motricseven7/snowluma:latest` (或具体 tag `:v1.10.0`)           |
 | 架构 | `linux/amd64`、`linux/arm64`                                    |
 | 基础 | `node:22-bookworm-slim`                                         |
 | 内置 | Linux QQ、Xvfb、VNC、noVNC、supervisord、SnowLuma `lite` 发行包 |
@@ -327,7 +327,7 @@ cd ../SnowLuma.Docker.Framework
 或者直接让脚本从 release 拉：
 
 ```bash
-SNOWLUMA_TAG=v1.8.0 ./scripts/build-image.sh
+SNOWLUMA_TAG=v1.10.0 ./scripts/build-image.sh
 ```
 
 多架构 manifest 合并请走 CI（`.github/workflows/docker-image.yml`）；本地脚本只构建单平台。

@@ -1,0 +1,126 @@
+---
+title: WSL2
+description: 在 Windows 的 WSL2 里运行 SnowLuma 的 Linux 容器
+---
+
+WSL2（Windows Subsystem for Linux 2）在 Windows 上提供一个真正的 Linux 内核。在它里面跑 SnowLuma 的 Linux 容器，是不想用原生 Windows QQ 时的另一条路。
+
+本页讲：先装好 WSL2，再用两种方式之一把 Docker 跑起来，最后启动[规范的 SnowLuma 容器](/zh/guide/deploy/docker)。
+
+:::tip
+如果你已经在用 / 打算用 **Docker Desktop**，它自带 WSL2 集成，更省事——直接看 [Windows · Docker Desktop](/zh/guide/deploy/windows-docker)。本页适合想在 WSL 发行版里**自己装 Docker Engine**、或想更贴近 Linux 操作的人。
+:::
+
+## 1. 安装 WSL2
+
+以**管理员**身份打开 PowerShell，运行：
+
+```powershell
+wsl --install
+```
+
+这会装好 WSL2 + 默认的 Ubuntu 发行版。**重启**电脑，重启后 Ubuntu 会首次启动，让你创建 Linux 用户名和密码。
+
+确认版本是 2：
+
+```powershell
+wsl -l -v
+# VERSION 一列应为 2
+wsl --set-default-version 2
+```
+
+当前 Ubuntu-on-WSL 默认已开启 systemd。
+
+> 官方文档：[https://learn.microsoft.com/windows/wsl/install](https://learn.microsoft.com/windows/wsl/install)
+
+## 2. 在 WSL2 里准备 Docker（二选一，别两个都装）
+
+### 方式 A：Docker Desktop 的 WSL 集成（推荐）
+
+装好 Docker Desktop 后，到 Settings → Resources → WSL Integration，给你的 Ubuntu 发行版打开集成开关。这样在 Ubuntu 终端里就能直接用 `docker` 命令，引擎跑在 Docker Desktop 那边。安装与系统要求见 [Windows · Docker Desktop](/zh/guide/deploy/windows-docker)。
+
+> 官方文档：[https://docs.docker.com/desktop/features/wsl/](https://docs.docker.com/desktop/features/wsl/)
+
+### 方式 B：发行版内的原生 Docker Engine
+
+不想装 Docker Desktop，就在 Ubuntu 发行版里直接装原生 Docker Engine。官方 apt 仓库（deb822 `docker.sources` 格式）方式见 [https://docs.docker.com/engine/install/ubuntu/](https://docs.docker.com/engine/install/ubuntu/)。
+
+仅用于本机 / 开发，也可以用便捷脚本：
+
+```bash
+curl -fsSL https://get.docker.com | sudo sh
+sudo usermod -aG docker $USER
+```
+
+加完用户组要**重开终端**才生效。启动 Docker：
+
+```bash
+# 已开 systemd 的发行版：
+sudo systemctl start docker
+sudo systemctl enable docker
+
+# 没开 systemd 的旧环境：
+sudo service docker start
+```
+
+:::warning
+**A、B 二选一，不要两个都装。** Docker Desktop 集成和发行版内的原生 dockerd 同时存在会互相打架。
+:::
+
+## 3. 运行 SnowLuma 容器
+
+Docker 就绪后，在 Ubuntu 终端里运行和[规范 Docker 页](/zh/guide/deploy/docker)完全一样的命令：
+
+```bash
+docker run -d \
+  --name snowluma \
+  --restart unless-stopped \
+  --shm-size=1g \
+  --cap-add=SYS_PTRACE \
+  --security-opt seccomp=unconfined \
+  -e VNC_PASSWD=vncpasswd \
+  -p 5900:5900 \
+  -p 6081:6081 \
+  -p 5099:5099 \
+  -p 3000:3000 \
+  -p 3001:3001 \
+  -v snowluma-data:/app/snowluma-data \
+  -v snowluma-qq-config:/app/.config \
+  -v snowluma-qq-data:/app/.local/share \
+  motricseven7/snowluma:latest
+```
+
+:::warning
+`--cap-add=SYS_PTRACE` 和 `--security-opt seccomp=unconfined` **不能省**——hook 通过 ptrace 注入，默认 seccomp 会拦。
+:::
+
+Compose、环境变量、数据卷、多账号、首次登录等**完整参考都在** [Docker（Linux）部署](/zh/guide/deploy/docker)，本页不重复。
+
+## 4. 从 Windows 访问端口
+
+WSL2 默认会把容器监听的端口转发到 Windows 的 `localhost`，所以在 Windows 浏览器里直接用 `localhost` 即可：
+
+| 地址                       | 用途                  |
+| -------------------------- | --------------------- |
+| `http://localhost:6081/`   | noVNC（扫码登录 QQ）  |
+| `http://localhost:5099/`   | SnowLuma WebUI        |
+| `http://localhost:3000/`   | OneBot HTTP           |
+| `ws://localhost:3001/`     | OneBot WebSocket      |
+
+:::info
+极少数环境下 `localhost` 转发可能失效（被关闭或网络模式不同）。这时用 `wsl hostname -I` 拿到 WSL 的 IP，再用那个 IP 访问。
+:::
+
+:::danger
+改掉 VNC / noVNC 默认密码（`-e VNC_PASSWD=...`）；不要把 noVNC / WebUI / OneBot 端口裸暴露到公网。
+:::
+
+## 也可以：在 WSL2 里走 Linux 手动流程
+
+WSL2 终究是个 Linux 环境，理论上你也能在里面不靠 Docker、直接按 Linux 手动方式跑 SnowLuma（自己起 Xvfb / VNC / noVNC、装 linuxqq、给 node 加 ptrace capability 等）。但那套步骤明显更繁琐，**Docker 更省事**，所以本页推荐容器路线。
+
+## 该看哪一页
+
+- [Docker（Linux）部署](/zh/guide/deploy/docker) —— 容器的完整参考。
+- [Windows · Docker Desktop](/zh/guide/deploy/windows-docker) —— 用 Docker Desktop 而不是发行版内 Engine。
+- [Windows 手动部署](/zh/guide/deploy/windows) —— 想跑原生 Windows QQ 而不是容器里的 Linux QQ。

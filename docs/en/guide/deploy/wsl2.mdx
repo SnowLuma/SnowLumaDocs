@@ -1,0 +1,126 @@
+---
+title: WSL2
+description: Run SnowLuma's Linux container inside Windows Subsystem for Linux 2
+---
+
+WSL2 (Windows Subsystem for Linux 2) gives you a real Linux kernel on Windows. Running SnowLuma's Linux container inside it is the alternative route when you don't want native Windows QQ.
+
+This page covers: install WSL2, get Docker running one of two ways, then start the [canonical SnowLuma container](/en/guide/deploy/docker).
+
+:::tip
+If you already use / plan to use **Docker Desktop**, it ships WSL2 integration and is simpler — see [Windows · Docker Desktop](/en/guide/deploy/windows-docker). This page is for people who want to install **Docker Engine themselves** inside a WSL distro, or who prefer working closer to Linux.
+:::
+
+## 1. Install WSL2
+
+Open PowerShell **as administrator** and run:
+
+```powershell
+wsl --install
+```
+
+This installs WSL2 plus the default Ubuntu distro. **Reboot**; on reboot Ubuntu starts for the first time and asks you to create a Linux username and password.
+
+Confirm the version is 2:
+
+```powershell
+wsl -l -v
+# the VERSION column should read 2
+wsl --set-default-version 2
+```
+
+Current Ubuntu-on-WSL ships with systemd enabled.
+
+> Official docs: [https://learn.microsoft.com/windows/wsl/install](https://learn.microsoft.com/windows/wsl/install)
+
+## 2. Get Docker into WSL2 (pick one — don't do both)
+
+### Route A: Docker Desktop's WSL integration (recommended)
+
+After installing Docker Desktop, go to Settings → Resources → WSL Integration and enable integration for your Ubuntu distro. Then the `docker` command works directly in the Ubuntu terminal, with the engine running on the Docker Desktop side. For install and system requirements, see [Windows · Docker Desktop](/en/guide/deploy/windows-docker).
+
+> Official docs: [https://docs.docker.com/desktop/features/wsl/](https://docs.docker.com/desktop/features/wsl/)
+
+### Route B: Native Docker Engine inside the distro
+
+If you'd rather not install Docker Desktop, install native Docker Engine directly inside the Ubuntu distro. For the official apt repo (deb822 `docker.sources` format), see [https://docs.docker.com/engine/install/ubuntu/](https://docs.docker.com/engine/install/ubuntu/).
+
+For local / dev use only, the convenience script also works:
+
+```bash
+curl -fsSL https://get.docker.com | sudo sh
+sudo usermod -aG docker $USER
+```
+
+After adding yourself to the group you must **reopen the terminal** for it to take effect. Start Docker:
+
+```bash
+# distros with systemd enabled:
+sudo systemctl start docker
+sudo systemctl enable docker
+
+# older setups without systemd:
+sudo service docker start
+```
+
+:::warning
+**Pick Route A or B — don't run both.** Docker Desktop's integration and a native dockerd inside the distro will fight each other if both are present.
+:::
+
+## 3. Run the SnowLuma container
+
+With Docker ready, run the exact same command from the [canonical Docker page](/en/guide/deploy/docker) in the Ubuntu terminal:
+
+```bash
+docker run -d \
+  --name snowluma \
+  --restart unless-stopped \
+  --shm-size=1g \
+  --cap-add=SYS_PTRACE \
+  --security-opt seccomp=unconfined \
+  -e VNC_PASSWD=vncpasswd \
+  -p 5900:5900 \
+  -p 6081:6081 \
+  -p 5099:5099 \
+  -p 3000:3000 \
+  -p 3001:3001 \
+  -v snowluma-data:/app/snowluma-data \
+  -v snowluma-qq-config:/app/.config \
+  -v snowluma-qq-data:/app/.local/share \
+  motricseven7/snowluma:latest
+```
+
+:::warning
+`--cap-add=SYS_PTRACE` and `--security-opt seccomp=unconfined` are **required** — the hook injects via ptrace, which the default seccomp profile blocks.
+:::
+
+The full reference — Compose, env vars, volumes, multi-account, first login — all lives in [Docker (Linux) deployment](/en/guide/deploy/docker) and is not repeated here.
+
+## 4. Accessing ports from Windows
+
+WSL2 forwards container-listened ports to the Windows `localhost` by default, so you can use `localhost` directly in a Windows browser:
+
+| URL                        | Purpose               |
+| -------------------------- | --------------------- |
+| `http://localhost:6081/`   | noVNC (scan QR for QQ)|
+| `http://localhost:5099/`   | SnowLuma WebUI        |
+| `http://localhost:3000/`   | OneBot HTTP           |
+| `ws://localhost:3001/`     | OneBot WebSocket      |
+
+:::info
+In rare setups `localhost` forwarding may not work (disabled, or a different networking mode). In that case get the WSL IP with `wsl hostname -I` and use that IP instead.
+:::
+
+:::danger
+Change the VNC / noVNC default password (`-e VNC_PASSWD=...`), and never expose the noVNC / WebUI / OneBot ports raw on the public internet.
+:::
+
+## Alternatively: the Linux-manual flow inside WSL2
+
+WSL2 is, after all, a Linux environment, so in principle you could run SnowLuma the Linux-manual way without Docker (bring up Xvfb / VNC / noVNC yourself, install linuxqq, grant node the ptrace capability, etc.). But that's clearly more involved — **Docker is simpler** — so this page recommends the container route.
+
+## Where to go next
+
+- [Docker (Linux) deployment](/en/guide/deploy/docker) — the full container reference.
+- [Windows · Docker Desktop](/en/guide/deploy/windows-docker) — use Docker Desktop instead of an in-distro Engine.
+- [Windows (manual)](/en/guide/deploy/windows) — to run native Windows QQ instead of the container's Linux QQ.

@@ -1,0 +1,83 @@
+---
+title: Introduction
+description: What SnowLuma is, what you can do with it, and its three usage shapes and release layout
+---
+
+SnowLuma is a **remote-protocol framework** for NTQQ (the QQ desktop client). It bridges QQ into the [OneBot v11](https://github.com/botuniverse/onebot-11) ecosystem: a native addon injects a hook into the running QQ process via ptrace-class injection (Linux process `qq`, Windows `QQ.exe`), decodes its internal packets, and exposes them as OneBot v11 over HTTP / WebSocket / reverse-WS / HTTP-POST.
+
+Around that core, SnowLuma also ships:
+
+- **OneBot v11 adapters** — HTTP API server, WebSocket server, reverse WebSocket, and HTTP event reporting, in any combination.
+- **NTQQ bridge** — talks to the real QQ client directly; no protocol account, no separate login.
+- **Multi-account** — one OneBot instance per UIN, auto-detected and auto-attached, no manual config.
+- **Built-in WebUI** — manage accounts, config, and status from the browser.
+- **TypeScript SDK** — [`@snowluma/sdk`](/en/sdk/), for writing fully typed OneBot clients.
+- **MCP server** — [`@snowluma/mcp`](/en/mcp/), so MCP-capable AI clients can query and invoke OneBot actions.
+
+## Three usage shapes
+
+| Your goal                          | Shape                    | Start here                                       |
+| ---------------------------------- | ------------------------ | ----------------------------------------------- |
+| Run a bot long-term on a server    | **Docker** (recommended) | [Docker deployment](/en/guide/deploy/docker)    |
+| Let an AI client drive QQ          | **MCP**                  | [MCP integration](/en/mcp/)                     |
+| Try it quickly on a local machine  | **Prebuilt tarball**     | [Choose a deployment](/en/guide/deploy/)        |
+
+To write client code, see the [TypeScript SDK](/en/sdk/).
+
+## Release layout
+
+Each platform ships two tarball flavors on [GitHub Releases](https://github.com/SnowLuma/SnowLuma/releases):
+
+| Filename                                                  | Bundles Node.js?            | When to use                              |
+| -------------------------------------------------------- | --------------------------- | ---------------------------------------- |
+| `SnowLuma-<TAG>-<platform>-<arch>.tar.gz` (**full**)     | Yes, bundles a Node runtime | No Node installed; runs out of the box   |
+| `SnowLuma-<TAG>-<platform>-<arch>-lite.tar.gz` (**lite**) | No (much smaller)           | Node.js ≥ 22 already installed (Node 24 LTS recommended) |
+
+Published platforms / arches: `linux-x64`, `linux-arm64`, `win-x64`.
+
+:::info
+SnowLuma requires **Node.js ≥ 22**. As of 2026, **Node 24 ("Krypton") is Active LTS** and 22 ("Jod") is Maintenance LTS, so for the lite tarball install **Node 24 LTS** (22 still works). The full tarball bundles its own runtime — no install needed. Source: [nodejs.org](https://nodejs.org/en/about/previous-releases).
+:::
+
+After unpacking, the `dist/` tree looks roughly like:
+
+```text
+dist/
+├── index.mjs          # entry point: node ./index.mjs
+├── launcher.bat       # Windows launcher (node ./index.mjs + pause)
+├── webui/             # built-in WebUI static assets
+└── native/            # native addon + websocket native modules
+    ├── snowluma-win32-x64.{node,dll}
+    ├── snowluma-linux-x64.{node,so}
+    ├── snowluma-linux-arm64.{node,so}
+    └── websocket-<platform>-<arch>.node
+```
+
+To run: unpack, then `node ./index.mjs`. On Windows you can also double-click `launcher.bat`.
+
+## Default services
+
+| Service         | Default listen      | Notes                                  |
+| --------------- | ------------------- | -------------------------------------- |
+| OneBot HTTP     | `0.0.0.0:3000`      | OneBot v11 HTTP API                    |
+| OneBot WS       | `0.0.0.0:3001`      | OneBot v11 WebSocket                   |
+| WebUI           | `0.0.0.0:5099`      | Built-in management UI                 |
+| VNC             | `5900`              | Docker only: remote desktop for QR login |
+| noVNC           | `6081`              | Docker only: browser-based VNC         |
+
+Ports and listen addresses are configurable — see the [Configuration reference](/en/guide/configuration).
+
+:::warning
+Do **not** expose VNC / noVNC / WebUI / OneBot ports raw on the public internet. For Docker, always change the default VNC password.
+:::
+
+## Project status
+
+:::warning
+SnowLuma is still in **early development**. Interfaces, config structure, and release layout may change between versions. In production, pin a specific version tag and read the [update notes](/en/guide/deploy/update) before upgrading.
+:::
+
+## Next steps
+
+- [Quick Start](/en/guide/quickstart) — not sure where to begin? Start here.
+- [Choose a deployment](/en/guide/deploy/) — compare every deployment path and pick one.

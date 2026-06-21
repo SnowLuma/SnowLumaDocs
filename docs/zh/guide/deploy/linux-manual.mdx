@@ -1,0 +1,191 @@
+---
+title: Linux 手动部署（进阶）
+description: 不用 Docker，在 Linux 上手动复刻镜像内部流程运行 SnowLuma
+---
+
+:::warning
+在 Linux 上**官方推荐、也只正式支持 Docker**：[Docker 部署](/zh/guide/deploy/docker) 把 Linux QQ + Xvfb + VNC + noVNC + supervisord + ptrace 权限 + 热更新冻结全部封装好了，开箱即用。本页是**手动复刻镜像内部所做的事**，面向**无法 / 不愿用 Docker** 的进阶用户。步骤多、坑多、且强依赖你的发行版与内核配置——如果你只是想跑起来，请回到 [Docker 部署](/zh/guide/deploy/docker)。
+:::
+
+本页对应官方镜像 `start.sh` 的手动版：装 Node、装 Linux QQ、起一套无头 X 桌面、给 node 授予 ptrace、冻结 QQ 热更新、跑 SnowLuma、扫码登录。下文命令以 **Ubuntu 24.04 (Noble)** 为例，其它发行版包名 / 路径会有出入，请自行换算。
+
+## 总览
+
+手动部署等价于把镜像里这几件事按顺序做一遍：
+
+1. 安装 Node 24 LTS（lite 发行包不带 Node 运行时）。
+2. 安装 Linux QQ（官方 `.deb`）及其 Electron / CJK 依赖。
+3. 起一套无头 X 桌面（Xvfb + fluxbox）+ VNC / noVNC，方便扫码。
+4. 在**不使用 root** 的前提下给 node 授予 `cap_sys_ptrace`（hook 靠 ptrace 注入）。
+5. 冻结 QQ 静默热更新（black-hole 补丁域名），保住版本对齐的 native hook。
+6. 下载并解包 SnowLuma `-lite` linux tarball，`node ./index.mjs` 运行。
+7. 用文档化的启动参数拉起 QQ，noVNC 扫码登录，打开 WebUI。
+
+## 1. 安装 Node 24 LTS
+
+SnowLuma 需要 **Node.js ≥ 22**。2026 年 **Node 24（"Krypton"）是 Active LTS**，22（"Jod"）已进入 Maintenance LTS，新装建议直接 24。lite 发行包不带运行时，所以这一步必须做。
+
+用官方 NodeSource 仓库（Debian/Ubuntu）：
+
+```bash
+curl -fsSL https://deb.nodesource.com/setup_24.x | sudo -E bash -
+sudo apt-get install -y nodejs
+node -v   # 期望 v24.x
+```
+
+或用 `nvm` / 你习惯的版本管理器装 Node 24。Node 版本详情见官方页：[https://nodejs.org/en/about/previous-releases](https://nodejs.org/en/about/previous-releases)。
+
+:::info
+如果你下的是 **full** tarball（自带 Node 运行时），可以跳过这一步——但 full 包体积大很多，本页全程基于更常用的 **lite** 流程。
+:::
+
+## 2. 安装 Linux QQ 及依赖
+
+官方 Linux QQ 下载页是 JS 渲染的，**不要硬编码版本号**，去 [https://im.qq.com/linuxqq/download.html](https://im.qq.com/linuxqq/download.html) 抓你架构对应的当前 `.deb`：
+
+```bash
+# 用浏览器从 https://im.qq.com/linuxqq/download.html 下当前 .deb，文件名按实际替换
+sudo apt-get install -y ./QQ_*_amd64_*.deb
+```
+
+QQ 装到 `/opt/QQ/`，启动器 `/opt/QQ/qq`。
+
+补齐 Electron / CJK 运行依赖。**Ubuntu 24.04 注意是 `libasound2t64`，不是 `libasound2`**：
+
+```bash
+sudo apt-get install -y \
+  libgbm1 libnss3 libasound2t64 libgtk-3-0 libxshmfence1 \
+  libxdamage1 libdrm2 libxkbcommon0 fontconfig fonts-noto-cjk dbus-x11
+```
+
+`fonts-noto-cjk` 不装的话 QQ 界面里中文会变方块。
+
+## 3. 起无头 X 桌面 + VNC / noVNC
+
+登录是**纯扫码**，没有 CLI 登录，所以你必须能"看到"QQ 窗口去扫码。无头服务器上用 Xvfb 造一个虚拟屏幕，fluxbox 让 QQ 的登录对话框能正常映射，再用 x11vnc + noVNC 把这块屏幕投到浏览器。
+
+安装（Ubuntu 24.04 包名）：
+
+```bash
+sudo apt-get install -y xvfb x11vnc novnc websockify dbus-x11 fluxbox
+```
+
+起虚拟屏幕并设 `DISPLAY`（镜像用 `:1`）：
+
+```bash
+Xvfb :1 -screen 0 1920x1080x16 &
+export DISPLAY=:1
+```
+
+起窗口管理器（否则登录对话框可能无边框 / 无法聚焦）：
+
+```bash
+fluxbox &
+```
+
+起 VNC（**务必设密码**，下面会落到 `~/.vnc/passwd`）：
+
+```bash
+x11vnc -storepasswd                  # 交互设置 VNC 密码（别用弱密码）
+x11vnc -display :1 -rfbauth ~/.vnc/passwd -forever -shared -bg
+```
+
+起 noVNC（浏览器版 VNC，免客户端）。Ubuntu 的 noVNC 启动器在 `/usr/share/novnc/utils/novnc_proxy`：
+
+```bash
+/usr/share/novnc/utils/novnc_proxy --vnc localhost:5900 --listen 6081 &
+```
+
+然后浏览器打开 `http://<你的IP>:6081/vnc.html`，用刚设的 VNC 密码连上，就能看到那块 `:1` 虚拟桌面。
+
+:::danger
+**别把 VNC（5900）/ noVNC（6081）/ WebUI（5099）/ OneBot（3000、3001）裸暴露到公网。** 用防火墙锁到本机、走 SSH 隧道或反代加鉴权。VNC 一定要设强密码——否则你的 QQ 桌面在公网上裸奔。
+:::
+
+## 4. 给 node 授予 ptrace（不用 root）
+
+SnowLuma 的 native addon 通过 `ptrace` 把 hook 注入 QQ 进程。与其用 root 跑，不如给 node 二进制一个文件 capability：
+
+```bash
+sudo setcap cap_sys_ptrace=ep "$(readlink -f "$(which node)")"
+```
+
+验证：
+
+```bash
+getcap "$(readlink -f "$(which node)")"
+# 期望包含：cap_sys_ptrace=ep
+```
+
+:::warning
+setcap 的几个坑（务必读）：
+
+- **必须作用在真实二进制上**——`readlink -f` 解开 `which node` 的软链，capability 不会跟着软链走。
+- **node 升级 / 拷贝后会丢**，每次升级 Node 都要重新 `setcap`。
+- **需要支持 xattr 的文件系统**，某些 overlay / tmpfs 上 `setcap` 会失败。
+- 受内核 **Yama `ptrace_scope`** 约束：`0` / `1` / `2` 都能配合 file capability 工作，但 `3` 会彻底禁用 ptrace。查看：`cat /proc/sys/kernel/yama/ptrace_scope`。
+:::
+
+## 5. 冻结 QQ 热更新
+
+QQ 有一条**静默热更新**通道，会在后台悄悄改字节，把你版本对齐的 native hook 打坏。（界面里"立即更新"那种整包更新对话框是点击触发的，无头环境永远不会自己弹，所以只需要堵静默通道。）做法是把补丁域名 black-hole 掉：
+
+```bash
+echo "0.0.0.0 qqpatch.gtimg.cn" | sudo tee -a /etc/hosts
+```
+
+这样 QQ 拉不到静默补丁，版本保持稳定，hook 不会被悄悄换掉。
+
+## 6. 下载并运行 SnowLuma（lite）
+
+从 GitHub Release 下你架构对应的 **`-lite`** linux tarball：[https://github.com/SnowLuma/SnowLuma/releases](https://github.com/SnowLuma/SnowLuma/releases)
+
+```bash
+# 选 SnowLuma-<TAG>-linux-x64-lite.tar.gz 或 -linux-arm64-lite.tar.gz
+tar -xzf SnowLuma-<TAG>-linux-x64-lite.tar.gz
+cd SnowLuma-<TAG>-linux-x64-lite
+node ./index.mjs
+```
+
+首次启动会在数据目录自建配置（`config/onebot.json`、`config/runtime.json` 等），并在**日志里打印一次性 WebUI 管理员密码**——记下来，它只在全新数据目录首启时出现一次。
+
+:::info
+默认服务：OneBot HTTP `0.0.0.0:3000`、OneBot WS `0.0.0.0:3001`、WebUI `0.0.0.0:5099`。配置细节见 [配置说明](/zh/guide/configuration)。环境变量优先级高于 `runtime.json`。
+:::
+
+## 7. 拉起 QQ、扫码、打开 WebUI
+
+让 SnowLuma 在前台或另一个会话里跑着，然后在**同一个 `DISPLAY=:1`** 下用文档化的启动参数拉起 QQ：
+
+```bash
+export DISPLAY=:1
+/opt/QQ/qq --no-sandbox --disable-gpu --disable-software-rasterizer --disable-gpu-compositing &
+```
+
+接着：
+
+1. 浏览器打开 `http://<你的IP>:6081/vnc.html`，连上 VNC，能看到 QQ 的二维码。
+2. 手机 QQ 扫码登录。
+3. 登录完成后，hook 默认自动从被动观察切到工作模式（`runtime.json.hookAutoLoad` 默认开；设 `false` 或 `SNOWLUMA_HOOK_AUTOLOAD=0` 可改回 WebUI 手动 Load）。
+4. 浏览器打开 `http://<你的IP>:5099/` 进 WebUI，用日志里那串临时密码登录。
+
+多账号无需额外配置：SnowLuma 会遍历所有 QQ 主进程逐个注入，每个 UIN 自动起一个 OneBot 实例、各自存 `config/onebot_<uin>.json`。多开的关键同样是**给每个 QQ 实例独立的 `HOME`**（QQ 自带单实例锁）。
+
+## 环境依赖说明（请实话实说地对待）
+
+手动流程对环境很敏感，以下几点高度取决于你的机器：
+
+- **包名 / 路径**因发行版而异（上文按 Ubuntu 24.04）。Debian、Arch、RHEL 系的 `libasound`、X 工具、noVNC 启动器路径都不一样。
+- **setcap** 在某些容器化 / overlay / tmpfs 文件系统上会失败（见第 4 节）。
+- **Yama `ptrace_scope=3`** 会让 ptrace 注入彻底失效。
+- **会话保活**：上面用 `&` 后台起的进程会随 shell 退出而死。长期运行请用 systemd / supervisor / tmux 之类托管 Xvfb、fluxbox、x11vnc、noVNC、QQ、SnowLuma。
+
+如果其中任何一步在你的环境里卡住，**最省心的办法仍然是回到 [Docker 部署](/zh/guide/deploy/docker)**——镜像已经把这些坑全趟平了。
+
+## 相关链接
+
+- [部署方式选择](/zh/guide/deploy/) — 各平台部署对比
+- [Docker 部署](/zh/guide/deploy/docker) — Linux 上的推荐方式
+- [手机部署](/zh/guide/deploy/mobile) — Android 上跑本页的手动流程
+- [更新升级](/zh/guide/deploy/update)
+- [配置说明](/zh/guide/configuration)

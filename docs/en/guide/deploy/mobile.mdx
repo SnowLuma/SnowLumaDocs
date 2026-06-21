@@ -1,0 +1,82 @@
+---
+title: Mobile (Android, experimental)
+description: Run SnowLuma on Android via Termux + a proot Ubuntu userland
+---
+
+:::warning
+Mobile deployment is **experimental and advanced**, it's resource-heavy, and it isn't for most people. If you have a PC or server, prefer [Docker deployment](/en/guide/deploy/docker). This page only describes the realistic "it can run" path on Android and is honest about its limits.
+:::
+
+## Reality check: Docker barely works on a phone
+
+Set expectations first:
+
+- **A no-root Linux userland on Android is easy** — install Termux + a Ubuntu via `proot-distro`.
+- **But real Docker (dockerd) does not work under proot.** proot is just a ptrace-based syscall emulator; it has no namespaces / cgroups / netfilter, which is exactly what a container runtime depends on.
+- Running **real Docker** on a phone requires a VM (QEMU inside Termux, or apps like Podroid). Phones generally have no KVM, so it falls back to TCG software emulation, which is **very slow** and impractical for almost everyone. Google's AVF "Linux Terminal" is a real VM, but its stock image still isn't container-ready as of 2026.
+
+**So the realistic recommendation on mobile: Termux + proot Ubuntu, then run SnowLuma manually following the [Linux (manual)](/en/guide/deploy/linux-manual) flow inside it.** Docker on a phone is for tinkerers and is not recommended here.
+
+For a per-platform comparison see [Choosing a deployment](/en/guide/deploy/).
+
+## Step 1: Install Termux
+
+:::danger
+**Do not install Termux from Google Play.** The Play Store build is long-abandoned and has known issues. Install from **F-Droid** or Termux's GitHub Releases.
+:::
+
+- F-Droid: [https://f-droid.org/packages/com.termux/](https://f-droid.org/packages/com.termux/)
+- GitHub: [https://github.com/termux/termux-app/releases](https://github.com/termux/termux-app/releases)
+
+After installing, update first:
+
+```bash
+pkg update && pkg upgrade
+```
+
+## Step 2: Install a proot Ubuntu
+
+```bash
+pkg install proot-distro
+proot-distro install ubuntu
+proot-distro login ubuntu
+```
+
+Once inside, you're in a Ubuntu userland. Docs: [https://github.com/termux/proot-distro](https://github.com/termux/proot-distro) and [https://wiki.termux.com](https://wiki.termux.com).
+
+## Step 3: Run the Linux-manual flow inside proot Ubuntu
+
+The rest is **identical** to [Linux (manual)](/en/guide/deploy/linux-manual); do it inside proot Ubuntu:
+
+1. Install Node 24 LTS.
+2. Install Linux QQ (`.deb`) plus Electron / CJK deps (note `libasound2t64` on Ubuntu 24.04).
+3. Bring up Xvfb + fluxbox + x11vnc + noVNC to scan the QR.
+4. Grant `cap_sys_ptrace` to node.
+5. Freeze QQ's hot-update (black-hole `qqpatch.gtimg.cn` in `/etc/hosts`).
+6. Download and unpack the SnowLuma `-lite` linux tarball, run `node ./index.mjs`.
+7. Launch QQ, scan-login, open the WebUI.
+
+Since everything runs on the phone itself, open noVNC / WebUI directly at `http://localhost:6081` / `http://localhost:5099` in the phone's browser.
+
+Follow the full commands in [Linux (manual)](/en/guide/deploy/linux-manual) — they aren't repeated here.
+
+## Honest limitations
+
+- **ptrace injection may be limited under proot.** SnowLuma's hook injects into the QQ process via ptrace, and proot is itself a ptrace emulation layer — whether injection succeeds when the two stack **depends heavily on your device, kernel, and proot version** and is not guaranteed. This is the single biggest unknown of this path.
+- **Resource-heavy.** QQ is a Chromium-based Electron app, plus a full Xvfb + VNC + Node stack — heavy on a phone's RAM, heat, and battery. Low-end devices won't cope.
+- **arm64.** Phones are almost always arm64 — pick the `arm64` builds of Node, Linux QQ, and SnowLuma.
+- **Session persistence.** Termux processes can be killed by the system's battery saver; use Termux's wake-lock and consider disabling battery optimization for the app.
+- **Wrong arch won't run.** Use the `linux-arm64-lite` tarball and the arm64 QQ `.deb`.
+
+Overall: **mobile deployment is fine for tinkering or emergencies, but it's not a stable production setup.** For long-term stability, use [Docker deployment](/en/guide/deploy/docker) on a PC or server.
+
+## On "Docker on a phone"
+
+If you insist on Docker on a phone, the only viable direction is to run a QEMU Linux VM inside Termux, install real Docker in the VM, and follow [Docker deployment](/en/guide/deploy/docker). But software-only emulation without KVM is very slow and **not recommended** — noted here for completeness only.
+
+## See also
+
+- [Choosing a deployment](/en/guide/deploy/)
+- [Linux (manual)](/en/guide/deploy/linux-manual) — the core steps live here
+- [Docker deployment](/en/guide/deploy/docker) — the genuinely recommended path
+- [Configuration](/en/guide/configuration)

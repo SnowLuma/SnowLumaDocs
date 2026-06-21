@@ -1,0 +1,189 @@
+---
+title: SDK
+description: "@snowluma/sdk —— 类型完备的 OneBot 客户端，独立于 SnowLuma 运行时"
+---
+
+`@snowluma/sdk` 是一个 **类型完备的 OneBot v11 客户端**，用 TypeScript 编写。它面向第三方消费者：你不需要在同一个进程里跑 SnowLuma，也不依赖 SnowLuma 运行时——它只是通过 OneBot 的 HTTP / WebSocket 端口连到任意一个正在运行的 SnowLuma 实例。
+
+包可以直接从 npm 安装，与 SnowLuma 核心 **共享 action 类型**，因此调用参数和返回值不会随版本漂移。
+
+:::info 端口从哪来
+SDK 连接的是 SnowLuma 暴露的 OneBot 端口：HTTP 默认 `0.0.0.0:3000`、WebSocket 默认 `0.0.0.0:3001`。`accessToken` 同样来自 OneBot 配置。先在 [配置](/zh/guide/configuration) 页确认这些网络适配器已启用。
+:::
+
+## 安装
+
+```bash
+npm i @snowluma/sdk
+```
+
+需要 **Node.js ≥ 22**（推荐 Node 24 LTS）。包是纯 ESM（`"type": "module"`），自带类型声明。
+
+## 支持的传输
+
+| 传输 | 客户端类 | 默认端点 |
+| --- | --- | --- |
+| HTTP（POST JSON） | `SnowLumaHttpClient` | `http://127.0.0.1:3000/` |
+| WebSocket（正向 / 反向，含事件） | `SnowLumaWebSocketClient` | `ws://127.0.0.1:3001/` |
+
+两个客户端都继承自抽象基类 `SnowLumaApiClient`，因此 `call()` / `request()` 以及所有 camelCase action 快捷方法在两种传输上一致。HTTP 适合纯请求-响应的脚本；WebSocket 在此之上还能 **实时接收事件**。
+
+## 构造客户端
+
+### HTTP
+
+```ts
+import { SnowLumaHttpClient } from '@snowluma/sdk';
+
+const bot = new SnowLumaHttpClient({
+  baseUrl: 'http://127.0.0.1:3000/', // 默认值
+  accessToken: process.env.SNOWLUMA_TOKEN,
+  requestTimeoutMs: 30_000,          // 默认 30s
+});
+```
+
+`SnowLumaHttpClientOptions`：
+
+- `baseUrl?` —— OneBot HTTP 端点，默认 `http://127.0.0.1:3000/`。
+- `accessToken?` —— OneBot 配置里的 token；存在时自动加 `Authorization: Bearer <token>`。
+- `requestTimeoutMs?` —— 默认超时（毫秒），默认 `30000`。
+- `fetch?` —— 自定义 `fetch` 实现（测试或非标准运行时用）。
+- `headers?` —— 每次请求附带的额外请求头。
+
+### WebSocket
+
+```ts
+import { SnowLumaWebSocketClient } from '@snowluma/sdk';
+
+const bot = new SnowLumaWebSocketClient({
+  url: 'ws://127.0.0.1:3001/', // 默认值
+  accessToken: process.env.SNOWLUMA_TOKEN,
+  reconnect: true,             // 开启自动重连
+});
+```
+
+`SnowLumaWebSocketClientOptions`：
+
+- `url?` —— OneBot WebSocket 端点，默认 `ws://127.0.0.1:3001/`。
+- `accessToken?` —— 通过查询参数附加到连接 URL。
+- `requestTimeoutMs?` —— 默认请求超时，默认 `30000`。
+- `role?` —— 客户端声明的角色：`'Api'` | `'Event'` | `'Universal'`（默认 `'Universal'`）。
+- `reconnect?` —— `true` 或一个 `ReconnectOptions`（`retries` / `minDelayMs` / `maxDelayMs`），开启意外断开后的自动重连。
+- `protocols?` / `webSocket?` —— 可选子协议、可选自定义 `WebSocket` 构造器（Node 运行时或测试用）。
+
+:::tip Node 自定义 WebSocket
+浏览器和 Node 24 都自带全局 `WebSocket`，可直接用。若想用 `ws` 包等实现，把它传给 `webSocket` 选项即可。
+:::
+
+> 两个工厂函数 `createHttpClient(options?)` 和 `createWebSocketClient(options?)` 与 `new` 等价，按个人偏好选用。
+
+## 调用一个 action
+
+高频接口提供类型完备的 camelCase 方法（`getLoginInfo`、`sendGroupMessage`、`setGroupBan`……）。任意已注册的 action 都能用 `raw` / `rawResponse` 调用。
+
+```ts
+import { SnowLumaHttpClient, text } from '@snowluma/sdk';
+
+const bot = new SnowLumaHttpClient({ accessToken: process.env.SNOWLUMA_TOKEN });
+
+// 快捷方法
+const login = await bot.getLoginInfo();
+await bot.sendGroupMessage(123456, text(`你好，我是 ${login.nickname}`).at('all'));
+
+// 任意 action：raw() 返回 data，失败时抛错
+const fsInfo = await bot.raw('get_group_file_system_info', { group_id: 123456 });
+
+// rawResponse() 保留完整 OneBot 响应信封（status / retcode / data / echo）
+const full = await bot.rawResponse('get_status');
+```
+
+底层方法：
+
+- `call(action, params?, options?)` —— 发送 action，返回 `data`；当 `status` 为 `failed` 或 `retcode !== 0` 时抛 `SnowLumaApiError`。
+- `request(action, params?, options?)` —— 返回完整响应信封，不抛业务错。
+
+每次请求都可通过 `RequestOptions` 覆盖行为：`echo`（关联值）、`timeoutMs`（`0` 表示禁用超时）、`signal`（`AbortSignal`）。
+
+```ts
+const controller = new AbortController();
+const pending = bot.getStatus({ timeoutMs: 5_000, signal: controller.signal });
+controller.abort();
+await pending; // 抛 SnowLumaAbortError
+```
+
+## 订阅事件
+
+事件订阅是 WebSocket 客户端独有的能力。客户端用 `echo` 关联 API 响应，把没有 `echo` 的包当作事件分发。
+
+```ts
+import { SnowLumaWebSocketClient, text } from '@snowluma/sdk';
+
+const bot = new SnowLumaWebSocketClient({
+  accessToken: process.env.SNOWLUMA_TOKEN,
+  reconnect: true,
+});
+
+// 类型化事件助手
+bot.onGroupMessage(async (event, ctx) => {
+  if (event.raw_message === '/ping') {
+    await ctx.reply(text('pong').at(event.user_id));
+  }
+});
+
+bot.onRequest('friend', async (_event, ctx) => {
+  await ctx.approve();
+});
+
+// 注册命令
+bot.command('echo', async (_event, ctx, match) => {
+  await ctx.reply(text(match.rest || 'empty'));
+});
+
+await bot.connect();
+```
+
+可用的事件助手：`onMessage` / `onPrivateMessage` / `onGroupMessage` / `onNotice(type?)` / `onRequest(type?)` / `onMetaEvent` / `command()`，以及更底层的 `onEvent`、`when(predicate, handler)`、`use(middleware)`。生命周期事件用 `on('open' | 'close' | 'error' | 'response' | 'raw', …)`；每个 `on` / `when` / `use` 都返回一个取消订阅的函数。
+
+事件上下文（`ctx`）内置快捷操作：
+
+- `ctx.reply(message)` —— 按私聊 / 群聊自动回复。
+- `ctx.approve()` / `ctx.reject(reason)` —— 处理好友或群请求。
+- `ctx.quickOperation(operation)` —— 调用 `.handle_quick_operation`。
+- `ctx.stopPropagation()` —— 停止后续中间件分发。
+
+## 消息构造器
+
+SDK 自带链式消息构造器和段工厂，发送接口直接接受它的产物：
+
+```ts
+import { fromCQString, message, text, toCQString } from '@snowluma/sdk';
+
+// 链式
+await bot.sendGroupMessage(123456, text('收到 ').at(10001).image('/tmp/a.png'));
+
+// 段数组
+await bot.sendGroupMessage(123456, [message.text('Hello'), message.at('all')]);
+
+// CQ 码互转
+const cq = toCQString([message.reply(42), message.text('hi')]);
+const parsed = fromCQString('hi[CQ:at,qq=all]');
+```
+
+内置段：`text`、`br`、`face`、`at`、`atAll`、`reply`、`image`、`record`、`video`、`json`、`xml`、`poke`、`forward`、`node`、`share`、`music`、`location`、`contact`、`raw`。`reply()` 在一条链里只能出现一次。
+
+## 自动重连、ack 关联与共享类型
+
+- **ack 关联** —— WebSocket 客户端给每个请求生成 `echo`，把响应路由回对应的 `Promise`，因此并发请求不会串台。可通过 `RequestOptions.echo` 覆盖关联值。
+- **自动重连** —— `reconnect: true`（或 `ReconnectOptions`）启用指数退避（`minDelayMs` 默认 1000，`maxDelayMs` 默认 30000）。断线时所有挂起请求会以 `SnowLumaConnectionError` 拒绝。
+- **共享 action 类型** —— action 名、参数和结果类型与 `@snowluma/core` 同源，因此调用面始终与服务端一致。
+- **统一错误体系** —— 所有错误继承 `SnowLumaError`：业务失败抛 `SnowLumaApiError`（鉴权类 retcode 走 `SnowLumaAuthError`），传输层抛 `SnowLumaTransportError` 基类下的 `SnowLumaConnectionError` / `SnowLumaParseError` / `SnowLumaTimeoutError` / `SnowLumaAbortError`。
+
+## 子路径导入
+
+除了主入口，包还提供分模块导出：`@snowluma/sdk/client`、`/messages`、`/events`、`/types`、`/errors`、`/actions`。按需精确导入即可。
+
+## 相关链接
+
+- [配置](/zh/guide/configuration) —— 启用并保护 OneBot HTTP / WS 网络适配器，拿到 `accessToken`。
+- [开发者文档](/zh/guide/developer) —— monorepo 结构与运行时内部。
+- [MCP 服务](/zh/mcp/) —— 给 LLM 用的另一套接入方式。

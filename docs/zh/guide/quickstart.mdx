@@ -1,0 +1,81 @@
+---
+title: 快速开始
+description: 一页弄清楚该走哪条部署路径，并完成最常见的 Docker 上手
+---
+
+第一步不是装东西，而是**决定走哪条路**。SnowLuma 的核心是把 hook 注入真实 QQ 进程，因此你需要一个能跑 QQ + 注入 + 扫码登录的环境。下面这张表按你手上的环境直接给出推荐路径，照着点进去即可。
+
+## 我该走哪条路？
+
+| 你的情况              | 推荐路径                     | 链接                                          |
+| --------------------- | ---------------------------- | --------------------------------------------- |
+| 有一台 Linux 服务器   | **Docker**（最推荐、最省事） | [Docker 部署](/zh/guide/deploy/docker)        |
+| Windows 本机          | Windows 手动 / Docker Desktop | [Windows 部署](/zh/guide/deploy/windows)      |
+| 想用 WSL2             | WSL2 里跑容器                | [WSL2 部署](/zh/guide/deploy/wsl2)            |
+| 只有安卓手机          | Termux + proot（进阶/实验性）| [手机部署](/zh/guide/deploy/mobile)           |
+| 想接 AI 客户端        | MCP 服务                     | [MCP 接入](/zh/mcp/)                          |
+| 想写客户端代码        | TypeScript SDK               | [SDK](/zh/sdk/)                               |
+
+拿不准就选 **Docker on Linux**，这是官方推荐、最容易跑起来的方式。完整对比见[选择部署方式](/zh/guide/deploy/)。
+
+## 最快上手（Docker）
+
+最常见的路径是在 Linux 上用官方镜像。三步：
+
+**1. 拉起容器**
+
+```bash
+docker run -d \
+  --name snowluma \
+  --restart unless-stopped \
+  --shm-size=1g \
+  --cap-add=SYS_PTRACE \
+  --security-opt seccomp=unconfined \
+  -e VNC_PASSWD=改成你自己的密码 \
+  -p 6081:6081 -p 5099:5099 -p 3000:3000 -p 3001:3001 \
+  -v snowluma-data:/app/snowluma-data \
+  -v snowluma-qq-config:/app/.config \
+  -v snowluma-qq-data:/app/.local/share \
+  motricseven7/snowluma:latest
+```
+
+:::danger
+`--cap-add=SYS_PTRACE` 和 `--security-opt seccomp=unconfined` **不能省**：hook 通过 ptrace 注入 QQ，默认 seccomp profile 会拦截。`--shm-size=1g` 也是 QQ（Chromium）必需。
+:::
+
+**2. 扫码登录**
+
+浏览器打开 `http://<服务器IP>:6081/`（noVNC），输入上面设置的 `VNC_PASSWD`。远程桌面里 QQ 已自动启动，用手机 QQ 扫码登录。登录后 hook 会自动从被动观察切到工作模式。
+
+**3. 打开 WebUI**
+
+浏览器打开 `http://<服务器IP>:5099/` 进入 SnowLuma WebUI。
+
+更完整的 Compose 写法、多账号、运维命令见 [Docker 部署](/zh/guide/deploy/docker)。
+
+## 登录与首次访问
+
+无论哪条路径，首次上手都绕不开这几件事：
+
+- **扫码登录**：SnowLuma **只支持扫码登录**，没有 CLI 登录。在无头环境里必须通过 VNC / noVNC 看到 QQ 窗口才能扫码。
+- **找 WebUI 临时密码**：**首次**用全新数据目录启动时，日志里会打印一次性管理员密码。Docker：
+
+  ```bash
+  docker logs snowluma 2>&1 | grep -E "临时密码|initial credentials" | tail -n 1
+  ```
+
+  :::info
+  临时密码只在全新数据目录首次启动时输出一次，重启或复用旧数据不会重新生成。
+  :::
+
+- **开放端口**：要从外部访问，放行 WebUI（`5099`）和你用到的 OneBot 端口（`3000` / `3001`）。
+
+:::warning
+切记修改默认 VNC 密码，**不要**把 VNC / noVNC / WebUI / OneBot 端口裸暴露在公网。
+:::
+
+## 接下来
+
+- [选择部署方式](/zh/guide/deploy/) —— 各路径详细对比。
+- [配置参考](/zh/guide/configuration) —— 改端口、access token、适配器。
+- [更新](/zh/guide/deploy/update) —— 升级而不丢登录态。

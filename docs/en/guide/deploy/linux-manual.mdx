@@ -1,0 +1,191 @@
+---
+title: Linux (manual, advanced)
+description: Run SnowLuma on Linux by replicating the Docker image's internals by hand
+---
+
+:::warning
+On Linux, **Docker is the recommended and the only officially supported path**: [Docker deployment](/en/guide/deploy/docker) bundles Linux QQ + Xvfb + VNC + noVNC + supervisord + ptrace permissions + hot-update freeze, ready to go. This page **replicates by hand what the image does** — for advanced users who **can't or won't use Docker**. It has many steps and many footguns, and it depends heavily on your distro and kernel settings. If you just want it running, go back to [Docker deployment](/en/guide/deploy/docker).
+:::
+
+This page is the manual version of the official image's `start.sh`: install Node, install Linux QQ, bring up a headless X desktop, grant ptrace to node, freeze QQ's hot-update, run SnowLuma, scan-login. The commands below target **Ubuntu 24.04 (Noble)**; package names and paths differ on other distros — translate accordingly.
+
+## Overview
+
+Manual deployment is the same things the image does, in order:
+
+1. Install Node 24 LTS (the lite distribution ships no Node runtime).
+2. Install Linux QQ (official `.deb`) plus its Electron / CJK dependencies.
+3. Bring up a headless X desktop (Xvfb + fluxbox) + VNC / noVNC so you can scan the QR.
+4. Grant `cap_sys_ptrace` to node **without root** (the hook injects via ptrace).
+5. Freeze QQ's silent hot-update (black-hole its patch host) to protect the version-pinned native hook.
+6. Download and unpack the SnowLuma `-lite` linux tarball, run `node ./index.mjs`.
+7. Launch QQ with the documented flags, scan-login via noVNC, open the WebUI.
+
+## 1. Install Node 24 LTS
+
+SnowLuma needs **Node.js ≥ 22**. In 2026, **Node 24 ("Krypton") is Active LTS** and 22 ("Jod") is in Maintenance LTS — for a fresh install go with 24. The lite distribution has no bundled runtime, so this step is mandatory.
+
+Using the official NodeSource repo (Debian/Ubuntu):
+
+```bash
+curl -fsSL https://deb.nodesource.com/setup_24.x | sudo -E bash -
+sudo apt-get install -y nodejs
+node -v   # expect v24.x
+```
+
+Or install Node 24 via `nvm` / your preferred version manager. Node release details: [https://nodejs.org/en/about/previous-releases](https://nodejs.org/en/about/previous-releases).
+
+:::info
+If you downloaded the **full** tarball (which bundles a Node runtime), you can skip this step — but the full package is much larger. This page follows the more common **lite** flow throughout.
+:::
+
+## 2. Install Linux QQ and dependencies
+
+The official Linux QQ download page is JS-rendered, so **don't hard-code a version** — grab the current `.deb` for your arch from [https://im.qq.com/linuxqq/download.html](https://im.qq.com/linuxqq/download.html):
+
+```bash
+# Download the current .deb from https://im.qq.com/linuxqq/download.html; substitute the real filename
+sudo apt-get install -y ./QQ_*_amd64_*.deb
+```
+
+QQ installs to `/opt/QQ/`, with the launcher at `/opt/QQ/qq`.
+
+Install the Electron / CJK runtime deps. **On Ubuntu 24.04 it's `libasound2t64`, not `libasound2`**:
+
+```bash
+sudo apt-get install -y \
+  libgbm1 libnss3 libasound2t64 libgtk-3-0 libxshmfence1 \
+  libxdamage1 libdrm2 libxkbcommon0 fontconfig fonts-noto-cjk dbus-x11
+```
+
+Without `fonts-noto-cjk`, Chinese text in QQ renders as tofu boxes.
+
+## 3. Headless X desktop + VNC / noVNC
+
+Login is **QR-scan only** — there is no CLI login, so you must be able to *see* the QQ window to scan it. On a headless server, Xvfb provides a virtual screen, fluxbox lets QQ's login dialog map properly, and x11vnc + noVNC project that screen into a browser.
+
+Install (Ubuntu 24.04 package names):
+
+```bash
+sudo apt-get install -y xvfb x11vnc novnc websockify dbus-x11 fluxbox
+```
+
+Start the virtual screen and set `DISPLAY` (the image uses `:1`):
+
+```bash
+Xvfb :1 -screen 0 1920x1080x16 &
+export DISPLAY=:1
+```
+
+Start a window manager (otherwise the login dialog may be borderless / unfocusable):
+
+```bash
+fluxbox &
+```
+
+Start VNC (**set a password** — it lands in `~/.vnc/passwd`):
+
+```bash
+x11vnc -storepasswd                  # interactively set a VNC password (no weak passwords)
+x11vnc -display :1 -rfbauth ~/.vnc/passwd -forever -shared -bg
+```
+
+Start noVNC (browser-based VNC, no client needed). On Ubuntu the launcher is at `/usr/share/novnc/utils/novnc_proxy`:
+
+```bash
+/usr/share/novnc/utils/novnc_proxy --vnc localhost:5900 --listen 6081 &
+```
+
+Then open `http://<your-ip>:6081/vnc.html` in a browser, connect with the VNC password you just set, and you'll see the `:1` virtual desktop.
+
+:::danger
+**Never expose VNC (5900) / noVNC (6081) / WebUI (5099) / OneBot (3000, 3001) raw on the public internet.** Bind them to localhost behind a firewall, an SSH tunnel, or an authenticated reverse proxy. Always set a strong VNC password — otherwise your QQ desktop is wide open.
+:::
+
+## 4. Grant ptrace to node (without root)
+
+SnowLuma's native addon uses `ptrace` to inject the hook into the QQ process. Rather than run as root, give the node binary a file capability:
+
+```bash
+sudo setcap cap_sys_ptrace=ep "$(readlink -f "$(which node)")"
+```
+
+Verify:
+
+```bash
+getcap "$(readlink -f "$(which node)")"
+# expected to include: cap_sys_ptrace=ep
+```
+
+:::warning
+setcap caveats (read these):
+
+- **Must be applied to the real binary** — `readlink -f` resolves the symlink behind `which node`; the capability does not follow symlinks.
+- **Dropped on node upgrade / copy** — re-run `setcap` after every Node upgrade.
+- **Needs an xattr-capable filesystem** — `setcap` fails on some overlay / tmpfs mounts.
+- Subject to the kernel's **Yama `ptrace_scope`**: `0` / `1` / `2` all work with the file capability, but `3` disables ptrace entirely. Check with `cat /proc/sys/kernel/yama/ptrace_scope`.
+:::
+
+## 5. Freeze QQ's hot-update
+
+QQ has a **silent hot-update** channel that quietly rewrites bytes in the background and breaks your version-pinned native hook. (The "Update now" full-package dialog in the UI is click-gated and never fires headless, so you only need to block the silent channel.) Black-hole the patch host:
+
+```bash
+echo "0.0.0.0 qqpatch.gtimg.cn" | sudo tee -a /etc/hosts
+```
+
+Now QQ can't fetch silent patches, the version stays stable, and the hook won't be swapped out from under you.
+
+## 6. Download and run SnowLuma (lite)
+
+Download the **`-lite`** linux tarball for your arch from the GitHub Releases: [https://github.com/SnowLuma/SnowLuma/releases](https://github.com/SnowLuma/SnowLuma/releases)
+
+```bash
+# Pick SnowLuma-<TAG>-linux-x64-lite.tar.gz or -linux-arm64-lite.tar.gz
+tar -xzf SnowLuma-<TAG>-linux-x64-lite.tar.gz
+cd SnowLuma-<TAG>-linux-x64-lite
+node ./index.mjs
+```
+
+On first run it creates its config in the data dir (`config/onebot.json`, `config/runtime.json`, etc.) and **logs a one-time WebUI admin password** — note it down, it appears only on a brand-new data dir's first boot.
+
+:::info
+Default services: OneBot HTTP `0.0.0.0:3000`, OneBot WS `0.0.0.0:3001`, WebUI `0.0.0.0:5099`. See [Configuration](/en/guide/configuration) for details. Environment variables override `runtime.json`.
+:::
+
+## 7. Launch QQ, scan, open the WebUI
+
+Keep SnowLuma running (foreground or another session), then launch QQ under the **same `DISPLAY=:1`** with the documented flags:
+
+```bash
+export DISPLAY=:1
+/opt/QQ/qq --no-sandbox --disable-gpu --disable-software-rasterizer --disable-gpu-compositing &
+```
+
+Then:
+
+1. Open `http://<your-ip>:6081/vnc.html`, connect over VNC, and you'll see QQ's QR code.
+2. Scan it with QQ on your phone to log in.
+3. Once login completes, the hook auto-promotes from passive observation to working mode (`runtime.json.hookAutoLoad` defaults on; set `false` or `SNOWLUMA_HOOK_AUTOLOAD=0` to revert to manual Load in the WebUI).
+4. Open `http://<your-ip>:5099/` for the WebUI and log in with the bootstrap password from the logs.
+
+Multiple accounts need no extra config: SnowLuma walks every QQ main process, injects each, and spins up one OneBot instance per UIN with its own `config/onebot_<uin>.json`. The key to running more than one is giving each QQ instance its **own `HOME`** (QQ ships a single-instance lock).
+
+## Environment-dependent caveats (be candid)
+
+The manual flow is sensitive to your environment. These bits depend heavily on your machine:
+
+- **Package names / paths** vary by distro (above assumes Ubuntu 24.04). Debian, Arch, and RHEL-family systems differ on `libasound`, the X tools, and the noVNC launcher path.
+- **setcap** fails on some containerized / overlay / tmpfs filesystems (see step 4).
+- **Yama `ptrace_scope=3`** disables ptrace injection entirely.
+- **Session persistence**: the `&`-backgrounded processes above die when your shell exits. For long-running setups, manage Xvfb, fluxbox, x11vnc, noVNC, QQ, and SnowLuma under systemd / supervisor / tmux.
+
+If any step gets stuck in your environment, **the easiest path remains [Docker deployment](/en/guide/deploy/docker)** — the image has already smoothed over all of this.
+
+## See also
+
+- [Choosing a deployment](/en/guide/deploy/) — per-platform comparison
+- [Docker deployment](/en/guide/deploy/docker) — the recommended path on Linux
+- [Mobile (Android)](/en/guide/deploy/mobile) — running this manual flow on Android
+- [Updating](/en/guide/deploy/update)
+- [Configuration](/en/guide/configuration)

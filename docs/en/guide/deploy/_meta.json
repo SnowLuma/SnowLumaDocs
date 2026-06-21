@@ -1,0 +1,10 @@
+[
+  { "type": "file", "name": "index", "label": "Choose a method" },
+  { "type": "file", "name": "docker", "label": "Docker (Linux)" },
+  { "type": "file", "name": "windows", "label": "Windows (manual)" },
+  { "type": "file", "name": "windows-docker", "label": "Windows · Docker Desktop" },
+  { "type": "file", "name": "wsl2", "label": "WSL2" },
+  { "type": "file", "name": "linux-manual", "label": "Linux (manual, advanced)" },
+  { "type": "file", "name": "mobile", "label": "Mobile (experimental)" },
+  { "type": "file", "name": "update", "label": "Updating" }
+]

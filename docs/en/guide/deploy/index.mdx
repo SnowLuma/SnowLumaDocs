@@ -1,0 +1,36 @@
+---
+title: Deployment
+description: Compare SnowLuma's deployment methods and pick one
+---
+
+SnowLuma runs in several environments, but the core requirement is always the same: it must be able to run QQ, inject a hook into the QQ process, and let you scan a login QR. Difficulty varies a lot between environments — the table below helps you pick.
+
+Not sure which to choose? See the decision table in [Quick Start](/en/guide/quickstart), or just pick **Docker on Linux**.
+
+## Comparison
+
+| Method                                                | Platform      | Difficulty | Recommended       | Best for                                          |
+| ----------------------------------------------------- | ------------- | ---------- | ----------------- | ------------------------------------------------- |
+| [Docker](/en/guide/deploy/docker)                     | Linux         | Low        | ✅ **Top pick**    | Long-running on a server, out of the box          |
+| [Windows manual](/en/guide/deploy/windows)            | Windows       | Medium     | Optional          | Windows machine, no Docker                         |
+| [Windows · Docker Desktop](/en/guide/deploy/windows-docker) | Windows | Medium     | Optional          | Container isolation on Windows                     |
+| [WSL2](/en/guide/deploy/wsl2)                         | Windows + WSL | Medium     | Optional          | Containers via the Linux subsystem on Windows     |
+| [Linux manual](/en/guide/deploy/linux-manual)         | Linux         | High       | ⚠️ Advanced/unofficial | Understand the Docker image internals, or no Docker |
+| [Mobile](/en/guide/deploy/mobile)                     | Android       | Very high  | ⚠️ Advanced/experimental | Only an Android phone; resource-heavy, injection may be limited |
+
+:::tip
+**Docker on Linux is the recommended, easiest method** — the image bundles QQ + Xvfb + VNC + noVNC + supervisord, so the host only needs Docker.
+:::
+
+:::warning
+**Linux manual** and **mobile** are advanced / unofficial paths: more steps, more pitfalls, and injection may not work in restricted environments (e.g. proot). Unless you know what you're doing, prefer Docker.
+:::
+
+## Updating
+
+How you upgrade depends on your path, and every path assumes you **keep your login and config**. See [Updating](/en/guide/deploy/update).
+
+## After deploying
+
+- [Configuration reference](/en/guide/configuration) — adapters, ports, access tokens.
+- [MCP integration](/en/mcp/) / [SDK](/en/sdk/) — hook up an AI client or write code.

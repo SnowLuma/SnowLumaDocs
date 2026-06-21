@@ -1,0 +1,189 @@
+---
+title: SDK
+description: "@snowluma/sdk — a typed OneBot client, independent of the SnowLuma runtime"
+---
+
+`@snowluma/sdk` is a **fully typed OneBot v11 client** written in TypeScript. It is built for downstream consumers: you don't run SnowLuma in the same process and you don't depend on the SnowLuma runtime — the SDK just connects to any running SnowLuma instance over its OneBot HTTP / WebSocket ports.
+
+The package installs straight from npm and **shares action types with the SnowLuma core**, so call parameters and return shapes can't drift across versions.
+
+:::info Where the ports come from
+The SDK connects to the OneBot ports SnowLuma exposes: HTTP at `0.0.0.0:3000` and WebSocket at `0.0.0.0:3001` by default. The `accessToken` also comes from the OneBot config. Make sure those network adapters are enabled first on the [Configuration](/en/guide/configuration) page.
+:::
+
+## Install
+
+```bash
+npm i @snowluma/sdk
+```
+
+Requires **Node.js ≥ 22** (Node 24 LTS recommended). The package is pure ESM (`"type": "module"`) and ships its own type declarations.
+
+## Supported transports
+
+| Transport | Client class | Default endpoint |
+| --- | --- | --- |
+| HTTP (POST JSON) | `SnowLumaHttpClient` | `http://127.0.0.1:3000/` |
+| WebSocket (forward / reverse, with events) | `SnowLumaWebSocketClient` | `ws://127.0.0.1:3001/` |
+
+Both clients extend the abstract `SnowLumaApiClient` base, so `call()` / `request()` and every camelCase action shortcut work identically across transports. HTTP suits plain request/response scripts; WebSocket adds **realtime event delivery** on top.
+
+## Constructing a client
+
+### HTTP
+
+```ts
+import { SnowLumaHttpClient } from '@snowluma/sdk';
+
+const bot = new SnowLumaHttpClient({
+  baseUrl: 'http://127.0.0.1:3000/', // default
+  accessToken: process.env.SNOWLUMA_TOKEN,
+  requestTimeoutMs: 30_000,          // default 30s
+});
+```
+
+`SnowLumaHttpClientOptions`:
+
+- `baseUrl?` — OneBot HTTP endpoint, defaults to `http://127.0.0.1:3000/`.
+- `accessToken?` — token from the OneBot config; when set, an `Authorization: Bearer <token>` header is sent automatically.
+- `requestTimeoutMs?` — default timeout in ms, defaults to `30000`.
+- `fetch?` — custom `fetch` implementation (tests or non-standard runtimes).
+- `headers?` — extra headers attached to every request.
+
+### WebSocket
+
+```ts
+import { SnowLumaWebSocketClient } from '@snowluma/sdk';
+
+const bot = new SnowLumaWebSocketClient({
+  url: 'ws://127.0.0.1:3001/', // default
+  accessToken: process.env.SNOWLUMA_TOKEN,
+  reconnect: true,             // enable auto-reconnect
+});
+```
+
+`SnowLumaWebSocketClientOptions`:
+
+- `url?` — OneBot WebSocket endpoint, defaults to `ws://127.0.0.1:3001/`.
+- `accessToken?` — appended to the connection URL as a query parameter.
+- `requestTimeoutMs?` — default request timeout, defaults to `30000`.
+- `role?` — role the client advertises: `'Api'` | `'Event'` | `'Universal'` (default `'Universal'`).
+- `reconnect?` — `true` or a `ReconnectOptions` (`retries` / `minDelayMs` / `maxDelayMs`) to enable auto-reconnect after an unexpected close.
+- `protocols?` / `webSocket?` — optional subprotocols, optional custom `WebSocket` constructor (Node runtimes or tests).
+
+:::tip Custom WebSocket on Node
+Browsers and Node 24 ship a global `WebSocket` that works out of the box. To use an implementation like the `ws` package, pass it to the `webSocket` option.
+:::
+
+> The factory functions `createHttpClient(options?)` and `createWebSocketClient(options?)` are equivalent to `new`; use whichever you prefer.
+
+## Calling an action
+
+Common endpoints have fully typed camelCase methods (`getLoginInfo`, `sendGroupMessage`, `setGroupBan`, …). Any registered action can be called via `raw` / `rawResponse`.
+
+```ts
+import { SnowLumaHttpClient, text } from '@snowluma/sdk';
+
+const bot = new SnowLumaHttpClient({ accessToken: process.env.SNOWLUMA_TOKEN });
+
+// Shortcut method
+const login = await bot.getLoginInfo();
+await bot.sendGroupMessage(123456, text(`Hello from ${login.nickname}`).at('all'));
+
+// Any action: raw() returns data and throws on failure
+const fsInfo = await bot.raw('get_group_file_system_info', { group_id: 123456 });
+
+// rawResponse() keeps the full OneBot envelope (status / retcode / data / echo)
+const full = await bot.rawResponse('get_status');
+```
+
+The underlying methods:
+
+- `call(action, params?, options?)` — sends the action and returns `data`; throws `SnowLumaApiError` when `status` is `failed` or `retcode !== 0`.
+- `request(action, params?, options?)` — returns the full response envelope and does not throw on business errors.
+
+Every request can override behavior via `RequestOptions`: `echo` (correlation value), `timeoutMs` (`0` disables the timeout), and `signal` (an `AbortSignal`).
+
+```ts
+const controller = new AbortController();
+const pending = bot.getStatus({ timeoutMs: 5_000, signal: controller.signal });
+controller.abort();
+await pending; // throws SnowLumaAbortError
+```
+
+## Subscribing to events
+
+Event subscription is a WebSocket-client capability. The client correlates API responses by `echo` and dispatches packets without an `echo` as events.
+
+```ts
+import { SnowLumaWebSocketClient, text } from '@snowluma/sdk';
+
+const bot = new SnowLumaWebSocketClient({
+  accessToken: process.env.SNOWLUMA_TOKEN,
+  reconnect: true,
+});
+
+// Typed event helpers
+bot.onGroupMessage(async (event, ctx) => {
+  if (event.raw_message === '/ping') {
+    await ctx.reply(text('pong').at(event.user_id));
+  }
+});
+
+bot.onRequest('friend', async (_event, ctx) => {
+  await ctx.approve();
+});
+
+// Register a command
+bot.command('echo', async (_event, ctx, match) => {
+  await ctx.reply(text(match.rest || 'empty'));
+});
+
+await bot.connect();
+```
+
+Available event helpers: `onMessage` / `onPrivateMessage` / `onGroupMessage` / `onNotice(type?)` / `onRequest(type?)` / `onMetaEvent` / `command()`, plus the lower-level `onEvent`, `when(predicate, handler)`, and `use(middleware)`. Lifecycle events use `on('open' | 'close' | 'error' | 'response' | 'raw', …)`. Every `on` / `when` / `use` returns an unsubscribe function.
+
+The event context (`ctx`) has built-in shortcuts:
+
+- `ctx.reply(message)` — auto-replies to the private/group thread.
+- `ctx.approve()` / `ctx.reject(reason)` — handle friend or group requests.
+- `ctx.quickOperation(operation)` — calls `.handle_quick_operation`.
+- `ctx.stopPropagation()` — stops further middleware dispatch.
+
+## Message builder
+
+The SDK ships a chainable message builder and segment factories; send methods accept their output directly:
+
+```ts
+import { fromCQString, message, text, toCQString } from '@snowluma/sdk';
+
+// Chained
+await bot.sendGroupMessage(123456, text('got it ').at(10001).image('/tmp/a.png'));
+
+// Segment array
+await bot.sendGroupMessage(123456, [message.text('Hello'), message.at('all')]);
+
+// CQ-code round-trip
+const cq = toCQString([message.reply(42), message.text('hi')]);
+const parsed = fromCQString('hi[CQ:at,qq=all]');
+```
+
+Built-in segments: `text`, `br`, `face`, `at`, `atAll`, `reply`, `image`, `record`, `video`, `json`, `xml`, `poke`, `forward`, `node`, `share`, `music`, `location`, `contact`, `raw`. `reply()` may appear only once per chain.
+
+## Auto-reconnect, ack correlation, and shared types
+
+- **Ack correlation** — the WebSocket client generates an `echo` per request and routes the response back to the right `Promise`, so concurrent requests never cross. Override the correlation value via `RequestOptions.echo`.
+- **Auto-reconnect** — `reconnect: true` (or a `ReconnectOptions`) enables exponential backoff (`minDelayMs` defaults to 1000, `maxDelayMs` to 30000). On disconnect, all pending requests reject with `SnowLumaConnectionError`.
+- **Shared action types** — action names, params, and result types share their source with `@snowluma/core`, so the call surface always matches the server.
+- **Unified error model** — all errors extend `SnowLumaError`: business failures throw `SnowLumaApiError` (auth-class retcodes become `SnowLumaAuthError`); transport issues throw the `SnowLumaTransportError` subclasses `SnowLumaConnectionError` / `SnowLumaParseError` / `SnowLumaTimeoutError` / `SnowLumaAbortError`.
+
+## Subpath imports
+
+Beyond the main entry, the package exposes per-module exports: `@snowluma/sdk/client`, `/messages`, `/events`, `/types`, `/errors`, `/actions`. Import only what you need.
+
+## See also
+
+- [Configuration](/en/guide/configuration) — enable and secure the OneBot HTTP / WS adapters and get an `accessToken`.
+- [Developer guide](/en/guide/developer) — monorepo layout and runtime internals.
+- [MCP server](/en/mcp/) — an alternative integration path for LLMs.

@@ -1,0 +1,87 @@
+---
+title: Windows · Docker Desktop
+description: Run SnowLuma's Linux image on Windows via Docker Desktop's WSL2 backend
+---
+
+:::info
+**Up front: the SnowLuma Docker image is Linux.** It runs **headless Linux QQ** + Xvfb + VNC + noVNC inside the container. On Windows you run this Linux container through Docker Desktop's **WSL2 backend** — i.e. it's still running inside a lightweight Linux VM.
+:::
+
+If you want to run **native Windows QQ** (`QQ.exe`) on Windows, don't use Docker — see [Windows (manual)](/en/guide/deploy/windows) instead. This page is for "I just want a container and don't want to touch native QQ."
+
+Once running, the container is **exactly the same** as in [Docker (Linux) deployment](/en/guide/deploy/docker) — same image, same `docker run` / Compose, same ports. This page only covers the Windows-side prerequisites.
+
+## Install Docker Desktop
+
+Download `Docker Desktop Installer.exe` from [docs.docker.com](https://docs.docker.com/desktop/setup/install/windows-install/) and install it with the **default WSL2 backend**.
+
+### Requirements
+
+- Windows 10 22H2 or Windows 11 23H2 and newer
+- WSL ≥ 2.1.5
+- 8 GB RAM
+- Virtualization enabled in BIOS (VT-x / AMD-V), plus SLAT
+
+When you keep the WSL2 backend selected during install (the default), Docker Desktop installs / enables WSL2 for you. Reboot afterward and start Docker Desktop.
+
+:::tip
+Confirm you're on the WSL2 backend and not the old Hyper-V backend: Docker Desktop → Settings → General → check **Use the WSL 2 based engine**.
+:::
+
+If you'd rather install / manage WSL2 yourself (or run native Docker Engine inside a WSL distro instead of Docker Desktop), see [WSL2](/en/guide/deploy/wsl2).
+
+## Run the SnowLuma container
+
+With Docker Desktop ready, use the same command from the [canonical Docker page](/en/guide/deploy/docker). Open PowerShell:
+
+```powershell
+docker run -d `
+  --name snowluma `
+  --restart unless-stopped `
+  --shm-size=1g `
+  --cap-add=SYS_PTRACE `
+  --security-opt seccomp=unconfined `
+  -e VNC_PASSWD=vncpasswd `
+  -p 5900:5900 `
+  -p 6081:6081 `
+  -p 5099:5099 `
+  -p 3000:3000 `
+  -p 3001:3001 `
+  -v snowluma-data:/app/snowluma-data `
+  -v snowluma-qq-config:/app/.config `
+  -v snowluma-qq-data:/app/.local/share `
+  motricseven7/snowluma:latest
+```
+
+:::warning
+`--cap-add=SYS_PTRACE` and `--security-opt seccomp=unconfined` are **still required**. SnowLuma's native addon injects the hook into the container's QQ process via ptrace, which the default seccomp profile blocks. Docker Desktop's WSL2 backend passes these through to the WSL2 kernel, so they work as usual.
+:::
+
+The full reference — Compose, environment variables, volumes, multi-account — is **not repeated here**; everything is identical to Linux, so see [Docker (Linux) deployment](/en/guide/deploy/docker). Compose works the same from PowerShell:
+
+```powershell
+docker compose up -d
+```
+
+## Access
+
+Reach the container's services directly via `localhost` (Docker Desktop forwards the ports to the Windows host):
+
+| URL                        | Purpose                                          |
+| -------------------------- | ------------------------------------------------ |
+| `http://localhost:6081/`   | noVNC — view the remote desktop, scan the QR for QQ |
+| `http://localhost:5099/`   | SnowLuma WebUI                                    |
+| `http://localhost:3000/`   | OneBot HTTP                                       |
+| `ws://localhost:3001/`     | OneBot WebSocket                                  |
+
+The first-login flow (noVNC QR scan, finding the WebUI temporary password, etc.) is identical to Linux — see [Docker (Linux) deployment · first login](/en/guide/deploy/docker).
+
+:::danger
+The VNC / noVNC default password is `vncpasswd` — **change it** (`-e VNC_PASSWD=...`), otherwise anyone can get into your QQ desktop. And never expose the noVNC / WebUI / OneBot ports raw on the public internet.
+:::
+
+## Where to go next
+
+- [Docker (Linux) deployment](/en/guide/deploy/docker) — the **full reference** for the image, ports, Compose, env vars, volumes, and multi-account. This page is just the Windows prerequisites.
+- [WSL2](/en/guide/deploy/wsl2) — prefer not to use Docker Desktop? Install native Docker Engine inside a WSL distro and run the same container.
+- [Windows (manual)](/en/guide/deploy/windows) — to run native Windows QQ (`QQ.exe`) instead of the container's Linux QQ.

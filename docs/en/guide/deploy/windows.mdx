@@ -1,0 +1,148 @@
+---
+title: Windows (manual)
+description: Run SnowLuma natively on Windows — the hook auto-injects the desktop QQ client (QQ.exe)
+---
+
+On Windows, SnowLuma runs **natively** — no Docker, no WSL2 needed. Install the desktop QQ client, download and unpack the matching SnowLuma release, and run it. SnowLuma discovers `QQ.exe` and injects the hook automatically.
+
+> Want to run it in a container instead? See [Windows · Docker Desktop](/en/guide/deploy/windows-docker) (note: the image is Linux and runs Linux QQ).
+
+## Prerequisites
+
+### 1. Install the desktop QQ client (NTQQ)
+
+Download and install the Windows desktop QQ client (the NT architecture) from Tencent's official site. Make sure `QQ.exe` launches normally. SnowLuma injects into this running NTQQ process.
+
+:::warning
+Version matching matters. SnowLuma's native hook is aligned to a specific QQ version. If QQ auto-updates to a newer version SnowLuma doesn't support yet, the hook may fail to load — check the WebUI / README version-compatibility notes if you hit trouble.
+:::
+
+### 2. Download a SnowLuma release
+
+Go to [GitHub Releases](https://github.com/SnowLuma/SnowLuma/releases), pick `win-x64`, and choose one of two flavors:
+
+| Package                                  | Notes                                                                          |
+| ---------------------------------------- | ------------------------------------------------------------------------------ |
+| `SnowLuma-<TAG>-win-x64.tar.gz`          | **Full** — bundles a Node.js runtime, no separate Node install, larger.        |
+| `SnowLuma-<TAG>-win-x64-lite.tar.gz`     | **Lite** — no Node.js, you install Node yourself first, much smaller.          |
+
+Replace `<TAG>` with the version you want (e.g. `v1.10.0`).
+
+:::tip
+If you don't want to fuss, grab the **full** package — it ships Node and runs straight out of the box.
+:::
+
+### 3. (Lite only) Install Node.js
+
+SnowLuma needs **Node.js ≥ 22**. As of 2026, **Node 24 ("Krypton") is Active LTS** and 22 ("Jod") is Maintenance LTS. For the lite package, install **Node 24 LTS** (22 still works).
+
+Download the Windows installer from [nodejs.org](https://nodejs.org/en/about/previous-releases), then verify in PowerShell:
+
+```powershell
+node -v
+# should print v24.x.x (or v22.x.x)
+```
+
+The full package ships its own runtime — **skip this step**.
+
+## Unpack and run
+
+Unpack the tarball into a fixed directory, e.g. `C:\SnowLuma\`. After unpacking you'll find `index.mjs`, `launcher.bat`, `webui/`, `native/`, etc.
+
+:::tip
+`.tar.gz` can be unpacked with the built-in `tar` (shipped on Win10/11):
+
+```powershell
+tar -xzf SnowLuma-<TAG>-win-x64.tar.gz -C C:\SnowLuma
+```
+
+7-Zip and similar tools work too.
+:::
+
+From the unpacked directory, double-click `launcher.bat` (it just runs `node ./index.mjs` then `pause` so you can read the output). Or run it manually from a terminal:
+
+```powershell
+cd C:\SnowLuma
+node ./index.mjs
+```
+
+If the full package uses its bundled Node, follow the README's launch instructions (usually `launcher.bat` is enough); see WebUI / README for specifics.
+
+## Launch order of QQ and SnowLuma
+
+SnowLuma has **hook auto-load** on by default: it continuously probes the system for QQ main processes, and when it finds `QQ.exe` it injects the hook automatically (starting in passive observation). After you finish the QR login, the hook switches from passive observation to working mode.
+
+So either order works:
+
+- **QQ first, then SnowLuma**: SnowLuma finds the already-running `QQ.exe` and injects on startup.
+- **SnowLuma first, then QQ**: SnowLuma waits until `QQ.exe` appears, then injects.
+
+:::warning
+**Run SnowLuma as the same Windows user as QQ.** Injection needs access to the target process; if SnowLuma and QQ run under different users (or mismatched privileges), injection fails. Running one elevated (as administrator) and the other not can also block injection — keep their privileges consistent.
+:::
+
+### Login
+
+Login is **QR-scan only**: scan the QR in the QQ window on your desktop with the QQ mobile app. On native Windows you can see the QQ window directly — no VNC/noVNC needed (that's only for Linux headless setups).
+
+### Disable auto-injection (optional)
+
+To keep the traditional "Load from the WebUI" flow, set `hookAutoLoad` to `false` in `runtime.json`, or set the env var `SNOWLUMA_HOOK_AUTOLOAD=0`. Env vars take precedence.
+
+## Accessing the WebUI and OneBot
+
+Once running, SnowLuma listens on these ports by default:
+
+| Port   | Purpose                       |
+| ------ | ----------------------------- |
+| `5099` | SnowLuma WebUI                |
+| `3000` | OneBot HTTP (default)         |
+| `3001` | OneBot WebSocket (default)    |
+
+Open the WebUI in a browser:
+
+```text
+http://127.0.0.1:5099/
+```
+
+### Finding the WebUI temporary password
+
+On the **first start with a fresh data dir**, a one-time admin password is printed to the console / logs. Scroll through the console window that `launcher.bat` opens (look for the line containing "临时密码 / initial credentials").
+
+:::info
+The temporary password is printed **only on the first start with a fresh data dir** — reusing an existing dir or restarting won't regenerate it. See the WebUI / README for the exact wording.
+:::
+
+## Where config lands
+
+The first run auto-creates config files under the data dir:
+
+| File                        | Purpose                                                      |
+| --------------------------- | ----------------------------------------------------------- |
+| `config/onebot.json`        | Global default OneBot config.                               |
+| `config/onebot_<uin>.json`  | One per account (by UIN).                                   |
+| `config/runtime.json`       | Runtime settings: WebUI port, `hookAutoLoad`, log level…    |
+
+Env vars take precedence over `runtime.json`. Multi-account needs no manual config: each UIN you log in spins up its own OneBot instance. Full details in the [Configuration reference](/en/guide/configuration).
+
+:::tip
+The exact data-dir location is in the WebUI / README (it can differ by packaging).
+:::
+
+## Firewall
+
+On first start, the Windows Firewall may prompt whether to allow `node` / SnowLuma network access.
+
+- For **local-only** access (`127.0.0.1`), you don't need to allow public access.
+- To let other devices on your LAN reach the WebUI / OneBot, allow the corresponding ports (`5099` / `3000` / `3001`) through the firewall.
+
+:::danger
+**Never expose the WebUI / OneBot ports raw on the public internet.** These ports give full control over your QQ. For remote access, go through a reverse proxy with auth or an authenticated tunnel, and change the default credentials.
+:::
+
+## Next steps
+
+- [Configuration reference](/en/guide/configuration) — OneBot / runtime options explained.
+- [Quickstart](/en/guide/quickstart) — connect your first OneBot client.
+- [MCP](/en/mcp/) / [SDK](/en/sdk/) — building on top of SnowLuma.
+- Other platforms: [Docker (Linux)](/en/guide/deploy/docker), [WSL2](/en/guide/deploy/wsl2), [deployment overview](/en/guide/deploy/).

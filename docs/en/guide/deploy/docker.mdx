@@ -11,7 +11,7 @@ The image build scripts and Compose template live in a separate repo: [`SnowLuma
 
 | Item    | Value                                                              |
 | ------- | ------------------------------------------------------------------ |
-| Image   | `motricseven7/snowluma:latest` (or a specific tag, e.g. `:v1.8.0`) |
+| Image   | `motricseven7/snowluma:latest` (or a specific tag, e.g. `:v1.10.0`) |
 | Arch    | `linux/amd64`, `linux/arm64`                                       |
 | Base    | `node:22-bookworm-slim`                                            |
 | Bundled | Linux QQ, Xvfb, VNC, noVNC, supervisord, SnowLuma `lite`           |
@@ -329,7 +329,7 @@ cd ../SnowLuma.Docker.Framework
 Or let the script pull the latest release:
 
 ```bash
-SNOWLUMA_TAG=v1.8.0 ./scripts/build-image.sh
+SNOWLUMA_TAG=v1.10.0 ./scripts/build-image.sh
 ```
 
 Multi-arch manifests are merged by CI (`.github/workflows/docker-image.yml`); the local script only builds a single platform.

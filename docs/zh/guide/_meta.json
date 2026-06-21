@@ -1,22 +1,7 @@
 [
-  {
-    "type": "file",
-    "name": "docker",
-    "label": "Docker 部署"
-  },
-  {
-    "type": "file",
-    "name": "configuration",
-    "label": "配置参考"
-  },
-  {
-    "type": "file",
-    "name": "mcp",
-    "label": "MCP 使用"
-  },
-  {
-    "type": "file",
-    "name": "developer",
-    "label": "开发者指南"
-  }
+  { "type": "file", "name": "introduction", "label": "介绍" },
+  { "type": "file", "name": "quickstart", "label": "快速开始" },
+  { "type": "dir", "name": "deploy", "label": "部署" },
+  { "type": "file", "name": "configuration", "label": "配置参考" },
+  { "type": "file", "name": "developer", "label": "开发者文档" }
 ]

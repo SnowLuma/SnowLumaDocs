@@ -1,0 +1,87 @@
+---
+title: Windows · Docker Desktop
+description: 在 Windows 上通过 Docker Desktop（WSL2 后端）运行 SnowLuma 的 Linux 镜像
+---
+
+:::info
+**先说清楚：SnowLuma 的 Docker 镜像是 Linux 的。** 它在容器里跑的是**无头 Linux QQ** + Xvfb + VNC + noVNC。在 Windows 上你是通过 Docker Desktop 的 **WSL2 后端**来运行这个 Linux 容器——本质上还是在一个轻量 Linux 虚拟机里跑。
+:::
+
+如果你想在 Windows 上跑**原生 Windows QQ**（`QQ.exe`），那不该用 Docker，请走 [Windows 手动部署](/zh/guide/deploy/windows)。本页讲的是“我就想用容器、不想碰原生 QQ”的场景。
+
+启动后的容器和 [Docker（Linux）部署](/zh/guide/deploy/docker)**完全一样**——同一个镜像、同样的 `docker run` / Compose、同样的端口。本页只补上 Windows 这一侧的前置准备。
+
+## 安装 Docker Desktop
+
+到 [docs.docker.com](https://docs.docker.com/desktop/setup/install/windows-install/) 下载 `Docker Desktop Installer.exe`，用**默认的 WSL2 后端**安装。
+
+### 系统要求
+
+- Windows 10 22H2 或 Windows 11 23H2 及以上
+- WSL ≥ 2.1.5
+- 8 GB 内存
+- BIOS 里开启虚拟化（VT-x / AMD-V），以及 SLAT
+
+安装时如果勾选了 WSL2 后端（默认），Docker Desktop 会自动帮你装 / 启用 WSL2。装完重启，启动 Docker Desktop。
+
+:::tip
+确认用的是 WSL2 后端而不是旧的 Hyper-V 后端：Docker Desktop → Settings → General → 勾选 **Use the WSL 2 based engine**。
+:::
+
+如果你想自己装 / 管理 WSL2（或在 WSL 发行版里直接装原生 Docker Engine，而不走 Docker Desktop），见 [WSL2](/zh/guide/deploy/wsl2)。
+
+## 运行 SnowLuma 容器
+
+Docker Desktop 就绪后，直接用[规范 Docker 页](/zh/guide/deploy/docker)里的同一条命令。打开 PowerShell：
+
+```powershell
+docker run -d `
+  --name snowluma `
+  --restart unless-stopped `
+  --shm-size=1g `
+  --cap-add=SYS_PTRACE `
+  --security-opt seccomp=unconfined `
+  -e VNC_PASSWD=vncpasswd `
+  -p 5900:5900 `
+  -p 6081:6081 `
+  -p 5099:5099 `
+  -p 3000:3000 `
+  -p 3001:3001 `
+  -v snowluma-data:/app/snowluma-data `
+  -v snowluma-qq-config:/app/.config `
+  -v snowluma-qq-data:/app/.local/share `
+  motricseven7/snowluma:latest
+```
+
+:::warning
+`--cap-add=SYS_PTRACE` 和 `--security-opt seccomp=unconfined` **仍然不能省**。SnowLuma 的 native addon 通过 ptrace 把 hook 注入容器内的 QQ 进程，默认 seccomp profile 会拦截。Docker Desktop 的 WSL2 后端会把这两项透传进 WSL2 内核，所以照常工作。
+:::
+
+Compose、环境变量、数据卷、多账号等完整参考**不在这里重复**——一切都和 Linux 上一致，请直接看 [Docker（Linux）部署](/zh/guide/deploy/docker)。Compose 在 PowerShell 里同样可用：
+
+```powershell
+docker compose up -d
+```
+
+## 访问
+
+容器内服务通过 `localhost` 直接访问（Docker Desktop 把端口转发到 Windows 主机）：
+
+| 地址                       | 用途                                   |
+| -------------------------- | -------------------------------------- |
+| `http://localhost:6081/`   | noVNC——浏览器里看远程桌面、扫码登录 QQ |
+| `http://localhost:5099/`   | SnowLuma WebUI                         |
+| `http://localhost:3000/`   | OneBot HTTP                            |
+| `ws://localhost:3001/`     | OneBot WebSocket                       |
+
+首次登录流程（noVNC 扫码、找 WebUI 临时密码等）和 Linux 一模一样，见 [Docker（Linux）部署 · 首次登录](/zh/guide/deploy/docker)。
+
+:::danger
+VNC / noVNC 默认密码是 `vncpasswd`，**务必改掉**（`-e VNC_PASSWD=...`），否则别人能进你的 QQ 桌面。也不要把 noVNC / WebUI / OneBot 端口裸暴露到公网。
+:::
+
+## 该看哪一页
+
+- [Docker（Linux）部署](/zh/guide/deploy/docker) —— 镜像、端口、Compose、环境变量、数据卷、多账号的**完整参考**。本页只是 Windows 前置。
+- [WSL2](/zh/guide/deploy/wsl2) —— 不想用 Docker Desktop？可以在 WSL 发行版里装原生 Docker Engine 跑同一个容器。
+- [Windows 手动部署](/zh/guide/deploy/windows) —— 想跑原生 Windows QQ（`QQ.exe`）而不是容器里的 Linux QQ。

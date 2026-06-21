@@ -1,0 +1,10 @@
+[
+  { "type": "file", "name": "index", "label": "选择部署方式" },
+  { "type": "file", "name": "docker", "label": "Docker（Linux）" },
+  { "type": "file", "name": "windows", "label": "Windows 手动" },
+  { "type": "file", "name": "windows-docker", "label": "Windows · Docker Desktop" },
+  { "type": "file", "name": "wsl2", "label": "WSL2" },
+  { "type": "file", "name": "linux-manual", "label": "Linux 手动（进阶）" },
+  { "type": "file", "name": "mobile", "label": "手机部署（实验）" },
+  { "type": "file", "name": "update", "label": "更新" }
+]

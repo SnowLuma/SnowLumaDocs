@@ -1,10 +1,6 @@
 [
-  {
-    "text": "Introduction",
-    "name": "index"
-  },
-  {
-    "text": "Guide",
-    "name": "guide"
-  }
+  { "type": "file", "name": "index", "label": "Home" },
+  { "type": "dir", "name": "guide", "label": "Guide" },
+  { "type": "dir", "name": "mcp", "label": "MCP" },
+  { "type": "dir", "name": "sdk", "label": "SDK" }
 ]
