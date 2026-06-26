@@ -1,0 +1,57 @@
+[
+  {
+    "type": "file",
+    "name": "index",
+    "label": "API Reference"
+  },
+  {
+    "type": "file",
+    "name": "extended",
+    "label": "Extended"
+  },
+  {
+    "type": "file",
+    "name": "system",
+    "label": "System"
+  },
+  {
+    "type": "file",
+    "name": "group-album",
+    "label": "Group Album"
+  },
+  {
+    "type": "file",
+    "name": "qzone",
+    "label": "Qzone"
+  },
+  {
+    "type": "file",
+    "name": "group-file",
+    "label": "Group File"
+  },
+  {
+    "type": "file",
+    "name": "friend",
+    "label": "Friend"
+  },
+  {
+    "type": "file",
+    "name": "message",
+    "label": "Message"
+  },
+  {
+    "type": "file",
+    "name": "group-info",
+    "label": "Group Info"
+  },
+  {
+    "type": "file",
+    "name": "request",
+    "label": "Request"
+  },
+  {
+    "type": "file",
+    "name": "group-admin",
+    "label": "Group Admin"
+  }
+]

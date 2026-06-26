@@ -41,7 +41,7 @@ function sampleBody(a: CatalogAction): string {
 export const ActionCard: React.FC<{ action: CatalogAction }> = ({ action }) => {
   const [showSchema, setShowSchema] = useState(false);
   return (
-    <div className="ac-card" id={action.name}>
+    <div className="ac-card" id={`action-${action.name}`}>
       <div className="ac-head">
         <code className="ac-name">{action.name}</code>
         {action.readOnly

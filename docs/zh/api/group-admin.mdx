@@ -1,0 +1,91 @@
+---
+title: 群管理
+---
+
+import { ActionCard } from '../../components/ActionCard';
+
+# 群管理
+
+## `set_group_add_option`
+
+设置加群选项
+
+<ActionCard action={{"name":"set_group_add_option","aliases":[],"summary":"设置加群选项","readOnly":false,"params":[{"name":"group_id","type":"uint","required":true,"schema":{"type":"integer","minimum":1},"desc":"群号"},{"name":"add_type","type":"int","required":false,"schema":{"type":"integer","minimum":0},"default":0}],"invariants":[],"inputSchema":{"type":"object","properties":{"group_id":{"type":"integer","minimum":1,"description":"群号"},"add_type":{"type":"integer","minimum":0,"default":0}},"required":["group_id"],"additionalProperties":true},"category":"群管理"}} />
+
+## `set_group_admin`
+
+设置/取消管理员
+
+<ActionCard action={{"name":"set_group_admin","aliases":[],"summary":"设置/取消管理员","readOnly":false,"params":[{"name":"group_id","type":"uint","required":true,"schema":{"type":"integer","minimum":1},"desc":"群号"},{"name":"user_id","type":"uint","required":true,"schema":{"type":"integer","minimum":1},"desc":"QQ 号"},{"name":"enable","type":"bool","required":false,"schema":{"type":"boolean"},"default":true}],"invariants":[],"inputSchema":{"type":"object","properties":{"group_id":{"type":"integer","minimum":1,"description":"群号"},"user_id":{"type":"integer","minimum":1,"description":"QQ 号"},"enable":{"type":"boolean","default":true}},"required":["group_id","user_id"],"additionalProperties":true},"category":"群管理"}} />
+
+## `set_group_anonymous`
+
+匿名开关（未实现，返回 ok）
+
+<ActionCard action={{"name":"set_group_anonymous","aliases":[],"summary":"匿名开关（未实现，返回 ok）","readOnly":false,"params":[],"invariants":[],"inputSchema":{"type":"object","properties":{},"additionalProperties":true},"category":"群管理"}} />
+
+## `set_group_anonymous_ban`
+
+匿名禁言（未实现，返回 ok）
+
+<ActionCard action={{"name":"set_group_anonymous_ban","aliases":[],"summary":"匿名禁言（未实现，返回 ok）","readOnly":false,"params":[],"invariants":[],"inputSchema":{"type":"object","properties":{},"additionalProperties":true},"category":"群管理"}} />
+
+## `set_group_ban`
+
+禁言群成员（duration=0 解除）
+
+<ActionCard action={{"name":"set_group_ban","aliases":[],"summary":"禁言群成员（duration=0 解除）","readOnly":false,"params":[{"name":"group_id","type":"uint","required":true,"schema":{"type":"integer","minimum":1},"desc":"群号"},{"name":"user_id","type":"uint","required":true,"schema":{"type":"integer","minimum":1},"desc":"QQ 号"},{"name":"duration","type":"int","required":false,"schema":{"type":"integer","minimum":0},"default":1800}],"invariants":[],"inputSchema":{"type":"object","properties":{"group_id":{"type":"integer","minimum":1,"description":"群号"},"user_id":{"type":"integer","minimum":1,"description":"QQ 号"},"duration":{"type":"integer","minimum":0,"default":1800}},"required":["group_id","user_id"],"additionalProperties":true},"category":"群管理"}} />
+
+## `set_group_card`
+
+设置群名片（空字符串清除）
+
+<ActionCard action={{"name":"set_group_card","aliases":[],"summary":"设置群名片（空字符串清除）","readOnly":false,"params":[{"name":"group_id","type":"uint","required":true,"schema":{"type":"integer","minimum":1},"desc":"群号"},{"name":"user_id","type":"uint","required":true,"schema":{"type":"integer","minimum":1},"desc":"QQ 号"},{"name":"card","type":"string","required":false,"schema":{"type":"string"},"default":""}],"invariants":[],"inputSchema":{"type":"object","properties":{"group_id":{"type":"integer","minimum":1,"description":"群号"},"user_id":{"type":"integer","minimum":1,"description":"QQ 号"},"card":{"type":"string","default":""}},"required":["group_id","user_id"],"additionalProperties":true},"category":"群管理"}} />
+
+## `set_group_kick`
+
+踢出群成员
+
+<ActionCard action={{"name":"set_group_kick","aliases":[],"summary":"踢出群成员","readOnly":false,"params":[{"name":"group_id","type":"uint","required":true,"schema":{"type":"integer","minimum":1},"desc":"群号"},{"name":"user_id","type":"uint","required":true,"schema":{"type":"integer","minimum":1},"desc":"QQ 号"},{"name":"reject_add_request","type":"bool","required":false,"schema":{"type":"boolean"},"default":false}],"invariants":[],"inputSchema":{"type":"object","properties":{"group_id":{"type":"integer","minimum":1,"description":"群号"},"user_id":{"type":"integer","minimum":1,"description":"QQ 号"},"reject_add_request":{"type":"boolean","default":false}},"required":["group_id","user_id"],"additionalProperties":true},"category":"群管理"}} />
+
+## `set_group_kick_members`
+
+批量踢出群成员
+
+<ActionCard action={{"name":"set_group_kick_members","aliases":[],"summary":"批量踢出群成员","readOnly":false,"params":[{"name":"group_id","type":"uint","required":true,"schema":{"type":"integer","minimum":1},"desc":"群号"},{"name":"user_id","type":"uint[]","required":true,"schema":{"type":"array","items":{"type":"integer","minimum":1},"minItems":1}},{"name":"reject_add_request","type":"bool","required":false,"schema":{"type":"boolean"},"default":false}],"invariants":[],"inputSchema":{"type":"object","properties":{"group_id":{"type":"integer","minimum":1,"description":"群号"},"user_id":{"type":"array","items":{"type":"integer","minimum":1},"minItems":1},"reject_add_request":{"type":"boolean","default":false}},"required":["group_id","user_id"],"additionalProperties":true},"category":"群管理"}} />
+
+## `set_group_leave`
+
+退群
+
+<ActionCard action={{"name":"set_group_leave","aliases":[],"summary":"退群","readOnly":false,"params":[{"name":"group_id","type":"uint","required":true,"schema":{"type":"integer","minimum":1},"desc":"群号"}],"invariants":[],"inputSchema":{"type":"object","properties":{"group_id":{"type":"integer","minimum":1,"description":"群号"}},"required":["group_id"],"additionalProperties":true},"category":"群管理"}} />
+
+## `set_group_name`
+
+设置群名
+
+<ActionCard action={{"name":"set_group_name","aliases":[],"summary":"设置群名","readOnly":false,"params":[{"name":"group_id","type":"uint","required":true,"schema":{"type":"integer","minimum":1},"desc":"群号"},{"name":"group_name","type":"string","required":false,"schema":{"type":"string"},"default":""}],"invariants":[],"inputSchema":{"type":"object","properties":{"group_id":{"type":"integer","minimum":1,"description":"群号"},"group_name":{"type":"string","default":""}},"required":["group_id"],"additionalProperties":true},"category":"群管理"}} />
+
+## `set_group_portrait`
+
+设置群头像
+
+<ActionCard action={{"name":"set_group_portrait","aliases":[],"summary":"设置群头像","readOnly":false,"params":[{"name":"group_id","type":"uint","required":true,"schema":{"type":"integer","minimum":1},"desc":"群号"},{"name":"file","type":"string","required":true,"schema":{"type":"string","minLength":1}}],"invariants":[],"inputSchema":{"type":"object","properties":{"group_id":{"type":"integer","minimum":1,"description":"群号"},"file":{"type":"string","minLength":1}},"required":["group_id","file"],"additionalProperties":true},"category":"群管理"}} />
+
+## `set_group_search`
+
+允许群被搜索
+
+<ActionCard action={{"name":"set_group_search","aliases":[],"summary":"允许群被搜索","readOnly":false,"params":[{"name":"group_id","type":"uint","required":true,"schema":{"type":"integer","minimum":1},"desc":"群号"}],"invariants":[],"inputSchema":{"type":"object","properties":{"group_id":{"type":"integer","minimum":1,"description":"群号"}},"required":["group_id"],"additionalProperties":true},"category":"群管理"}} />
+
+## `set_group_special_title`
+
+设置群头衔
+
+<ActionCard action={{"name":"set_group_special_title","aliases":[],"summary":"设置群头衔","readOnly":false,"params":[{"name":"group_id","type":"uint","required":true,"schema":{"type":"integer","minimum":1},"desc":"群号"},{"name":"user_id","type":"uint","required":true,"schema":{"type":"integer","minimum":1},"desc":"QQ 号"},{"name":"special_title","type":"string","required":false,"schema":{"type":"string"},"default":""}],"invariants":[],"inputSchema":{"type":"object","properties":{"group_id":{"type":"integer","minimum":1,"description":"群号"},"user_id":{"type":"integer","minimum":1,"description":"QQ 号"},"special_title":{"type":"string","default":""}},"required":["group_id","user_id"],"additionalProperties":true},"category":"群管理"}} />
+
+## `set_group_whole_ban`
+
+全员禁言开关
+
+<ActionCard action={{"name":"set_group_whole_ban","aliases":[],"summary":"全员禁言开关","readOnly":false,"params":[{"name":"group_id","type":"uint","required":true,"schema":{"type":"integer","minimum":1},"desc":"群号"},{"name":"enable","type":"bool","required":false,"schema":{"type":"boolean"},"default":true}],"invariants":[],"inputSchema":{"type":"object","properties":{"group_id":{"type":"integer","minimum":1,"description":"群号"},"enable":{"type":"boolean","default":true}},"required":["group_id"],"additionalProperties":true},"category":"群管理"}} />

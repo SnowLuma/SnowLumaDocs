@@ -1,0 +1,57 @@
+[
+  {
+    "type": "file",
+    "name": "index",
+    "label": "API 参考"
+  },
+  {
+    "type": "file",
+    "name": "extended",
+    "label": "扩展"
+  },
+  {
+    "type": "file",
+    "name": "system",
+    "label": "信息"
+  },
+  {
+    "type": "file",
+    "name": "group-album",
+    "label": "群相册"
+  },
+  {
+    "type": "file",
+    "name": "qzone",
+    "label": "空间"
+  },
+  {
+    "type": "file",
+    "name": "group-file",
+    "label": "群文件"
+  },
+  {
+    "type": "file",
+    "name": "friend",
+    "label": "好友"
+  },
+  {
+    "type": "file",
+    "name": "message",
+    "label": "消息"
+  },
+  {
+    "type": "file",
+    "name": "group-info",
+    "label": "群信息"
+  },
+  {
+    "type": "file",
+    "name": "request",
+    "label": "请求"
+  },
+  {
+    "type": "file",
+    "name": "group-admin",
+    "label": "群管理"
+  }
+]

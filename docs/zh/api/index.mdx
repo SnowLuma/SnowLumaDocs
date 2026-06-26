@@ -1,0 +1,13 @@
+---
+title: API 参考
+---
+
+import { ActionIndex } from '../../components/ActionIndex';
+
+# API 参考
+
+SnowLuma OneBot v11 兼容 API。所有动作通过 HTTP POST 或 WebSocket 调用，请求体为 JSON，响应为 OneBot 标准应答信封。本页由 `catalog.json` 自动生成，与运行时校验同源。
+
+<ActionIndex lang="zh" />
+
+> 注：`extended.ts` 中约 15 个不规则的遗留动作不在自动目录内，详见源码 `packages/onebot/src/actions/extended.ts`。

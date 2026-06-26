@@ -1,0 +1,25 @@
+---
+title: 好友
+---
+
+import { ActionCard } from '../../components/ActionCard';
+
+# 好友
+
+## `delete_friend`
+
+删除好友
+
+<ActionCard action={{"name":"delete_friend","aliases":[],"summary":"删除好友","readOnly":false,"params":[{"name":"user_id","type":"uint","required":true,"schema":{"type":"integer","minimum":1},"desc":"QQ 号"},{"name":"block","type":"bool","required":false,"schema":{"type":"boolean"},"default":false}],"invariants":[],"inputSchema":{"type":"object","properties":{"user_id":{"type":"integer","minimum":1,"description":"QQ 号"},"block":{"type":"boolean","default":false}},"required":["user_id"],"additionalProperties":true},"category":"好友"}} />
+
+## `get_friend_list`
+
+获取好友列表
+
+<ActionCard action={{"name":"get_friend_list","aliases":[],"summary":"获取好友列表","readOnly":true,"params":[],"invariants":[],"inputSchema":{"type":"object","properties":{},"additionalProperties":true},"category":"好友"}} />
+
+## `get_stranger_info`
+
+获取陌生人信息
+
+<ActionCard action={{"name":"get_stranger_info","aliases":[],"summary":"获取陌生人信息","readOnly":true,"params":[{"name":"user_id","type":"uint","required":true,"schema":{"type":"integer","minimum":1},"desc":"QQ 号"}],"invariants":[],"inputSchema":{"type":"object","properties":{"user_id":{"type":"integer","minimum":1,"description":"QQ 号"}},"required":["user_id"],"additionalProperties":true},"category":"好友"}} />

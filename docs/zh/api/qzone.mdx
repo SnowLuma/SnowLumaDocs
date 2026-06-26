@@ -1,0 +1,49 @@
+---
+title: 空间
+---
+
+import { ActionCard } from '../../components/ActionCard';
+
+# 空间
+
+## `comment_qzone`
+
+评论一条说说（QQ 空间）
+
+<ActionCard action={{"name":"comment_qzone","aliases":[],"summary":"评论一条说说（QQ 空间）","readOnly":false,"params":[{"name":"tid","type":"string","required":true,"schema":{"type":"string","minLength":1},"desc":"说说 tid"},{"name":"content","type":"string","required":true,"schema":{"type":"string","minLength":1},"desc":"评论内容"},{"name":"target_uin","type":"uint","required":false,"schema":{"type":"integer","minimum":1},"desc":"说说所属 QQ 号，省略则为机器人自己"}],"invariants":[],"inputSchema":{"type":"object","properties":{"tid":{"type":"string","minLength":1,"description":"说说 tid"},"content":{"type":"string","minLength":1,"description":"评论内容"},"target_uin":{"type":"integer","minimum":1,"description":"说说所属 QQ 号，省略则为机器人自己"}},"required":["tid","content"],"additionalProperties":true},"category":"空间"}} />
+
+## `delete_qzone_msg`
+
+删除一条说说（QQ 空间，按 tid）
+
+<ActionCard action={{"name":"delete_qzone_msg","aliases":[],"summary":"删除一条说说（QQ 空间，按 tid）","readOnly":false,"params":[{"name":"tid","type":"string","required":true,"schema":{"type":"string","minLength":1},"desc":"说说 tid（来自 get_qzone_msg_list / send_qzone_msg）"}],"invariants":[],"inputSchema":{"type":"object","properties":{"tid":{"type":"string","minLength":1,"description":"说说 tid（来自 get_qzone_msg_list / send_qzone_msg）"}},"required":["tid"],"additionalProperties":true},"category":"空间"}} />
+
+## `get_qzone_feeds`
+
+获取 QQ 空间好友动态（feed）；page_num 仅首页可靠，深翻页需时间游标（暂未实现）
+
+<ActionCard action={{"name":"get_qzone_feeds","aliases":[],"summary":"获取 QQ 空间好友动态（feed）；page_num 仅首页可靠，深翻页需时间游标（暂未实现）","readOnly":true,"params":[{"name":"page_num","type":"int","required":false,"schema":{"type":"integer","minimum":1},"desc":"页码（1 起；仅首页可靠）","default":1},{"name":"count","type":"int","required":false,"schema":{"type":"integer","minimum":1,"maximum":50},"desc":"本页数量","default":10}],"invariants":[],"inputSchema":{"type":"object","properties":{"page_num":{"type":"integer","minimum":1,"description":"页码（1 起；仅首页可靠）","default":1},"count":{"type":"integer","minimum":1,"maximum":50,"description":"本页数量","default":10}},"additionalProperties":true},"category":"空间"}} />
+
+## `get_qzone_msg_list`
+
+获取 QQ 空间说说列表（默认机器人自己的空间）
+
+<ActionCard action={{"name":"get_qzone_msg_list","aliases":[],"summary":"获取 QQ 空间说说列表（默认机器人自己的空间）","readOnly":true,"params":[{"name":"target_uin","type":"uint","required":false,"schema":{"type":"integer","minimum":1},"desc":"目标 QQ 号，省略则取机器人自己"},{"name":"pos","type":"int","required":false,"schema":{"type":"integer","minimum":0},"desc":"起始偏移","default":0},{"name":"num","type":"int","required":false,"schema":{"type":"integer","minimum":1,"maximum":100},"desc":"本页数量","default":20}],"invariants":[],"inputSchema":{"type":"object","properties":{"target_uin":{"type":"integer","minimum":1,"description":"目标 QQ 号，省略则取机器人自己"},"pos":{"type":"integer","minimum":0,"description":"起始偏移","default":0},"num":{"type":"integer","minimum":1,"maximum":100,"description":"本页数量","default":20}},"additionalProperties":true},"category":"空间"}} />
+
+## `like_qzone`
+
+给一条说说点赞（QQ 空间）
+
+<ActionCard action={{"name":"like_qzone","aliases":[],"summary":"给一条说说点赞（QQ 空间）","readOnly":false,"params":[{"name":"tid","type":"string","required":true,"schema":{"type":"string","minLength":1},"desc":"说说 tid"},{"name":"target_uin","type":"uint","required":false,"schema":{"type":"integer","minimum":1},"desc":"说说所属 QQ 号，省略则为机器人自己"},{"name":"abstime","type":"int","required":false,"schema":{"type":"integer","minimum":0},"desc":"说说发表时间（unix 秒），传真实值更可靠","default":0}],"invariants":[],"inputSchema":{"type":"object","properties":{"tid":{"type":"string","minLength":1,"description":"说说 tid"},"target_uin":{"type":"integer","minimum":1,"description":"说说所属 QQ 号，省略则为机器人自己"},"abstime":{"type":"integer","minimum":0,"description":"说说发表时间（unix 秒），传真实值更可靠","default":0}},"required":["tid"],"additionalProperties":true},"category":"空间"}} />
+
+## `send_qzone_msg`
+
+发表一条纯文字说说（QQ 空间）
+
+<ActionCard action={{"name":"send_qzone_msg","aliases":[],"summary":"发表一条纯文字说说（QQ 空间）","readOnly":false,"params":[{"name":"content","type":"string","required":true,"schema":{"type":"string","minLength":1},"desc":"说说正文"}],"invariants":[],"inputSchema":{"type":"object","properties":{"content":{"type":"string","minLength":1,"description":"说说正文"}},"required":["content"],"additionalProperties":true},"category":"空间"}} />
+
+## `unlike_qzone`
+
+取消对一条说说的点赞（QQ 空间；取消赞端点待真机核实）
+
+<ActionCard action={{"name":"unlike_qzone","aliases":[],"summary":"取消对一条说说的点赞（QQ 空间；取消赞端点待真机核实）","readOnly":false,"params":[{"name":"tid","type":"string","required":true,"schema":{"type":"string","minLength":1},"desc":"说说 tid"},{"name":"target_uin","type":"uint","required":false,"schema":{"type":"integer","minimum":1},"desc":"说说所属 QQ 号，省略则为机器人自己"},{"name":"abstime","type":"int","required":false,"schema":{"type":"integer","minimum":0},"desc":"说说发表时间（unix 秒），传真实值更可靠","default":0}],"invariants":[],"inputSchema":{"type":"object","properties":{"tid":{"type":"string","minLength":1,"description":"说说 tid"},"target_uin":{"type":"integer","minimum":1,"description":"说说所属 QQ 号，省略则为机器人自己"},"abstime":{"type":"integer","minimum":0,"description":"说说发表时间（unix 秒），传真实值更可靠","default":0}},"required":["tid"],"additionalProperties":true},"category":"空间"}} />

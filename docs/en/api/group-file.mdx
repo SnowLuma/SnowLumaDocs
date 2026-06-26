@@ -1,0 +1,79 @@
+---
+title: Group File
+---
+
+import { ActionCard } from '../../components/ActionCard';
+
+# Group File
+
+## `create_group_file_folder`
+
+创建群文件夹
+
+<ActionCard action={{"name":"create_group_file_folder","aliases":[],"summary":"创建群文件夹","readOnly":false,"params":[{"name":"group_id","type":"uint","required":true,"schema":{"type":"integer","minimum":1},"desc":"群号"},{"name":"name","type":"string","required":true,"schema":{"type":"string","minLength":1}},{"name":"parent_id","type":"string","required":false,"schema":{"type":"string"},"default":"/"}],"invariants":[],"inputSchema":{"type":"object","properties":{"group_id":{"type":"integer","minimum":1,"description":"群号"},"name":{"type":"string","minLength":1},"parent_id":{"type":"string","default":"/"}},"required":["group_id","name"],"additionalProperties":true},"category":"群文件"}} />
+
+## `delete_group_file`
+
+删除群文件
+
+<ActionCard action={{"name":"delete_group_file","aliases":[],"summary":"删除群文件","readOnly":false,"params":[{"name":"group_id","type":"uint","required":true,"schema":{"type":"integer","minimum":1},"desc":"群号"},{"name":"file_id","type":"string","required":true,"schema":{"type":"string","minLength":1}}],"invariants":[],"inputSchema":{"type":"object","properties":{"group_id":{"type":"integer","minimum":1,"description":"群号"},"file_id":{"type":"string","minLength":1}},"required":["group_id","file_id"],"additionalProperties":true},"category":"群文件"}} />
+
+## `delete_group_file_folder`
+
+删除群文件夹
+
+<ActionCard action={{"name":"delete_group_file_folder","aliases":[],"summary":"删除群文件夹","readOnly":false,"params":[{"name":"group_id","type":"uint","required":true,"schema":{"type":"integer","minimum":1},"desc":"群号"},{"name":"folder_id","type":"string","required":true,"schema":{"type":"string","minLength":1}}],"invariants":[],"inputSchema":{"type":"object","properties":{"group_id":{"type":"integer","minimum":1,"description":"群号"},"folder_id":{"type":"string","minLength":1}},"required":["group_id","folder_id"],"additionalProperties":true},"category":"群文件"}} />
+
+## `get_group_file_url`
+
+获取群文件下载链接
+
+<ActionCard action={{"name":"get_group_file_url","aliases":[],"summary":"获取群文件下载链接","returns":"{ url: string }","readOnly":true,"params":[{"name":"group_id","type":"uint","required":true,"schema":{"type":"integer","minimum":1},"desc":"群号"},{"name":"file_id","type":"string","required":true,"schema":{"type":"string","minLength":1}},{"name":"busid","type":"raw","required":false,"schema":{}}],"invariants":[],"inputSchema":{"type":"object","properties":{"group_id":{"type":"integer","minimum":1,"description":"群号"},"file_id":{"type":"string","minLength":1},"busid":{}},"required":["group_id","file_id"],"additionalProperties":true},"category":"群文件"}} />
+
+## `get_group_files_by_folder`
+
+获取群子目录文件列表
+
+<ActionCard action={{"name":"get_group_files_by_folder","aliases":[],"summary":"获取群子目录文件列表","readOnly":true,"params":[{"name":"group_id","type":"uint","required":true,"schema":{"type":"integer","minimum":1},"desc":"群号"},{"name":"folder_id","type":"string","required":false,"schema":{"type":"string"},"default":""},{"name":"folder","type":"string","required":false,"schema":{"type":"string"},"default":""}],"invariants":[],"inputSchema":{"type":"object","properties":{"group_id":{"type":"integer","minimum":1,"description":"群号"},"folder_id":{"type":"string","default":""},"folder":{"type":"string","default":""}},"required":["group_id"],"additionalProperties":true},"category":"群文件"}} />
+
+## `get_group_root_files`
+
+获取群根目录文件列表
+
+<ActionCard action={{"name":"get_group_root_files","aliases":[],"summary":"获取群根目录文件列表","readOnly":true,"params":[{"name":"group_id","type":"uint","required":true,"schema":{"type":"integer","minimum":1},"desc":"群号"}],"invariants":[],"inputSchema":{"type":"object","properties":{"group_id":{"type":"integer","minimum":1,"description":"群号"}},"required":["group_id"],"additionalProperties":true},"category":"群文件"}} />
+
+## `get_private_file_url`
+
+获取私聊文件下载链接
+
+<ActionCard action={{"name":"get_private_file_url","aliases":[],"summary":"获取私聊文件下载链接","returns":"{ url: string }","readOnly":true,"params":[{"name":"user_id","type":"uint","required":false,"schema":{"type":"integer","minimum":1}},{"name":"file_id","type":"string","required":true,"schema":{"type":"string","minLength":1}},{"name":"file_hash","type":"string","required":false,"schema":{"type":"string"},"default":""}],"invariants":[],"inputSchema":{"type":"object","properties":{"user_id":{"type":"integer","minimum":1},"file_id":{"type":"string","minLength":1},"file_hash":{"type":"string","default":""}},"required":["file_id"],"additionalProperties":true},"category":"群文件"}} />
+
+## `move_group_file`
+
+移动群文件
+
+<ActionCard action={{"name":"move_group_file","aliases":[],"summary":"移动群文件","readOnly":false,"params":[{"name":"group_id","type":"uint","required":true,"schema":{"type":"integer","minimum":1},"desc":"群号"},{"name":"file_id","type":"string","required":true,"schema":{"type":"string","minLength":1}},{"name":"parent_directory","type":"string","required":true,"schema":{"type":"string","minLength":1}},{"name":"target_directory","type":"string","required":true,"schema":{"type":"string","minLength":1}}],"invariants":[],"inputSchema":{"type":"object","properties":{"group_id":{"type":"integer","minimum":1,"description":"群号"},"file_id":{"type":"string","minLength":1},"parent_directory":{"type":"string","minLength":1},"target_directory":{"type":"string","minLength":1}},"required":["group_id","file_id","parent_directory","target_directory"],"additionalProperties":true},"category":"群文件"}} />
+
+## `rename_group_file`
+
+重命名群文件
+
+<ActionCard action={{"name":"rename_group_file","aliases":[],"summary":"重命名群文件","readOnly":false,"params":[{"name":"group_id","type":"uint","required":true,"schema":{"type":"integer","minimum":1},"desc":"群号"},{"name":"file_id","type":"string","required":true,"schema":{"type":"string","minLength":1}},{"name":"current_parent_directory","type":"string","required":false,"schema":{"type":"string"},"default":"/"},{"name":"new_name","type":"string","required":true,"schema":{"type":"string","minLength":1}}],"invariants":[],"inputSchema":{"type":"object","properties":{"group_id":{"type":"integer","minimum":1,"description":"群号"},"file_id":{"type":"string","minLength":1},"current_parent_directory":{"type":"string","default":"/"},"new_name":{"type":"string","minLength":1}},"required":["group_id","file_id","new_name"],"additionalProperties":true},"category":"群文件"}} />
+
+## `rename_group_file_folder`
+
+重命名群文件夹
+
+<ActionCard action={{"name":"rename_group_file_folder","aliases":[],"summary":"重命名群文件夹","readOnly":false,"params":[{"name":"group_id","type":"uint","required":true,"schema":{"type":"integer","minimum":1},"desc":"群号"},{"name":"folder_id","type":"string","required":true,"schema":{"type":"string","minLength":1}},{"name":"new_folder_name","type":"string","required":false,"schema":{"type":"string"},"default":""},{"name":"name","type":"string","required":false,"schema":{"type":"string"},"default":""}],"invariants":[],"inputSchema":{"type":"object","properties":{"group_id":{"type":"integer","minimum":1,"description":"群号"},"folder_id":{"type":"string","minLength":1},"new_folder_name":{"type":"string","default":""},"name":{"type":"string","default":""}},"required":["group_id","folder_id"],"additionalProperties":true},"category":"群文件"}} />
+
+## `upload_group_file`
+
+上传群文件
+
+<ActionCard action={{"name":"upload_group_file","aliases":[],"summary":"上传群文件","returns":"{ file_id: string }","readOnly":false,"params":[{"name":"group_id","type":"uint","required":true,"schema":{"type":"integer","minimum":1},"desc":"群号"},{"name":"file","type":"string","required":true,"schema":{"type":"string","minLength":1}},{"name":"name","type":"string","required":false,"schema":{"type":"string"},"default":""},{"name":"folder","type":"string","required":false,"schema":{"type":"string"},"default":""},{"name":"folder_id","type":"string","required":false,"schema":{"type":"string"},"default":""},{"name":"upload_file","type":"bool","required":false,"schema":{"type":"boolean"},"default":true}],"invariants":[],"inputSchema":{"type":"object","properties":{"group_id":{"type":"integer","minimum":1,"description":"群号"},"file":{"type":"string","minLength":1},"name":{"type":"string","default":""},"folder":{"type":"string","default":""},"folder_id":{"type":"string","default":""},"upload_file":{"type":"boolean","default":true}},"required":["group_id","file"],"additionalProperties":true},"category":"群文件"}} />
+
+## `upload_private_file`
+
+上传私聊文件
+
+<ActionCard action={{"name":"upload_private_file","aliases":[],"summary":"上传私聊文件","returns":"{ file_id: string }","readOnly":false,"params":[{"name":"user_id","type":"uint","required":true,"schema":{"type":"integer","minimum":1}},{"name":"file","type":"string","required":true,"schema":{"type":"string","minLength":1}},{"name":"name","type":"string","required":false,"schema":{"type":"string"},"default":""},{"name":"upload_file","type":"bool","required":false,"schema":{"type":"boolean"},"default":true}],"invariants":[],"inputSchema":{"type":"object","properties":{"user_id":{"type":"integer","minimum":1},"file":{"type":"string","minLength":1},"name":{"type":"string","default":""},"upload_file":{"type":"boolean","default":true}},"required":["user_id","file"],"additionalProperties":true},"category":"群文件"}} />

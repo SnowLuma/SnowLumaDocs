@@ -1,0 +1,27 @@
+---
+title: System
+---
+
+import { ActionCard } from '../../components/ActionCard';
+
+# System
+
+## `can_send_image`
+
+<ActionCard action={{"name":"can_send_image","aliases":[],"readOnly":true,"params":[],"invariants":[],"inputSchema":{"type":"object","properties":{},"additionalProperties":true},"category":"信息"}} />
+
+## `can_send_record`
+
+<ActionCard action={{"name":"can_send_record","aliases":[],"readOnly":true,"params":[],"invariants":[],"inputSchema":{"type":"object","properties":{},"additionalProperties":true},"category":"信息"}} />
+
+## `get_login_info`
+
+<ActionCard action={{"name":"get_login_info","aliases":[],"returns":"当前登录账号的 QQ 号与昵称。","returnsSchema":{"type":"object","properties":{"user_id":{"type":"integer","description":"登录 QQ 号"},"nickname":{"type":"string","description":"登录昵称"}},"required":["user_id","nickname"]},"readOnly":true,"params":[],"invariants":[],"inputSchema":{"type":"object","properties":{},"additionalProperties":true},"category":"信息"}} />
+
+## `get_status`
+
+<ActionCard action={{"name":"get_status","aliases":[],"returns":"运行状态。`online`/`good` 均表示账号是否在线。","returnsSchema":{"type":"object","properties":{"online":{"type":"boolean","description":"是否在线"},"good":{"type":"boolean","description":"状态是否正常（与 online 一致）"}},"required":["online","good"]},"readOnly":true,"params":[],"invariants":[],"inputSchema":{"type":"object","properties":{},"additionalProperties":true},"category":"信息"}} />
+
+## `get_version_info`
+
+<ActionCard action={{"name":"get_version_info","aliases":[],"returns":"实现与协议版本信息。","returnsSchema":{"type":"object","properties":{"app_name":{"type":"string","description":"实现名称（SnowLuma）"},"app_version":{"type":"string","description":"实现版本"},"protocol_version":{"type":"string","description":"OneBot 协议版本"}},"required":["app_name","app_version","protocol_version"]},"readOnly":true,"params":[],"invariants":[],"inputSchema":{"type":"object","properties":{},"additionalProperties":true},"category":"信息"}} />

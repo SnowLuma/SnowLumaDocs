@@ -6,7 +6,8 @@
     "dev": "rspress dev --port 5173",
     "build": "rspress build",
     "preview": "rspress preview",
-    "openapi:generate": "node tools/generate-onebot-openapi.mjs"
+    "api:generate": "node tools/generate-api-pages.mjs",
+    "prebuild": "node tools/generate-api-pages.mjs"
   },
   "dependencies": {
     "rspress": "^1.47.1"
