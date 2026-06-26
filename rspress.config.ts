@@ -48,6 +48,12 @@ export default defineConfig({
     path.join(__dirname, 'docs', 'components', 'NavLogo.tsx'),
   ],
   globalStyles: path.join(__dirname, 'docs', 'styles', 'api.css'),
+  // docs/components/** are React components imported by MDX / globalUIComponents,
+  // NOT pages. Without this, Rspress turns every .tsx/.ts there into a phantom
+  // route (and chokes on the type-only catalog-types.ts, which has no default).
+  route: {
+    exclude: ['components/**', 'styles/**'],
+  },
   locales: [
     {
       lang: 'zh',
