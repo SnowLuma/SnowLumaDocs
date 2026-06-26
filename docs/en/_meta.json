@@ -2,5 +2,6 @@
   { "type": "file", "name": "index", "label": "Home" },
   { "type": "dir", "name": "guide", "label": "Guide" },
   { "type": "dir", "name": "mcp", "label": "MCP" },
-  { "type": "dir", "name": "sdk", "label": "SDK" }
+  { "type": "dir", "name": "sdk", "label": "SDK" },
+  { "type": "dir", "name": "api", "label": "API Reference" }
 ]

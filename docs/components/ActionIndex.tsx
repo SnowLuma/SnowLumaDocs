@@ -20,8 +20,14 @@ export const CATEGORY_SLUG: Record<string, string> = {
 
 const ACTIONS = (catalog as { actions: CatalogAction[] }).actions;
 
+// zh is the default locale and is served at the site root (no `/zh` segment);
+// every other locale is served under `/<lang>`. Match the actual static output
+// so deep links work on direct load, not just in-SPA navigation.
+const localePrefix = (lang: string): string => (lang === 'zh' ? '' : `/${lang}`);
+
 export const ActionIndex: React.FC<{ lang?: string }> = ({ lang = 'zh' }) => {
   const [q, setQ] = useState('');
+  const prefix = localePrefix(lang);
   const filtered = useMemo(() => {
     const t = q.trim().toLowerCase();
     if (!t) return ACTIONS;
@@ -45,7 +51,7 @@ export const ActionIndex: React.FC<{ lang?: string }> = ({ lang = 'zh' }) => {
           const slug = CATEGORY_SLUG[a.category ?? ''] ?? 'extended';
           return (
             <li key={a.name}>
-              <a href={`/${lang}/api/${slug}#action-${a.name}`}><code>{a.name}</code></a>
+              <a href={`${prefix}/api/${slug}#action-${a.name}`}><code>{a.name}</code></a>
               {a.summary && <span className="ai-sum">{a.summary}</span>}
             </li>
           );

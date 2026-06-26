@@ -2,5 +2,6 @@
   { "type": "file", "name": "index", "label": "首页" },
   { "type": "dir", "name": "guide", "label": "指南" },
   { "type": "dir", "name": "mcp", "label": "MCP" },
-  { "type": "dir", "name": "sdk", "label": "SDK" }
+  { "type": "dir", "name": "sdk", "label": "SDK" },
+  { "type": "dir", "name": "api", "label": "API 参考" }
 ]
