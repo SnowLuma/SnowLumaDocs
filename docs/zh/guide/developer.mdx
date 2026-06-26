@@ -141,7 +141,7 @@ pnpm build:all
 
 技术栈：Rspress + React + TypeScript + MDX + KaTeX。
 
-OneBot API 参考由文档仓的 `pnpm openapi:generate` 从 `packages/core/src/onebot/actions/` 静态扫描产生，落到文档仓的 `docs/public/api/openapi.json`。Action 增删后重新生成并提交。
+OneBot API 参考由文档仓的 `pnpm api:generate`（已挂到 `prebuild`）从 `docs/public/api/catalog.json` 生成各分类 MDX 页。`catalog.json` 是主仓 `collectActionDocs()` 产出的 action 目录（与 `@snowluma/mcp` 的 `CatalogAction` 同构），由主仓的 `sync-docs-catalog` workflow 在发布时用 SnowLuma bot 自动提交到文档仓——无需手动维护。
 
 ## 贡献注意事项
 
@@ -149,4 +149,4 @@ OneBot API 参考由文档仓的 `pnpm openapi:generate` 从 `packages/core/src/
 - **保持配置可自动生成**：新增字段需向后兼容；解析时归一化、写回磁盘。
 - **原生模块按平台分发**：新加平台时同步 `.node` 与可注入库。
 - **优先补测试**：核心 OneBot 行为通过 `vitest` 验证，参考 `packages/core/tests/`。
-- **OpenAPI 自动化**：新增 `registerAction` 后运行 `pnpm openapi:generate`（文档仓），避免 API 参考过时。
+- **API 文档自动化**：用 `defineAction` 新增动作（可选 `returnsSchema` 描述 `data`）即可——`catalog.json` 由 `sync-docs-catalog` workflow 自动同步，API 参考不会过时；本地预览可手动 `pnpm api:generate`。
