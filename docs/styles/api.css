@@ -1,0 +1,201 @@
+/* SnowLuma API Reference — Apple × shadcn/ui neutral design tokens + component
+ * styles. Scoped by class name (.ah-*, .cat-*, .ai-*, .api-*) so registering it
+ * globally only introduces CSS variables, not site-wide restyling. All colors
+ * are theme-aware via [data-theme='dark']. Brand blue is the single accent,
+ * used only for primary/ring. */
+
+:root {
+  --api-bg: #ffffff;
+  --api-fg: #09090b;
+  --api-card: #ffffff;
+  --api-muted: #f4f4f5;
+  --api-muted-fg: #71717a;
+  --api-border: #e4e4e7;
+  --api-ring: #3b82f6;
+  --api-primary: #3b82f6;
+  --api-primary-soft: rgba(59, 130, 246, 0.1);
+  --api-radius: 0.5rem;
+  --api-radius-lg: 0.75rem;
+  --api-font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
+  --api-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+    "Liberation Mono", monospace;
+  --api-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.06);
+  --api-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+[data-theme='dark'] {
+  --api-bg: #09090b;
+  --api-fg: #fafafa;
+  --api-card: #111113;
+  --api-muted: #1c1c1f;
+  --api-muted-fg: #a1a1aa;
+  --api-border: #27272a;
+  --api-ring: #60a5fa;
+  --api-primary: #60a5fa;
+  --api-primary-soft: rgba(96, 165, 250, 0.14);
+  --api-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --api-shadow-md: 0 4px 14px rgba(0, 0, 0, 0.45);
+}
+
+/* ─────────────────────────── ActionHeader ─────────────────────────── */
+
+.ah {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 4px 0 24px;
+}
+.ah-top { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.ah-name {
+  font-family: var(--api-mono);
+  font-size: 1.25rem;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  color: var(--api-fg);
+}
+.ah-summary { color: var(--api-muted-fg); font-size: 0.95rem; line-height: 1.5; }
+.ah-aliases { font-size: 0.8rem; color: var(--api-muted-fg); }
+.ah-aliases code {
+  font-family: var(--api-mono);
+  background: var(--api-muted);
+  padding: 1px 6px;
+  border-radius: 5px;
+  margin-right: 6px;
+}
+
+/* shadcn-style badge */
+.ah-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  line-height: 1;
+  padding: 4px 9px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+.ah-badge-ro {
+  background: var(--api-primary-soft);
+  color: var(--api-primary);
+  border-color: color-mix(in srgb, var(--api-primary) 30%, transparent);
+}
+.ah-badge-rw {
+  background: var(--api-muted);
+  color: var(--api-muted-fg);
+  border-color: var(--api-border);
+}
+.ah-badge-cat {
+  background: transparent;
+  color: var(--api-muted-fg);
+  border-color: var(--api-border);
+}
+
+/* ─────────────────────────── Landing: search ─────────────────────────── */
+
+.ai-wrap { margin: 8px 0 28px; }
+.ai-search-shell { position: relative; }
+.ai-search-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--api-muted-fg);
+  pointer-events: none;
+  font-size: 0.95rem;
+}
+.ai-search {
+  width: 100%;
+  height: 44px;
+  padding: 0 14px 0 38px;
+  border: 1px solid var(--api-border);
+  border-radius: var(--api-radius);
+  font-size: 0.95rem;
+  font-family: var(--api-font);
+  background: var(--api-card);
+  color: var(--api-fg);
+  box-sizing: border-box;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.ai-search::placeholder { color: var(--api-muted-fg); }
+.ai-search:focus {
+  outline: none;
+  border-color: var(--api-ring);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--api-ring) 25%, transparent);
+}
+.ai-count { font-size: 0.8rem; color: var(--api-muted-fg); margin: 10px 2px; }
+
+/* ─────────────────────────── Landing: category cards ─────────────────────────── */
+
+.cat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 14px;
+  margin: 8px 0;
+}
+.cat-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 16px 18px;
+  border: 1px solid var(--api-border);
+  border-radius: var(--api-radius-lg);
+  background: var(--api-card);
+  box-shadow: var(--api-shadow-sm);
+  text-decoration: none;
+  color: var(--api-fg);
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+  animation: cat-in 0.4s ease both;
+}
+.cat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--api-shadow-md);
+  border-color: color-mix(in srgb, var(--api-ring) 45%, var(--api-border));
+}
+.cat-card-top { display: flex; align-items: center; justify-content: space-between; }
+.cat-icon { font-size: 1.35rem; line-height: 1; }
+.cat-count {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--api-muted-fg);
+  background: var(--api-muted);
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+.cat-name { font-size: 0.98rem; font-weight: 650; letter-spacing: -0.01em; }
+.cat-desc { font-size: 0.8rem; color: var(--api-muted-fg); line-height: 1.45; }
+
+@keyframes cat-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ─────────────────────────── Landing: filtered action list ─────────────────────────── */
+
+.ai-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 2px; }
+.ai-item {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: var(--api-radius);
+  text-decoration: none;
+  color: var(--api-fg);
+  transition: background 0.12s ease;
+}
+.ai-item:hover { background: var(--api-muted); }
+.ai-item code {
+  font-family: var(--api-mono);
+  font-size: 0.85rem;
+  color: var(--api-fg);
+  flex-shrink: 0;
+}
+.ai-item-sum { font-size: 0.8rem; color: var(--api-muted-fg); }
+.ai-item-cat {
+  margin-left: auto;
+  font-size: 0.7rem;
+  color: var(--api-muted-fg);
+  flex-shrink: 0;
+}
+.ai-empty { color: var(--api-muted-fg); font-size: 0.9rem; padding: 24px 0; text-align: center; }

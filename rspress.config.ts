@@ -47,6 +47,7 @@ export default defineConfig({
     path.join(__dirname, 'docs', 'components', 'Splash.tsx'),
     path.join(__dirname, 'docs', 'components', 'NavLogo.tsx'),
   ],
+  globalStyles: path.join(__dirname, 'docs', 'styles', 'api.css'),
   locales: [
     {
       lang: 'zh',

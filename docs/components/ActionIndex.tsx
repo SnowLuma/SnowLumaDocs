@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import './ActionIndex.css';
 import catalog from '../public/api/catalog.json';
-import type { CatalogAction } from './ActionCard';
+import type { CatalogAction } from './catalog-types';
 
 // Category (Chinese, from the catalog) → ASCII page slug. Kept identical to the
 // map in tools/generate-api-pages.mjs; the two MUST agree or index links 404.
