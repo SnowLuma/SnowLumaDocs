@@ -36,7 +36,7 @@
   },
   {
     "type": "file",
-    "name": ".get_word_slices",
+    "name": "get_word_slices",
     "label": ".get_word_slices"
   },
   {

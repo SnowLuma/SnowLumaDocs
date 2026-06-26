@@ -17,7 +17,7 @@ Call via `POST http://127.0.0.1:3000/get_group_file_system_info` (JSON params as
 
 ## Returns (data)
 
-{ file_count, limit_count, used_space, total_space }：群文件数量与容量信息（used_space 恒 0，total_space 为固定 10GiB 常量）。
+\{ file_count, limit_count, used_space, total_space \}：群文件数量与容量信息（used_space 恒 0，total_space 为固定 10GiB 常量）。
 
 Every response is wrapped in the standard envelope: `{ "status": "ok", "retcode": 0, "data": ... }`. The table below describes `data`.
 

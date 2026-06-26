@@ -200,7 +200,19 @@ function examplesTabs(action, loc) {
 
 // ─────────────────────────── tables ───────────────────────────
 
-const cell = (s) => String(s ?? '').replace(/\|/g, '\\|').replace(/\n/g, ' ');
+// Escape characters MDX treats specially in flowing markdown text: `{`/`}`
+// start JS expressions and `<` starts a JSX tag. Source-derived prose/summaries
+// (e.g. a `returns` of "{ message_id: number }") must be neutralised or MDX
+// fails to compile / throws at render.
+const mdxText = (s) =>
+  String(s ?? '').replace(/([{}<])/g, '\\$1');
+// Table cell: MDX-escape, then escape the pipe + collapse newlines.
+const cell = (s) => mdxText(s).replace(/\|/g, '\\|').replace(/\n/g, ' ');
+// Route-safe page slug: rspress's page glob skips dotfiles, so an action whose
+// name starts with `.` (e.g. `.get_word_slices`) would be unreachable. Strip
+// leading dots for the FILE/route/_meta/link slug; the real `name` is kept for
+// display, the call URL, and `bot.call(...)`.
+const actionSlug = (name) => name.replace(/^\.+/, '');
 
 function paramTypeLabel(p) {
   if (p.values && p.values.length) return p.values.map((v) => JSON.stringify(v)).join(' / ');
@@ -236,7 +248,7 @@ function schemaTypeLabel(s) {
 function returnsSection(action, loc) {
   const t = loc.th;
   const schema = action.returnsSchema;
-  const prose = action.returns ? `${action.returns}\n\n` : '';
+  const prose = action.returns ? `${mdxText(action.returns)}\n\n` : '';
   if (!schema) return `${prose}${loc.returnPending}\n`;
 
   let fieldsObj = null;
@@ -296,7 +308,7 @@ function categoryOverview(loc, slug, actions) {
         : '\n> gocqhttp / NapCat 兼容扩展接口。用 [API 首页](' + loc.prefix + '/api/) 的搜索框可快速定位。\n')
     : '';
   const rows = actions
-    .map((a) => `| [\`${cell(a.name)}\`](${loc.prefix}/api/${slug}/${a.name}) | ${a.readOnly ? (loc.lang === 'en' ? 'read' : '只读') : (loc.lang === 'en' ? 'write' : '写')} | ${cell(a.summary ?? '')} |`)
+    .map((a) => `| [\`${cell(a.name)}\`](${loc.prefix}/api/${slug}/${actionSlug(a.name)}) | ${a.readOnly ? (loc.lang === 'en' ? 'read' : '只读') : (loc.lang === 'en' ? 'write' : '写')} | ${cell(a.summary ?? '')} |`)
     .join('\n');
   const th = loc.lang === 'en' ? '| Action | Kind | Summary |' : '| 动作 | 性质 | 中文名 |';
   return (
@@ -347,14 +359,14 @@ for (const loc of LOCALES) {
     await mkdir(dir, { recursive: true });
     await writeFile(path.join(dir, 'index.mdx'), categoryOverview(loc, slug, actions));
     for (const action of actions) {
-      await writeFile(path.join(dir, `${action.name}.mdx`), actionPage(loc, slug, action));
+      await writeFile(path.join(dir, `${actionSlug(action.name)}.mdx`), actionPage(loc, slug, action));
     }
     await writeFile(
       path.join(dir, '_meta.json'),
       JSON.stringify(
         [
           { type: 'file', name: 'index', label: loc.lang === 'en' ? 'Overview' : '概览' },
-          ...actions.map((a) => ({ type: 'file', name: a.name, label: a.name })),
+          ...actions.map((a) => ({ type: 'file', name: actionSlug(a.name), label: a.name })),
         ],
         null,
         2,

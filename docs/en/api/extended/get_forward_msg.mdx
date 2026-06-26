@@ -17,7 +17,7 @@ Call via `POST http://127.0.0.1:3000/get_forward_msg` (JSON params as the body) 
 
 ## Returns (data)
 
-{ messages }：转发内的消息节点数组（每项为 OneBot 消息事件，内部字段不固定）。
+\{ messages \}：转发内的消息节点数组（每项为 OneBot 消息事件，内部字段不固定）。
 
 Every response is wrapped in the standard envelope: `{ "status": "ok", "retcode": 0, "data": ... }`. The table below describes `data`.
 
