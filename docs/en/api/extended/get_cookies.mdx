@@ -1,0 +1,143 @@
+---
+title: "get_cookies"
+---
+
+import { ActionHeader } from '../../../components/ActionHeader';
+import { Tabs, Tab } from '@theme';
+
+<ActionHeader name={"get_cookies"} summary={"获取 Cookies"} readOnly={true} category={"扩展"} />
+
+Call via `POST http://127.0.0.1:3000/get_cookies` (JSON params as the body) or WebSocket.
+
+## Parameters
+
+| Param | Type | Required | Default | Description |
+| --- | --- | --- | --- | --- |
+| `domain` | string | – | `"qun.qq.com"` |  |
+
+## Returns (data)
+
+{ cookies }：指定域名的 Cookie 字符串。
+
+Every response is wrapped in the standard envelope: `{ "status": "ok", "retcode": 0, "data": ... }`. The table below describes `data`.
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `cookies` | string | ✓ | 该域名的 Cookie 字符串 |
+
+<details>
+<summary>Raw JSON Schema</summary>
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "cookies": {
+      "type": "string",
+      "description": "该域名的 Cookie 字符串"
+    }
+  },
+  "required": [
+    "cookies"
+  ]
+}
+```
+
+</details>
+
+## Examples
+
+<Tabs>
+<Tab label="curl">
+
+```bash
+curl -X POST http://127.0.0.1:3000/get_cookies \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer <access-token>' \
+  -d '{"domain":"qun.qq.com"}'
+```
+
+</Tab>
+<Tab label="Python">
+
+```python
+import requests
+
+resp = requests.post(
+    "http://127.0.0.1:3000/get_cookies",
+    json={
+        "domain": "qun.qq.com"
+    },
+    headers={"Authorization": "Bearer <access-token>"},  # if an access token is configured
+)
+print(resp.json())
+```
+
+</Tab>
+<Tab label="JavaScript">
+
+```js
+const resp = await fetch("http://127.0.0.1:3000/get_cookies", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "Authorization": "Bearer <access-token>", // if an access token is configured
+  },
+  body: JSON.stringify({
+  "domain": "qun.qq.com"
+}),
+});
+console.log(await resp.json());
+```
+
+</Tab>
+<Tab label="Go">
+
+```go
+package main
+
+import (
+	"bytes"
+	"fmt"
+	"io"
+	"net/http"
+)
+
+func main() {
+	body := []byte(`{"domain":"qun.qq.com"}`)
+	req, _ := http.NewRequest("POST", "http://127.0.0.1:3000/get_cookies", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer <access-token>") // if an access token is configured
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+	out, _ := io.ReadAll(resp.Body)
+	fmt.Println(string(out))
+}
+```
+
+</Tab>
+<Tab label="SnowLuma SDK">
+
+```ts
+import { SnowLumaHttpClient } from '@snowluma/sdk';
+
+const bot = new SnowLumaHttpClient({
+  baseUrl: 'http://127.0.0.1:3000/',
+  accessToken: process.env.SNOWLUMA_TOKEN, // if an access token is configured
+});
+
+const data = await bot.call('get_cookies', {
+  "domain": "qun.qq.com"
+});
+console.log(data);
+```
+
+</Tab>
+</Tabs>
+
+:::tip Using an AI assistant?
+MCP-capable clients can discover and call this action directly — no hand-written HTTP. See [MCP](/en/mcp/).
+:::

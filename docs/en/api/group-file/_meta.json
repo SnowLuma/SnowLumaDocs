@@ -1,0 +1,67 @@
+[
+  {
+    "type": "file",
+    "name": "index",
+    "label": "Overview"
+  },
+  {
+    "type": "file",
+    "name": "create_group_file_folder",
+    "label": "create_group_file_folder"
+  },
+  {
+    "type": "file",
+    "name": "delete_group_file",
+    "label": "delete_group_file"
+  },
+  {
+    "type": "file",
+    "name": "delete_group_file_folder",
+    "label": "delete_group_file_folder"
+  },
+  {
+    "type": "file",
+    "name": "get_group_file_url",
+    "label": "get_group_file_url"
+  },
+  {
+    "type": "file",
+    "name": "get_group_files_by_folder",
+    "label": "get_group_files_by_folder"
+  },
+  {
+    "type": "file",
+    "name": "get_group_root_files",
+    "label": "get_group_root_files"
+  },
+  {
+    "type": "file",
+    "name": "get_private_file_url",
+    "label": "get_private_file_url"
+  },
+  {
+    "type": "file",
+    "name": "move_group_file",
+    "label": "move_group_file"
+  },
+  {
+    "type": "file",
+    "name": "rename_group_file",
+    "label": "rename_group_file"
+  },
+  {
+    "type": "file",
+    "name": "rename_group_file_folder",
+    "label": "rename_group_file_folder"
+  },
+  {
+    "type": "file",
+    "name": "upload_group_file",
+    "label": "upload_group_file"
+  },
+  {
+    "type": "file",
+    "name": "upload_private_file",
+    "label": "upload_private_file"
+  }
+]

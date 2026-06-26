@@ -1,0 +1,77 @@
+[
+  {
+    "type": "file",
+    "name": "index",
+    "label": "Overview"
+  },
+  {
+    "type": "file",
+    "name": "set_group_add_option",
+    "label": "set_group_add_option"
+  },
+  {
+    "type": "file",
+    "name": "set_group_admin",
+    "label": "set_group_admin"
+  },
+  {
+    "type": "file",
+    "name": "set_group_anonymous",
+    "label": "set_group_anonymous"
+  },
+  {
+    "type": "file",
+    "name": "set_group_anonymous_ban",
+    "label": "set_group_anonymous_ban"
+  },
+  {
+    "type": "file",
+    "name": "set_group_ban",
+    "label": "set_group_ban"
+  },
+  {
+    "type": "file",
+    "name": "set_group_card",
+    "label": "set_group_card"
+  },
+  {
+    "type": "file",
+    "name": "set_group_kick",
+    "label": "set_group_kick"
+  },
+  {
+    "type": "file",
+    "name": "set_group_kick_members",
+    "label": "set_group_kick_members"
+  },
+  {
+    "type": "file",
+    "name": "set_group_leave",
+    "label": "set_group_leave"
+  },
+  {
+    "type": "file",
+    "name": "set_group_name",
+    "label": "set_group_name"
+  },
+  {
+    "type": "file",
+    "name": "set_group_portrait",
+    "label": "set_group_portrait"
+  },
+  {
+    "type": "file",
+    "name": "set_group_search",
+    "label": "set_group_search"
+  },
+  {
+    "type": "file",
+    "name": "set_group_special_title",
+    "label": "set_group_special_title"
+  },
+  {
+    "type": "file",
+    "name": "set_group_whole_ban",
+    "label": "set_group_whole_ban"
+  }
+]

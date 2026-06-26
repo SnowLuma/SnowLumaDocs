@@ -1,0 +1,188 @@
+---
+title: "ocr_image"
+---
+
+import { ActionHeader } from '../../../components/ActionHeader';
+import { Tabs, Tab } from '@theme';
+
+<ActionHeader name={"ocr_image"} summary={"OCR 图片（服务端，需图片 URL 或已缓存的图片 file_id）"} readOnly={true} category={"扩展"} aliases={[".ocr_image"]} />
+
+Call via `POST http://127.0.0.1:3000/ocr_image` (JSON params as the body) or WebSocket.
+
+## Parameters
+
+| Param | Type | Required | Default | Description |
+| --- | --- | --- | --- | --- |
+| `image` | string | ✓ |  |  |
+
+## Returns (data)
+
+{ texts, language }：识别文本数组（含置信度与坐标）与识别语言。
+
+Every response is wrapped in the standard envelope: `{ "status": "ok", "retcode": 0, "data": ... }`. The table below describes `data`.
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `texts` | object[] | ✓ | 识别出的文本块 |
+| `language` | string | ✓ | 识别语言 |
+
+<details>
+<summary>Raw JSON Schema</summary>
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "texts": {
+      "type": "array",
+      "description": "识别出的文本块",
+      "items": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string",
+            "description": "文本内容"
+          },
+          "confidence": {
+            "type": "number",
+            "description": "置信度"
+          },
+          "coordinates": {
+            "type": "array",
+            "description": "文本框顶点坐标",
+            "items": {
+              "type": "object",
+              "properties": {
+                "x": {
+                  "type": "number",
+                  "description": "X 坐标"
+                },
+                "y": {
+                  "type": "number",
+                  "description": "Y 坐标"
+                }
+              },
+              "required": [
+                "x",
+                "y"
+              ]
+            }
+          }
+        },
+        "required": [
+          "text",
+          "confidence",
+          "coordinates"
+        ]
+      }
+    },
+    "language": {
+      "type": "string",
+      "description": "识别语言"
+    }
+  },
+  "required": [
+    "texts",
+    "language"
+  ]
+}
+```
+
+</details>
+
+## Examples
+
+<Tabs>
+<Tab label="curl">
+
+```bash
+curl -X POST http://127.0.0.1:3000/ocr_image \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer <access-token>' \
+  -d '{"image":""}'
+```
+
+</Tab>
+<Tab label="Python">
+
+```python
+import requests
+
+resp = requests.post(
+    "http://127.0.0.1:3000/ocr_image",
+    json={
+        "image": ""
+    },
+    headers={"Authorization": "Bearer <access-token>"},  # if an access token is configured
+)
+print(resp.json())
+```
+
+</Tab>
+<Tab label="JavaScript">
+
+```js
+const resp = await fetch("http://127.0.0.1:3000/ocr_image", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "Authorization": "Bearer <access-token>", // if an access token is configured
+  },
+  body: JSON.stringify({
+  "image": ""
+}),
+});
+console.log(await resp.json());
+```
+
+</Tab>
+<Tab label="Go">
+
+```go
+package main
+
+import (
+	"bytes"
+	"fmt"
+	"io"
+	"net/http"
+)
+
+func main() {
+	body := []byte(`{"image":""}`)
+	req, _ := http.NewRequest("POST", "http://127.0.0.1:3000/ocr_image", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer <access-token>") // if an access token is configured
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+	out, _ := io.ReadAll(resp.Body)
+	fmt.Println(string(out))
+}
+```
+
+</Tab>
+<Tab label="SnowLuma SDK">
+
+```ts
+import { SnowLumaHttpClient } from '@snowluma/sdk';
+
+const bot = new SnowLumaHttpClient({
+  baseUrl: 'http://127.0.0.1:3000/',
+  accessToken: process.env.SNOWLUMA_TOKEN, // if an access token is configured
+});
+
+const data = await bot.call('ocr_image', {
+  "image": ""
+});
+console.log(data);
+```
+
+</Tab>
+</Tabs>
+
+:::tip Using an AI assistant?
+MCP-capable clients can discover and call this action directly — no hand-written HTTP. See [MCP](/en/mcp/).
+:::

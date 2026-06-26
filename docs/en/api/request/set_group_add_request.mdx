@@ -1,0 +1,133 @@
+---
+title: "set_group_add_request"
+---
+
+import { ActionHeader } from '../../../components/ActionHeader';
+import { Tabs, Tab } from '@theme';
+
+<ActionHeader name={"set_group_add_request"} summary={"处理加群请求"} readOnly={false} category={"请求"} />
+
+Call via `POST http://127.0.0.1:3000/set_group_add_request` (JSON params as the body) or WebSocket.
+
+## Parameters
+
+| Param | Type | Required | Default | Description |
+| --- | --- | --- | --- | --- |
+| `flag` | string | ✓ |  |  |
+| `sub_type` | raw | – |  |  |
+| `type` | raw | – |  |  |
+| `approve` | bool | – | `true` |  |
+| `reason` | string | – | `""` |  |
+
+## Returns (data)
+
+Returns the standard OneBot envelope; the `data` shape is not yet documented.
+
+## Examples
+
+<Tabs>
+<Tab label="curl">
+
+```bash
+curl -X POST http://127.0.0.1:3000/set_group_add_request \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer <access-token>' \
+  -d '{"flag":"","sub_type":"","type":"","approve":true,"reason":""}'
+```
+
+</Tab>
+<Tab label="Python">
+
+```python
+import requests
+
+resp = requests.post(
+    "http://127.0.0.1:3000/set_group_add_request",
+    json={
+        "flag": "",
+        "sub_type": "",
+        "type": "",
+        "approve": True,
+        "reason": ""
+    },
+    headers={"Authorization": "Bearer <access-token>"},  # if an access token is configured
+)
+print(resp.json())
+```
+
+</Tab>
+<Tab label="JavaScript">
+
+```js
+const resp = await fetch("http://127.0.0.1:3000/set_group_add_request", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "Authorization": "Bearer <access-token>", // if an access token is configured
+  },
+  body: JSON.stringify({
+  "flag": "",
+  "sub_type": "",
+  "type": "",
+  "approve": true,
+  "reason": ""
+}),
+});
+console.log(await resp.json());
+```
+
+</Tab>
+<Tab label="Go">
+
+```go
+package main
+
+import (
+	"bytes"
+	"fmt"
+	"io"
+	"net/http"
+)
+
+func main() {
+	body := []byte(`{"flag":"","sub_type":"","type":"","approve":true,"reason":""}`)
+	req, _ := http.NewRequest("POST", "http://127.0.0.1:3000/set_group_add_request", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer <access-token>") // if an access token is configured
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+	out, _ := io.ReadAll(resp.Body)
+	fmt.Println(string(out))
+}
+```
+
+</Tab>
+<Tab label="SnowLuma SDK">
+
+```ts
+import { SnowLumaHttpClient } from '@snowluma/sdk';
+
+const bot = new SnowLumaHttpClient({
+  baseUrl: 'http://127.0.0.1:3000/',
+  accessToken: process.env.SNOWLUMA_TOKEN, // if an access token is configured
+});
+
+const data = await bot.call('set_group_add_request', {
+  "flag": "",
+  "sub_type": "",
+  "type": "",
+  "approve": true,
+  "reason": ""
+});
+console.log(data);
+```
+
+</Tab>
+</Tabs>
+
+:::tip Using an AI assistant?
+MCP-capable clients can discover and call this action directly — no hand-written HTTP. See [MCP](/en/mcp/).
+:::

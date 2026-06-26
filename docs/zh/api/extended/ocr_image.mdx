@@ -1,0 +1,188 @@
+---
+title: "ocr_image"
+---
+
+import { ActionHeader } from '../../../components/ActionHeader';
+import { Tabs, Tab } from '@theme';
+
+<ActionHeader name={"ocr_image"} summary={"OCR 图片（服务端，需图片 URL 或已缓存的图片 file_id）"} readOnly={true} category={"扩展"} aliases={[".ocr_image"]} />
+
+通过 `POST http://127.0.0.1:3000/ocr_image`（请求体为 JSON 参数）或 WebSocket 调用。
+
+## 输入参数
+
+| 参数 | 类型 | 必填 | 默认 | 说明 |
+| --- | --- | --- | --- | --- |
+| `image` | string | ✓ |  |  |
+
+## 返回 (data)
+
+{ texts, language }：识别文本数组（含置信度与坐标）与识别语言。
+
+所有响应都包裹在标准信封中：`{ "status": "ok", "retcode": 0, "data": ... }`。下表描述 `data` 字段。
+
+| 字段 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- |
+| `texts` | object[] | ✓ | 识别出的文本块 |
+| `language` | string | ✓ | 识别语言 |
+
+<details>
+<summary>原始 JSON Schema</summary>
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "texts": {
+      "type": "array",
+      "description": "识别出的文本块",
+      "items": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string",
+            "description": "文本内容"
+          },
+          "confidence": {
+            "type": "number",
+            "description": "置信度"
+          },
+          "coordinates": {
+            "type": "array",
+            "description": "文本框顶点坐标",
+            "items": {
+              "type": "object",
+              "properties": {
+                "x": {
+                  "type": "number",
+                  "description": "X 坐标"
+                },
+                "y": {
+                  "type": "number",
+                  "description": "Y 坐标"
+                }
+              },
+              "required": [
+                "x",
+                "y"
+              ]
+            }
+          }
+        },
+        "required": [
+          "text",
+          "confidence",
+          "coordinates"
+        ]
+      }
+    },
+    "language": {
+      "type": "string",
+      "description": "识别语言"
+    }
+  },
+  "required": [
+    "texts",
+    "language"
+  ]
+}
+```
+
+</details>
+
+## 调用示例
+
+<Tabs>
+<Tab label="curl">
+
+```bash
+curl -X POST http://127.0.0.1:3000/ocr_image \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer <access-token>' \
+  -d '{"image":""}'
+```
+
+</Tab>
+<Tab label="Python">
+
+```python
+import requests
+
+resp = requests.post(
+    "http://127.0.0.1:3000/ocr_image",
+    json={
+        "image": ""
+    },
+    headers={"Authorization": "Bearer <access-token>"},  # 若已配置 access token
+)
+print(resp.json())
+```
+
+</Tab>
+<Tab label="JavaScript">
+
+```js
+const resp = await fetch("http://127.0.0.1:3000/ocr_image", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "Authorization": "Bearer <access-token>", // 若已配置 access token
+  },
+  body: JSON.stringify({
+  "image": ""
+}),
+});
+console.log(await resp.json());
+```
+
+</Tab>
+<Tab label="Go">
+
+```go
+package main
+
+import (
+	"bytes"
+	"fmt"
+	"io"
+	"net/http"
+)
+
+func main() {
+	body := []byte(`{"image":""}`)
+	req, _ := http.NewRequest("POST", "http://127.0.0.1:3000/ocr_image", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer <access-token>") // 若已配置 access token
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+	out, _ := io.ReadAll(resp.Body)
+	fmt.Println(string(out))
+}
+```
+
+</Tab>
+<Tab label="SnowLuma SDK">
+
+```ts
+import { SnowLumaHttpClient } from '@snowluma/sdk';
+
+const bot = new SnowLumaHttpClient({
+  baseUrl: 'http://127.0.0.1:3000/',
+  accessToken: process.env.SNOWLUMA_TOKEN, // 若已配置 access token
+});
+
+const data = await bot.call('ocr_image', {
+  "image": ""
+});
+console.log(data);
+```
+
+</Tab>
+</Tabs>
+
+:::tip 在用 AI 助手？
+支持 MCP 的客户端可直接发现并调用本动作，无需手写 HTTP。见 [MCP 接入](/mcp/)。
+:::

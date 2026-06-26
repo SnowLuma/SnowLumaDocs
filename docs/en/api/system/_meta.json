@@ -1,0 +1,32 @@
+[
+  {
+    "type": "file",
+    "name": "index",
+    "label": "Overview"
+  },
+  {
+    "type": "file",
+    "name": "can_send_image",
+    "label": "can_send_image"
+  },
+  {
+    "type": "file",
+    "name": "can_send_record",
+    "label": "can_send_record"
+  },
+  {
+    "type": "file",
+    "name": "get_login_info",
+    "label": "get_login_info"
+  },
+  {
+    "type": "file",
+    "name": "get_status",
+    "label": "get_status"
+  },
+  {
+    "type": "file",
+    "name": "get_version_info",
+    "label": "get_version_info"
+  }
+]

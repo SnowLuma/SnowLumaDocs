@@ -1,0 +1,127 @@
+---
+title: "download_file"
+---
+
+import { ActionHeader } from '../../../components/ActionHeader';
+import { Tabs, Tab } from '@theme';
+
+<ActionHeader name={"download_file"} summary={"下载文件（url 或 base64）到 data/downloads"} readOnly={false} category={"扩展"} />
+
+Call via `POST http://127.0.0.1:3000/download_file` (JSON params as the body) or WebSocket.
+
+## Parameters
+
+| Param | Type | Required | Default | Description |
+| --- | --- | --- | --- | --- |
+| `url` | string | – | `""` |  |
+| `base64` | string | – | `""` |  |
+| `name` | string | – | `""` |  |
+
+## Returns (data)
+
+{ file }
+
+Returns the standard OneBot envelope; the `data` shape is not yet documented.
+
+## Examples
+
+<Tabs>
+<Tab label="curl">
+
+```bash
+curl -X POST http://127.0.0.1:3000/download_file \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer <access-token>' \
+  -d '{"url":"","base64":"","name":""}'
+```
+
+</Tab>
+<Tab label="Python">
+
+```python
+import requests
+
+resp = requests.post(
+    "http://127.0.0.1:3000/download_file",
+    json={
+        "url": "",
+        "base64": "",
+        "name": ""
+    },
+    headers={"Authorization": "Bearer <access-token>"},  # if an access token is configured
+)
+print(resp.json())
+```
+
+</Tab>
+<Tab label="JavaScript">
+
+```js
+const resp = await fetch("http://127.0.0.1:3000/download_file", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "Authorization": "Bearer <access-token>", // if an access token is configured
+  },
+  body: JSON.stringify({
+  "url": "",
+  "base64": "",
+  "name": ""
+}),
+});
+console.log(await resp.json());
+```
+
+</Tab>
+<Tab label="Go">
+
+```go
+package main
+
+import (
+	"bytes"
+	"fmt"
+	"io"
+	"net/http"
+)
+
+func main() {
+	body := []byte(`{"url":"","base64":"","name":""}`)
+	req, _ := http.NewRequest("POST", "http://127.0.0.1:3000/download_file", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer <access-token>") // if an access token is configured
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+	out, _ := io.ReadAll(resp.Body)
+	fmt.Println(string(out))
+}
+```
+
+</Tab>
+<Tab label="SnowLuma SDK">
+
+```ts
+import { SnowLumaHttpClient } from '@snowluma/sdk';
+
+const bot = new SnowLumaHttpClient({
+  baseUrl: 'http://127.0.0.1:3000/',
+  accessToken: process.env.SNOWLUMA_TOKEN, // if an access token is configured
+});
+
+const data = await bot.call('download_file', {
+  "url": "",
+  "base64": "",
+  "name": ""
+});
+console.log(data);
+```
+
+</Tab>
+</Tabs>
+
+:::tip Using an AI assistant?
+MCP-capable clients can discover and call this action directly — no hand-written HTTP. See [MCP](/en/mcp/).
+:::

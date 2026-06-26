@@ -1,0 +1,167 @@
+---
+title: "get_group_album_list"
+---
+
+import { ActionHeader } from '../../../components/ActionHeader';
+import { Tabs, Tab } from '@theme';
+
+<ActionHeader name={"get_group_album_list"} readOnly={true} category={"群相册"} />
+
+Call via `POST http://127.0.0.1:3000/get_group_album_list` (JSON params as the body) or WebSocket.
+
+## Parameters
+
+| Param | Type | Required | Default | Description |
+| --- | --- | --- | --- | --- |
+| `group_id` | uint | ✓ |  | 群号 |
+
+## Returns (data)
+
+群相册列表数组，每项为一个相册的基本信息。
+
+Every response is wrapped in the standard envelope: `{ "status": "ok", "retcode": 0, "data": ... }`. The table below describes `data`.
+
+`data` is an array; each element:
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `id` | string | ✓ | 相册 id |
+| `name` | string | ✓ | 相册名称 |
+| `picNum` | integer | ✓ | 相册内照片数量 |
+| `createTime` | integer | ✓ | 相册创建时间（unix 秒） |
+
+<details>
+<summary>Raw JSON Schema</summary>
+
+```json
+{
+  "type": "array",
+  "description": "群相册列表",
+  "items": {
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "string",
+        "description": "相册 id"
+      },
+      "name": {
+        "type": "string",
+        "description": "相册名称"
+      },
+      "picNum": {
+        "type": "integer",
+        "description": "相册内照片数量"
+      },
+      "createTime": {
+        "type": "integer",
+        "description": "相册创建时间（unix 秒）"
+      }
+    },
+    "required": [
+      "id",
+      "name",
+      "picNum",
+      "createTime"
+    ]
+  }
+}
+```
+
+</details>
+
+## Examples
+
+<Tabs>
+<Tab label="curl">
+
+```bash
+curl -X POST http://127.0.0.1:3000/get_group_album_list \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer <access-token>' \
+  -d '{"group_id":123456}'
+```
+
+</Tab>
+<Tab label="Python">
+
+```python
+import requests
+
+resp = requests.post(
+    "http://127.0.0.1:3000/get_group_album_list",
+    json={
+        "group_id": 123456
+    },
+    headers={"Authorization": "Bearer <access-token>"},  # if an access token is configured
+)
+print(resp.json())
+```
+
+</Tab>
+<Tab label="JavaScript">
+
+```js
+const resp = await fetch("http://127.0.0.1:3000/get_group_album_list", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "Authorization": "Bearer <access-token>", // if an access token is configured
+  },
+  body: JSON.stringify({
+  "group_id": 123456
+}),
+});
+console.log(await resp.json());
+```
+
+</Tab>
+<Tab label="Go">
+
+```go
+package main
+
+import (
+	"bytes"
+	"fmt"
+	"io"
+	"net/http"
+)
+
+func main() {
+	body := []byte(`{"group_id":123456}`)
+	req, _ := http.NewRequest("POST", "http://127.0.0.1:3000/get_group_album_list", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer <access-token>") // if an access token is configured
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+	out, _ := io.ReadAll(resp.Body)
+	fmt.Println(string(out))
+}
+```
+
+</Tab>
+<Tab label="SnowLuma SDK">
+
+```ts
+import { SnowLumaHttpClient } from '@snowluma/sdk';
+
+const bot = new SnowLumaHttpClient({
+  baseUrl: 'http://127.0.0.1:3000/',
+  accessToken: process.env.SNOWLUMA_TOKEN, // if an access token is configured
+});
+
+const data = await bot.call('get_group_album_list', {
+  "group_id": 123456
+});
+console.log(data);
+```
+
+</Tab>
+</Tabs>
+
+:::tip Using an AI assistant?
+MCP-capable clients can discover and call this action directly — no hand-written HTTP. See [MCP](/en/mcp/).
+:::

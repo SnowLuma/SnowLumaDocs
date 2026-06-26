@@ -2,12 +2,16 @@
 title: API 参考
 ---
 
-import { ActionIndex } from '../../components/ActionIndex';
+import { ApiLanding } from '../../components/ApiLanding';
 
 # API 参考
 
-SnowLuma OneBot v11 兼容 API。所有动作通过 HTTP POST 或 WebSocket 调用，请求体为 JSON，响应为 OneBot 标准应答信封。本页由 `catalog.json` 自动生成，与运行时校验同源。
+OneBot v11 兼容 API，共 171 个动作。每个动作通过 HTTP POST 或 WebSocket 调用，请求体为 JSON，响应为 OneBot 标准应答信封。本页由 `catalog.json` 自动生成，与运行时校验同源。
 
-<ActionIndex lang="zh" />
+:::tip 在用 AI 助手？
+支持 MCP 的客户端可直接发现并调用本动作，无需手写 HTTP。见 [MCP 接入](/mcp/)。
+:::
+
+<ApiLanding lang="zh" />
 
 > 注：`extended.ts` 中约 15 个不规则的遗留动作不在自动目录内，详见源码 `packages/onebot/src/actions/extended.ts`。

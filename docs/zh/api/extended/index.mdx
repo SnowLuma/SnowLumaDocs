@@ -1,0 +1,121 @@
+---
+title: "扩展"
+---
+
+# 扩展
+
+共 109 个动作。
+
+> gocqhttp / NapCat 兼容扩展接口。用 [API 首页](/api/) 的搜索框可快速定位。
+
+| 动作 | 性质 | 中文名 |
+| --- | --- | --- |
+| [`_del_group_notice`](/api/extended/_del_group_notice) | 写 | 删除群公告（fid 或 notice_id 二选一） |
+| [`_get_group_notice`](/api/extended/_get_group_notice) | 只读 | 获取群公告 |
+| [`_get_model_show`](/api/extended/_get_model_show) | 只读 | 获取机型展示（兼容 mock） |
+| [`_mark_all_as_read`](/api/extended/_mark_all_as_read) | 写 | 标记全部已读（no-op，待 RE 全读 cmd） |
+| [`_send_group_notice`](/api/extended/_send_group_notice) | 写 | 发送群公告 |
+| [`_set_model_show`](/api/extended/_set_model_show) | 写 | 设置机型展示（占位） |
+| [`.get_word_slices`](/api/extended/.get_word_slices) | 只读 | 分词（未实现） |
+| [`add_custom_face`](/api/extended/add_custom_face) | 写 | 添加收藏表情 |
+| [`bot_exit`](/api/extended/bot_exit) | 写 | 退出机器人 |
+| [`cancel_group_todo`](/api/extended/cancel_group_todo) | 写 | 取消群待办 |
+| [`check_url_safely`](/api/extended/check_url_safely) | 只读 | 检查链接安全性 |
+| [`clean_cache`](/api/extended/clean_cache) | 写 | 清理缓存 |
+| [`click_inline_keyboard_button`](/api/extended/click_inline_keyboard_button) | 写 | 点击内联键盘按钮 |
+| [`complete_group_todo`](/api/extended/complete_group_todo) | 写 | 完成群待办 |
+| [`create_collection`](/api/extended/create_collection) | 写 | 创建收藏（未实现） |
+| [`create_flash_task`](/api/extended/create_flash_task) | 写 | 创建闪传任务 |
+| [`delete_custom_face`](/api/extended/delete_custom_face) | 写 | 删除收藏表情 |
+| [`delete_essence_msg`](/api/extended/delete_essence_msg) | 写 | 移除精华消息 |
+| [`delete_flash_file`](/api/extended/delete_flash_file) | 写 | 删除闪传文件 |
+| [`delete_group_folder`](/api/extended/delete_group_folder) | 写 | 删除群文件夹 |
+| [`download_file`](/api/extended/download_file) | 写 | 下载文件（url 或 base64）到 data/downloads |
+| [`download_fileset`](/api/extended/download_fileset) | 写 | 解析闪传文件下载直链（不下载，由调用方实现下载） |
+| [`fetch_custom_face`](/api/extended/fetch_custom_face) | 只读 | 获取自定义表情 |
+| [`fetch_emoji_like`](/api/extended/fetch_emoji_like) | 只读 | 获取表情回应用户（NapCat 分页） |
+| [`fetch_ptt_text`](/api/extended/fetch_ptt_text) | 只读 | 获取语音转文字结果 |
+| [`forward_friend_single_msg`](/api/extended/forward_friend_single_msg) | 写 | 转发单条消息给好友 |
+| [`forward_group_single_msg`](/api/extended/forward_group_single_msg) | 写 | 转发单条消息到群 |
+| [`friend_poke`](/api/extended/friend_poke) | 写 | 好友拍一拍 |
+| [`get_ai_characters`](/api/extended/get_ai_characters) | 只读 | 获取 AI 语音角色 |
+| [`get_ai_record`](/api/extended/get_ai_record) | 写 | 生成 AI 语音 |
+| [`get_clientkey`](/api/extended/get_clientkey) | 只读 | 获取 clientkey |
+| [`get_collection_list`](/api/extended/get_collection_list) | 只读 | 获取收藏列表（占位） |
+| [`get_cookies`](/api/extended/get_cookies) | 只读 | 获取 Cookies |
+| [`get_credentials`](/api/extended/get_credentials) | 只读 | 获取凭证 |
+| [`get_csrf_token`](/api/extended/get_csrf_token) | 只读 | 获取 CSRF 令牌 |
+| [`get_doubt_friends_add_request`](/api/extended/get_doubt_friends_add_request) | 只读 | 获取可疑好友申请 |
+| [`get_emoji_likes`](/api/extended/get_emoji_likes) | 只读 | 获取表情回应用户 |
+| [`get_essence_msg_list`](/api/extended/get_essence_msg_list) | 只读 | 获取精华消息列表 |
+| [`get_file`](/api/extended/get_file) | 只读 | 获取文件信息（仅图片/语音缓存；群文件请用 get_group_file_url） |
+| [`get_fileset_id`](/api/extended/get_fileset_id) | 只读 | 从分享码/链接获取 fileset_id |
+| [`get_fileset_info`](/api/extended/get_fileset_info) | 写 | 获取文件集信息 |
+| [`get_flash_file_list`](/api/extended/get_flash_file_list) | 写 | 获取闪传文件列表 |
+| [`get_flash_file_url`](/api/extended/get_flash_file_url) | 写 | 获取闪传文件链接 |
+| [`get_forward_msg`](/api/extended/get_forward_msg) | 只读 | 获取合并转发消息（id 或 message_id） |
+| [`get_friend_msg_history`](/api/extended/get_friend_msg_history) | 只读 | 获取好友消息历史 |
+| [`get_friends_with_category`](/api/extended/get_friends_with_category) | 只读 | 获取分组好友列表 |
+| [`get_group_at_all_remain`](/api/extended/get_group_at_all_remain) | 只读 | 获取群 @全体成员 剩余次数 |
+| [`get_group_detail_info`](/api/extended/get_group_detail_info) | 只读 | 获取群详细信息 |
+| [`get_group_file_system_info`](/api/extended/get_group_file_system_info) | 只读 | 获取群文件系统信息 |
+| [`get_group_ignore_add_request`](/api/extended/get_group_ignore_add_request) | 只读 | 获取被忽略的入群请求（NapCat） |
+| [`get_group_ignored_notifies`](/api/extended/get_group_ignored_notifies) | 只读 | 获取被过滤的入群请求 |
+| [`get_group_info_ex`](/api/extended/get_group_info_ex) | 只读 | 获取群信息（扩展） |
+| [`get_group_msg_history`](/api/extended/get_group_msg_history) | 只读 | 获取群消息历史 |
+| [`get_group_shut_list`](/api/extended/get_group_shut_list) | 只读 | 获取群禁言列表 |
+| [`get_group_signed_list`](/api/extended/get_group_signed_list) | 只读 | 获取群今日打卡列表 |
+| [`get_image`](/api/extended/get_image) | 只读 | 获取图片信息 |
+| [`get_mini_app_ark`](/api/extended/get_mini_app_ark) | 只读 | 获取小程序卡片 ark |
+| [`get_online_clients`](/api/extended/get_online_clients) | 只读 | 获取在线客户端（占位，OneBot v11 形状） |
+| [`get_profile_like`](/api/extended/get_profile_like) | 只读 | 获取资料点赞 |
+| [`get_recent_contact`](/api/extended/get_recent_contact) | 只读 | 获取最近会话（占位） |
+| [`get_record`](/api/extended/get_record) | 只读 | 获取语音信息 |
+| [`get_rkey`](/api/extended/get_rkey) | 只读 | 获取下载 rkey |
+| [`get_rkey_server`](/api/extended/get_rkey_server) | 只读 | 获取 rkey 服务器信息 |
+| [`get_share_link`](/api/extended/get_share_link) | 写 | 获取文件分享链接 |
+| [`get_unidirectional_friend_list`](/api/extended/get_unidirectional_friend_list) | 只读 | 获取单向好友列表 |
+| [`group_poke`](/api/extended/group_poke) | 写 | 群拍一拍 |
+| [`list_filesets`](/api/extended/list_filesets) | 写 | 列出当前账号的所有闪传文件集 |
+| [`mark_group_msg_as_read`](/api/extended/mark_group_msg_as_read) | 写 | 标记群消息已读 |
+| [`mark_msg_as_read`](/api/extended/mark_msg_as_read) | 写 | 标记消息已读（群聊/私聊自动路由） |
+| [`mark_private_msg_as_read`](/api/extended/mark_private_msg_as_read) | 写 | 标记私聊消息已读 |
+| [`modify_custom_face`](/api/extended/modify_custom_face) | 写 | 修改收藏表情备注 |
+| [`move_custom_face_to_front`](/api/extended/move_custom_face_to_front) | 写 | 收藏表情移到最前 |
+| [`nc_get_packet_status`](/api/extended/nc_get_packet_status) | 只读 | 获取 packet 状态（占位） |
+| [`nc_get_user_status`](/api/extended/nc_get_user_status) | 只读 | 获取用户在线/扩展状态 |
+| [`ocr_image`](/api/extended/ocr_image) | 只读 | OCR 图片（服务端，需图片 URL 或已缓存的图片 file_id） |
+| [`rename_flash_file`](/api/extended/rename_flash_file) | 写 | 重命名闪传文件 |
+| [`request_decrypt_key`](/api/extended/request_decrypt_key) | 写 | 请求数据库解密密钥 |
+| [`send_ark_share`](/api/extended/send_ark_share) | 只读 | 分享用户/群 Ark 卡片（NapCat 标准名） |
+| [`send_flash_msg`](/api/extended/send_flash_msg) | 写 | 发送闪传消息（私聊或群聊，引用 fileset_id 让对端下载） |
+| [`send_forward_msg`](/api/extended/send_forward_msg) | 写 | 发送合并转发（按 message_type/群号自动路由） |
+| [`send_group_ai_record`](/api/extended/send_group_ai_record) | 写 | 发送 AI 语音到群 |
+| [`send_group_ark_share`](/api/extended/send_group_ark_share) | 只读 | 分享群 Ark 卡片（NapCat 标准名） |
+| [`send_group_forward_msg`](/api/extended/send_group_forward_msg) | 写 | 发送群合并转发 |
+| [`send_like`](/api/extended/send_like) | 写 | 点赞 |
+| [`send_packet`](/api/extended/send_packet) | 写 | 发送原始 SSO 包（cmd + hex data） |
+| [`send_poke`](/api/extended/send_poke) | 写 | 拍一拍（群聊/私聊自动路由） |
+| [`send_private_forward_msg`](/api/extended/send_private_forward_msg) | 写 | 发送私聊合并转发 |
+| [`set_diy_online_status`](/api/extended/set_diy_online_status) | 写 | 设置自定义在线状态 |
+| [`set_doubt_friends_add_request`](/api/extended/set_doubt_friends_add_request) | 写 | 处理可疑好友申请 |
+| [`set_essence_msg`](/api/extended/set_essence_msg) | 写 | 设置精华消息 |
+| [`set_friend_remark`](/api/extended/set_friend_remark) | 写 | 设置好友备注 |
+| [`set_group_reaction`](/api/extended/set_group_reaction) | 写 | 群聊表情回应 |
+| [`set_group_remark`](/api/extended/set_group_remark) | 写 | 设置群备注 |
+| [`set_group_robot_add_option`](/api/extended/set_group_robot_add_option) | 写 | 设置群机器人加群选项 |
+| [`set_group_sign`](/api/extended/set_group_sign) | 写 | 群签到 |
+| [`set_group_todo`](/api/extended/set_group_todo) | 写 | 设置群待办 |
+| [`set_input_status`](/api/extended/set_input_status) | 写 | 设置输入状态 |
+| [`set_msg_emoji_like`](/api/extended/set_msg_emoji_like) | 写 | 设置消息表情回应 |
+| [`set_online_status`](/api/extended/set_online_status) | 写 | 设置在线状态 |
+| [`set_qq_avatar`](/api/extended/set_qq_avatar) | 写 | 设置 QQ 头像 |
+| [`set_qq_profile`](/api/extended/set_qq_profile) | 写 | 设置 QQ 资料 |
+| [`set_restart`](/api/extended/set_restart) | 写 | 重启（不支持） |
+| [`set_self_longnick`](/api/extended/set_self_longnick) | 写 | 设置个性签名（longNick/long_nick，严格 string） |
+| [`share_group_ex`](/api/extended/share_group_ex) | 只读 | 分享群 Ark 卡片 |
+| [`share_peer`](/api/extended/share_peer) | 只读 | 分享用户/群 Ark 卡片 |
+| [`trans_group_file`](/api/extended/trans_group_file) | 写 | 转存群文件（未实现） |
+| [`translate_en2zh`](/api/extended/translate_en2zh) | 只读 | 英译中 |
+| [`upload_forward_msg`](/api/extended/upload_forward_msg) | 写 | 上传转发消息 |
+| [`upload_foward_msg`](/api/extended/upload_foward_msg) | 写 | 上传转发消息（别名拼写） |

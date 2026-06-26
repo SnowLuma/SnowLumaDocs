@@ -1,0 +1,141 @@
+---
+title: "get_status"
+---
+
+import { ActionHeader } from '../../../components/ActionHeader';
+import { Tabs, Tab } from '@theme';
+
+<ActionHeader name={"get_status"} readOnly={true} category={"信息"} />
+
+Call via `POST http://127.0.0.1:3000/get_status` (JSON params as the body) or WebSocket.
+
+## Parameters
+
+This action takes no parameters.
+
+## Returns (data)
+
+运行状态。`online`/`good` 均表示账号是否在线。
+
+Every response is wrapped in the standard envelope: `{ "status": "ok", "retcode": 0, "data": ... }`. The table below describes `data`.
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `online` | boolean | ✓ | 是否在线 |
+| `good` | boolean | ✓ | 状态是否正常（与 online 一致） |
+
+<details>
+<summary>Raw JSON Schema</summary>
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "online": {
+      "type": "boolean",
+      "description": "是否在线"
+    },
+    "good": {
+      "type": "boolean",
+      "description": "状态是否正常（与 online 一致）"
+    }
+  },
+  "required": [
+    "online",
+    "good"
+  ]
+}
+```
+
+</details>
+
+## Examples
+
+<Tabs>
+<Tab label="curl">
+
+```bash
+curl -X POST http://127.0.0.1:3000/get_status \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer <access-token>' \
+  -d '{}'
+```
+
+</Tab>
+<Tab label="Python">
+
+```python
+import requests
+
+resp = requests.post(
+    "http://127.0.0.1:3000/get_status",
+    json={},
+    headers={"Authorization": "Bearer <access-token>"},  # if an access token is configured
+)
+print(resp.json())
+```
+
+</Tab>
+<Tab label="JavaScript">
+
+```js
+const resp = await fetch("http://127.0.0.1:3000/get_status", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "Authorization": "Bearer <access-token>", // if an access token is configured
+  },
+  body: JSON.stringify({}),
+});
+console.log(await resp.json());
+```
+
+</Tab>
+<Tab label="Go">
+
+```go
+package main
+
+import (
+	"bytes"
+	"fmt"
+	"io"
+	"net/http"
+)
+
+func main() {
+	body := []byte(`{}`)
+	req, _ := http.NewRequest("POST", "http://127.0.0.1:3000/get_status", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer <access-token>") // if an access token is configured
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+	out, _ := io.ReadAll(resp.Body)
+	fmt.Println(string(out))
+}
+```
+
+</Tab>
+<Tab label="SnowLuma SDK">
+
+```ts
+import { SnowLumaHttpClient } from '@snowluma/sdk';
+
+const bot = new SnowLumaHttpClient({
+  baseUrl: 'http://127.0.0.1:3000/',
+  accessToken: process.env.SNOWLUMA_TOKEN, // if an access token is configured
+});
+
+const data = await bot.call('get_status', {});
+console.log(data);
+```
+
+</Tab>
+</Tabs>
+
+:::tip Using an AI assistant?
+MCP-capable clients can discover and call this action directly — no hand-written HTTP. See [MCP](/en/mcp/).
+:::

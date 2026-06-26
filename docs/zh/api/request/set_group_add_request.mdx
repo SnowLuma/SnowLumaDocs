@@ -1,0 +1,133 @@
+---
+title: "set_group_add_request"
+---
+
+import { ActionHeader } from '../../../components/ActionHeader';
+import { Tabs, Tab } from '@theme';
+
+<ActionHeader name={"set_group_add_request"} summary={"处理加群请求"} readOnly={false} category={"请求"} />
+
+通过 `POST http://127.0.0.1:3000/set_group_add_request`（请求体为 JSON 参数）或 WebSocket 调用。
+
+## 输入参数
+
+| 参数 | 类型 | 必填 | 默认 | 说明 |
+| --- | --- | --- | --- | --- |
+| `flag` | string | ✓ |  |  |
+| `sub_type` | raw | – |  |  |
+| `type` | raw | – |  |  |
+| `approve` | bool | – | `true` |  |
+| `reason` | string | – | `""` |  |
+
+## 返回 (data)
+
+该动作返回标准 OneBot 信封；`data` 结构待补充。
+
+## 调用示例
+
+<Tabs>
+<Tab label="curl">
+
+```bash
+curl -X POST http://127.0.0.1:3000/set_group_add_request \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer <access-token>' \
+  -d '{"flag":"","sub_type":"","type":"","approve":true,"reason":""}'
+```
+
+</Tab>
+<Tab label="Python">
+
+```python
+import requests
+
+resp = requests.post(
+    "http://127.0.0.1:3000/set_group_add_request",
+    json={
+        "flag": "",
+        "sub_type": "",
+        "type": "",
+        "approve": True,
+        "reason": ""
+    },
+    headers={"Authorization": "Bearer <access-token>"},  # 若已配置 access token
+)
+print(resp.json())
+```
+
+</Tab>
+<Tab label="JavaScript">
+
+```js
+const resp = await fetch("http://127.0.0.1:3000/set_group_add_request", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "Authorization": "Bearer <access-token>", // 若已配置 access token
+  },
+  body: JSON.stringify({
+  "flag": "",
+  "sub_type": "",
+  "type": "",
+  "approve": true,
+  "reason": ""
+}),
+});
+console.log(await resp.json());
+```
+
+</Tab>
+<Tab label="Go">
+
+```go
+package main
+
+import (
+	"bytes"
+	"fmt"
+	"io"
+	"net/http"
+)
+
+func main() {
+	body := []byte(`{"flag":"","sub_type":"","type":"","approve":true,"reason":""}`)
+	req, _ := http.NewRequest("POST", "http://127.0.0.1:3000/set_group_add_request", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer <access-token>") // 若已配置 access token
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+	out, _ := io.ReadAll(resp.Body)
+	fmt.Println(string(out))
+}
+```
+
+</Tab>
+<Tab label="SnowLuma SDK">
+
+```ts
+import { SnowLumaHttpClient } from '@snowluma/sdk';
+
+const bot = new SnowLumaHttpClient({
+  baseUrl: 'http://127.0.0.1:3000/',
+  accessToken: process.env.SNOWLUMA_TOKEN, // 若已配置 access token
+});
+
+const data = await bot.call('set_group_add_request', {
+  "flag": "",
+  "sub_type": "",
+  "type": "",
+  "approve": true,
+  "reason": ""
+});
+console.log(data);
+```
+
+</Tab>
+</Tabs>
+
+:::tip 在用 AI 助手？
+支持 MCP 的客户端可直接发现并调用本动作，无需手写 HTTP。见 [MCP 接入](/mcp/)。
+:::

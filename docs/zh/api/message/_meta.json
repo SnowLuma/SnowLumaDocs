@@ -1,0 +1,32 @@
+[
+  {
+    "type": "file",
+    "name": "index",
+    "label": "概览"
+  },
+  {
+    "type": "file",
+    "name": "delete_msg",
+    "label": "delete_msg"
+  },
+  {
+    "type": "file",
+    "name": "get_msg",
+    "label": "get_msg"
+  },
+  {
+    "type": "file",
+    "name": "send_group_msg",
+    "label": "send_group_msg"
+  },
+  {
+    "type": "file",
+    "name": "send_msg",
+    "label": "send_msg"
+  },
+  {
+    "type": "file",
+    "name": "send_private_msg",
+    "label": "send_private_msg"
+  }
+]

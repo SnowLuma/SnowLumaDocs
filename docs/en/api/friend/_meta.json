@@ -1,0 +1,22 @@
+[
+  {
+    "type": "file",
+    "name": "index",
+    "label": "Overview"
+  },
+  {
+    "type": "file",
+    "name": "delete_friend",
+    "label": "delete_friend"
+  },
+  {
+    "type": "file",
+    "name": "get_friend_list",
+    "label": "get_friend_list"
+  },
+  {
+    "type": "file",
+    "name": "get_stranger_info",
+    "label": "get_stranger_info"
+  }
+]

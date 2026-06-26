@@ -1,0 +1,188 @@
+---
+title: "get_group_ignore_add_request"
+---
+
+import { ActionHeader } from '../../../components/ActionHeader';
+import { Tabs, Tab } from '@theme';
+
+<ActionHeader name={"get_group_ignore_add_request"} summary={"获取被忽略的入群请求（NapCat）"} readOnly={true} category={"扩展"} />
+
+Call via `POST http://127.0.0.1:3000/get_group_ignore_add_request` (JSON params as the body) or WebSocket.
+
+## Parameters
+
+This action takes no parameters.
+
+## Returns (data)
+
+被忽略的入群请求数组（NapCat 字段命名），每项含请求序列、邀请人、群信息与处理标记。
+
+Every response is wrapped in the standard envelope: `{ "status": "ok", "retcode": 0, "data": ... }`. The table below describes `data`.
+
+`data` is an array; each element:
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `request_id` | integer | ✓ | 请求序列号 |
+| `invitor_uin` | integer | ✓ | 邀请人 QQ 号 |
+| `invitor_nick` | string | ✓ | 邀请人昵称 |
+| `group_id` | integer | ✓ | 群号 |
+| `message` | string | ✓ | 验证留言 |
+| `group_name` | string | ✓ | 群名称 |
+| `checked` | boolean | ✓ | 是否已处理 |
+| `actor` | integer | ✓ | 处理人 QQ 号 |
+| `requester_nick` | string | ✓ | 申请人昵称 |
+
+<details>
+<summary>Raw JSON Schema</summary>
+
+```json
+{
+  "type": "array",
+  "items": {
+    "type": "object",
+    "properties": {
+      "request_id": {
+        "type": "integer",
+        "description": "请求序列号"
+      },
+      "invitor_uin": {
+        "type": "integer",
+        "description": "邀请人 QQ 号"
+      },
+      "invitor_nick": {
+        "type": "string",
+        "description": "邀请人昵称"
+      },
+      "group_id": {
+        "type": "integer",
+        "description": "群号"
+      },
+      "message": {
+        "type": "string",
+        "description": "验证留言"
+      },
+      "group_name": {
+        "type": "string",
+        "description": "群名称"
+      },
+      "checked": {
+        "type": "boolean",
+        "description": "是否已处理"
+      },
+      "actor": {
+        "type": "integer",
+        "description": "处理人 QQ 号"
+      },
+      "requester_nick": {
+        "type": "string",
+        "description": "申请人昵称"
+      }
+    },
+    "required": [
+      "request_id",
+      "invitor_uin",
+      "invitor_nick",
+      "group_id",
+      "message",
+      "group_name",
+      "checked",
+      "actor",
+      "requester_nick"
+    ]
+  }
+}
+```
+
+</details>
+
+## Examples
+
+<Tabs>
+<Tab label="curl">
+
+```bash
+curl -X POST http://127.0.0.1:3000/get_group_ignore_add_request \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer <access-token>' \
+  -d '{}'
+```
+
+</Tab>
+<Tab label="Python">
+
+```python
+import requests
+
+resp = requests.post(
+    "http://127.0.0.1:3000/get_group_ignore_add_request",
+    json={},
+    headers={"Authorization": "Bearer <access-token>"},  # if an access token is configured
+)
+print(resp.json())
+```
+
+</Tab>
+<Tab label="JavaScript">
+
+```js
+const resp = await fetch("http://127.0.0.1:3000/get_group_ignore_add_request", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "Authorization": "Bearer <access-token>", // if an access token is configured
+  },
+  body: JSON.stringify({}),
+});
+console.log(await resp.json());
+```
+
+</Tab>
+<Tab label="Go">
+
+```go
+package main
+
+import (
+	"bytes"
+	"fmt"
+	"io"
+	"net/http"
+)
+
+func main() {
+	body := []byte(`{}`)
+	req, _ := http.NewRequest("POST", "http://127.0.0.1:3000/get_group_ignore_add_request", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer <access-token>") // if an access token is configured
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+	out, _ := io.ReadAll(resp.Body)
+	fmt.Println(string(out))
+}
+```
+
+</Tab>
+<Tab label="SnowLuma SDK">
+
+```ts
+import { SnowLumaHttpClient } from '@snowluma/sdk';
+
+const bot = new SnowLumaHttpClient({
+  baseUrl: 'http://127.0.0.1:3000/',
+  accessToken: process.env.SNOWLUMA_TOKEN, // if an access token is configured
+});
+
+const data = await bot.call('get_group_ignore_add_request', {});
+console.log(data);
+```
+
+</Tab>
+</Tabs>
+
+:::tip Using an AI assistant?
+MCP-capable clients can discover and call this action directly — no hand-written HTTP. See [MCP](/en/mcp/).
+:::

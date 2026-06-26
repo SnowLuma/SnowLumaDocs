@@ -5,53 +5,63 @@
     "label": "API Reference"
   },
   {
-    "type": "file",
+    "type": "dir",
     "name": "extended",
-    "label": "Extended"
+    "label": "Extended",
+    "collapsed": true
   },
   {
-    "type": "file",
+    "type": "dir",
     "name": "system",
-    "label": "System"
+    "label": "System",
+    "collapsed": true
   },
   {
-    "type": "file",
+    "type": "dir",
     "name": "group-album",
-    "label": "Group Album"
+    "label": "Group Album",
+    "collapsed": true
   },
   {
-    "type": "file",
+    "type": "dir",
     "name": "qzone",
-    "label": "Qzone"
+    "label": "Qzone",
+    "collapsed": true
   },
   {
-    "type": "file",
+    "type": "dir",
     "name": "group-file",
-    "label": "Group File"
+    "label": "Group File",
+    "collapsed": true
   },
   {
-    "type": "file",
+    "type": "dir",
     "name": "friend",
-    "label": "Friend"
+    "label": "Friend",
+    "collapsed": true
   },
   {
-    "type": "file",
+    "type": "dir",
     "name": "message",
-    "label": "Message"
+    "label": "Message",
+    "collapsed": true
   },
   {
-    "type": "file",
+    "type": "dir",
     "name": "group-info",
-    "label": "Group Info"
+    "label": "Group Info",
+    "collapsed": true
   },
   {
-    "type": "file",
+    "type": "dir",
     "name": "request",
-    "label": "Request"
+    "label": "Request",
+    "collapsed": true
   },
   {
-    "type": "file",
+    "type": "dir",
     "name": "group-admin",
-    "label": "Group Admin"
+    "label": "Group Admin",
+    "collapsed": true
   }
 ]

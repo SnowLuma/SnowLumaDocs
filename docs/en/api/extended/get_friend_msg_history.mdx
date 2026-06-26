@@ -1,0 +1,154 @@
+---
+title: "get_friend_msg_history"
+---
+
+import { ActionHeader } from '../../../components/ActionHeader';
+import { Tabs, Tab } from '@theme';
+
+<ActionHeader name={"get_friend_msg_history"} summary={"获取好友消息历史"} readOnly={true} category={"扩展"} />
+
+Call via `POST http://127.0.0.1:3000/get_friend_msg_history` (JSON params as the body) or WebSocket.
+
+## Parameters
+
+| Param | Type | Required | Default | Description |
+| --- | --- | --- | --- | --- |
+| `user_id` | uint | ✓ |  |  |
+| `message_id` | int | – | `0` |  |
+| `count` | int | – | `20` |  |
+
+## Returns (data)
+
+{ messages }：好友消息事件对象数组（每项为 OneBot 消息事件，内部字段不固定）。
+
+Every response is wrapped in the standard envelope: `{ "status": "ok", "retcode": 0, "data": ... }`. The table below describes `data`.
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `messages` | object[] | ✓ | 消息事件对象数组 |
+
+<details>
+<summary>Raw JSON Schema</summary>
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "messages": {
+      "type": "array",
+      "description": "消息事件对象数组",
+      "items": {
+        "type": "object"
+      }
+    }
+  },
+  "required": [
+    "messages"
+  ]
+}
+```
+
+</details>
+
+## Examples
+
+<Tabs>
+<Tab label="curl">
+
+```bash
+curl -X POST http://127.0.0.1:3000/get_friend_msg_history \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer <access-token>' \
+  -d '{"user_id":10001,"message_id":0,"count":20}'
+```
+
+</Tab>
+<Tab label="Python">
+
+```python
+import requests
+
+resp = requests.post(
+    "http://127.0.0.1:3000/get_friend_msg_history",
+    json={
+        "user_id": 10001,
+        "message_id": 0,
+        "count": 20
+    },
+    headers={"Authorization": "Bearer <access-token>"},  # if an access token is configured
+)
+print(resp.json())
+```
+
+</Tab>
+<Tab label="JavaScript">
+
+```js
+const resp = await fetch("http://127.0.0.1:3000/get_friend_msg_history", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "Authorization": "Bearer <access-token>", // if an access token is configured
+  },
+  body: JSON.stringify({
+  "user_id": 10001,
+  "message_id": 0,
+  "count": 20
+}),
+});
+console.log(await resp.json());
+```
+
+</Tab>
+<Tab label="Go">
+
+```go
+package main
+
+import (
+	"bytes"
+	"fmt"
+	"io"
+	"net/http"
+)
+
+func main() {
+	body := []byte(`{"user_id":10001,"message_id":0,"count":20}`)
+	req, _ := http.NewRequest("POST", "http://127.0.0.1:3000/get_friend_msg_history", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer <access-token>") // if an access token is configured
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+	out, _ := io.ReadAll(resp.Body)
+	fmt.Println(string(out))
+}
+```
+
+</Tab>
+<Tab label="SnowLuma SDK">
+
+```ts
+import { SnowLumaHttpClient } from '@snowluma/sdk';
+
+const bot = new SnowLumaHttpClient({
+  baseUrl: 'http://127.0.0.1:3000/',
+  accessToken: process.env.SNOWLUMA_TOKEN, // if an access token is configured
+});
+
+const data = await bot.call('get_friend_msg_history', {
+  "user_id": 10001,
+  "message_id": 0,
+  "count": 20
+});
+console.log(data);
+```
+
+</Tab>
+</Tabs>
+
+:::tip Using an AI assistant?
+MCP-capable clients can discover and call this action directly — no hand-written HTTP. See [MCP](/en/mcp/).
+:::

@@ -1,0 +1,166 @@
+---
+title: "get_group_list"
+---
+
+import { ActionHeader } from '../../../components/ActionHeader';
+import { Tabs, Tab } from '@theme';
+
+<ActionHeader name={"get_group_list"} summary={"获取群列表"} readOnly={true} category={"群信息"} />
+
+通过 `POST http://127.0.0.1:3000/get_group_list`（请求体为 JSON 参数）或 WebSocket 调用。
+
+## 输入参数
+
+| 参数 | 类型 | 必填 | 默认 | 说明 |
+| --- | --- | --- | --- | --- |
+| `no_cache` | bool | – | `false` |  |
+
+## 返回 (data)
+
+群信息对象数组。
+
+所有响应都包裹在标准信封中：`{ "status": "ok", "retcode": 0, "data": ... }`。下表描述 `data` 字段。
+
+`data` 为数组，每个元素：
+
+| 字段 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- |
+| `group_id` | integer | ✓ | 群号 |
+| `group_name` | string | ✓ | 群名 |
+| `member_count` | integer | ✓ | 当前成员数 |
+| `max_member_count` | integer | ✓ | 成员上限 |
+
+<details>
+<summary>原始 JSON Schema</summary>
+
+```json
+{
+  "type": "array",
+  "items": {
+    "type": "object",
+    "properties": {
+      "group_id": {
+        "type": "integer",
+        "description": "群号"
+      },
+      "group_name": {
+        "type": "string",
+        "description": "群名"
+      },
+      "member_count": {
+        "type": "integer",
+        "description": "当前成员数"
+      },
+      "max_member_count": {
+        "type": "integer",
+        "description": "成员上限"
+      }
+    },
+    "required": [
+      "group_id",
+      "group_name",
+      "member_count",
+      "max_member_count"
+    ]
+  }
+}
+```
+
+</details>
+
+## 调用示例
+
+<Tabs>
+<Tab label="curl">
+
+```bash
+curl -X POST http://127.0.0.1:3000/get_group_list \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer <access-token>' \
+  -d '{"no_cache":false}'
+```
+
+</Tab>
+<Tab label="Python">
+
+```python
+import requests
+
+resp = requests.post(
+    "http://127.0.0.1:3000/get_group_list",
+    json={
+        "no_cache": False
+    },
+    headers={"Authorization": "Bearer <access-token>"},  # 若已配置 access token
+)
+print(resp.json())
+```
+
+</Tab>
+<Tab label="JavaScript">
+
+```js
+const resp = await fetch("http://127.0.0.1:3000/get_group_list", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "Authorization": "Bearer <access-token>", // 若已配置 access token
+  },
+  body: JSON.stringify({
+  "no_cache": false
+}),
+});
+console.log(await resp.json());
+```
+
+</Tab>
+<Tab label="Go">
+
+```go
+package main
+
+import (
+	"bytes"
+	"fmt"
+	"io"
+	"net/http"
+)
+
+func main() {
+	body := []byte(`{"no_cache":false}`)
+	req, _ := http.NewRequest("POST", "http://127.0.0.1:3000/get_group_list", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer <access-token>") // 若已配置 access token
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+	out, _ := io.ReadAll(resp.Body)
+	fmt.Println(string(out))
+}
+```
+
+</Tab>
+<Tab label="SnowLuma SDK">
+
+```ts
+import { SnowLumaHttpClient } from '@snowluma/sdk';
+
+const bot = new SnowLumaHttpClient({
+  baseUrl: 'http://127.0.0.1:3000/',
+  accessToken: process.env.SNOWLUMA_TOKEN, // 若已配置 access token
+});
+
+const data = await bot.call('get_group_list', {
+  "no_cache": false
+});
+console.log(data);
+```
+
+</Tab>
+</Tabs>
+
+:::tip 在用 AI 助手？
+支持 MCP 的客户端可直接发现并调用本动作，无需手写 HTTP。见 [MCP 接入](/mcp/)。
+:::

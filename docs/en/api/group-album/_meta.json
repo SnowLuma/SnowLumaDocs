@@ -1,0 +1,47 @@
+[
+  {
+    "type": "file",
+    "name": "index",
+    "label": "Overview"
+  },
+  {
+    "type": "file",
+    "name": "cancel_group_album_media_like",
+    "label": "cancel_group_album_media_like"
+  },
+  {
+    "type": "file",
+    "name": "del_group_album_media",
+    "label": "del_group_album_media"
+  },
+  {
+    "type": "file",
+    "name": "do_group_album_comment",
+    "label": "do_group_album_comment"
+  },
+  {
+    "type": "file",
+    "name": "get_group_album_list",
+    "label": "get_group_album_list"
+  },
+  {
+    "type": "file",
+    "name": "get_group_album_media_list",
+    "label": "get_group_album_media_list"
+  },
+  {
+    "type": "file",
+    "name": "get_qun_album_list",
+    "label": "get_qun_album_list"
+  },
+  {
+    "type": "file",
+    "name": "set_group_album_media_like",
+    "label": "set_group_album_media_like"
+  },
+  {
+    "type": "file",
+    "name": "upload_image_to_qun_album",
+    "label": "upload_image_to_qun_album"
+  }
+]

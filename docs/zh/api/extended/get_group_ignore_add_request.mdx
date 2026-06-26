@@ -1,0 +1,188 @@
+---
+title: "get_group_ignore_add_request"
+---
+
+import { ActionHeader } from '../../../components/ActionHeader';
+import { Tabs, Tab } from '@theme';
+
+<ActionHeader name={"get_group_ignore_add_request"} summary={"获取被忽略的入群请求（NapCat）"} readOnly={true} category={"扩展"} />
+
+通过 `POST http://127.0.0.1:3000/get_group_ignore_add_request`（请求体为 JSON 参数）或 WebSocket 调用。
+
+## 输入参数
+
+该动作无需参数。
+
+## 返回 (data)
+
+被忽略的入群请求数组（NapCat 字段命名），每项含请求序列、邀请人、群信息与处理标记。
+
+所有响应都包裹在标准信封中：`{ "status": "ok", "retcode": 0, "data": ... }`。下表描述 `data` 字段。
+
+`data` 为数组，每个元素：
+
+| 字段 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- |
+| `request_id` | integer | ✓ | 请求序列号 |
+| `invitor_uin` | integer | ✓ | 邀请人 QQ 号 |
+| `invitor_nick` | string | ✓ | 邀请人昵称 |
+| `group_id` | integer | ✓ | 群号 |
+| `message` | string | ✓ | 验证留言 |
+| `group_name` | string | ✓ | 群名称 |
+| `checked` | boolean | ✓ | 是否已处理 |
+| `actor` | integer | ✓ | 处理人 QQ 号 |
+| `requester_nick` | string | ✓ | 申请人昵称 |
+
+<details>
+<summary>原始 JSON Schema</summary>
+
+```json
+{
+  "type": "array",
+  "items": {
+    "type": "object",
+    "properties": {
+      "request_id": {
+        "type": "integer",
+        "description": "请求序列号"
+      },
+      "invitor_uin": {
+        "type": "integer",
+        "description": "邀请人 QQ 号"
+      },
+      "invitor_nick": {
+        "type": "string",
+        "description": "邀请人昵称"
+      },
+      "group_id": {
+        "type": "integer",
+        "description": "群号"
+      },
+      "message": {
+        "type": "string",
+        "description": "验证留言"
+      },
+      "group_name": {
+        "type": "string",
+        "description": "群名称"
+      },
+      "checked": {
+        "type": "boolean",
+        "description": "是否已处理"
+      },
+      "actor": {
+        "type": "integer",
+        "description": "处理人 QQ 号"
+      },
+      "requester_nick": {
+        "type": "string",
+        "description": "申请人昵称"
+      }
+    },
+    "required": [
+      "request_id",
+      "invitor_uin",
+      "invitor_nick",
+      "group_id",
+      "message",
+      "group_name",
+      "checked",
+      "actor",
+      "requester_nick"
+    ]
+  }
+}
+```
+
+</details>
+
+## 调用示例
+
+<Tabs>
+<Tab label="curl">
+
+```bash
+curl -X POST http://127.0.0.1:3000/get_group_ignore_add_request \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer <access-token>' \
+  -d '{}'
+```
+
+</Tab>
+<Tab label="Python">
+
+```python
+import requests
+
+resp = requests.post(
+    "http://127.0.0.1:3000/get_group_ignore_add_request",
+    json={},
+    headers={"Authorization": "Bearer <access-token>"},  # 若已配置 access token
+)
+print(resp.json())
+```
+
+</Tab>
+<Tab label="JavaScript">
+
+```js
+const resp = await fetch("http://127.0.0.1:3000/get_group_ignore_add_request", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "Authorization": "Bearer <access-token>", // 若已配置 access token
+  },
+  body: JSON.stringify({}),
+});
+console.log(await resp.json());
+```
+
+</Tab>
+<Tab label="Go">
+
+```go
+package main
+
+import (
+	"bytes"
+	"fmt"
+	"io"
+	"net/http"
+)
+
+func main() {
+	body := []byte(`{}`)
+	req, _ := http.NewRequest("POST", "http://127.0.0.1:3000/get_group_ignore_add_request", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer <access-token>") // 若已配置 access token
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+	out, _ := io.ReadAll(resp.Body)
+	fmt.Println(string(out))
+}
+```
+
+</Tab>
+<Tab label="SnowLuma SDK">
+
+```ts
+import { SnowLumaHttpClient } from '@snowluma/sdk';
+
+const bot = new SnowLumaHttpClient({
+  baseUrl: 'http://127.0.0.1:3000/',
+  accessToken: process.env.SNOWLUMA_TOKEN, // 若已配置 access token
+});
+
+const data = await bot.call('get_group_ignore_add_request', {});
+console.log(data);
+```
+
+</Tab>
+</Tabs>
+
+:::tip 在用 AI 助手？
+支持 MCP 的客户端可直接发现并调用本动作，无需手写 HTTP。见 [MCP 接入](/mcp/)。
+:::

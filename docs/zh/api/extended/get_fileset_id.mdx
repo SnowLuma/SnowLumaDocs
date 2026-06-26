@@ -1,0 +1,143 @@
+---
+title: "get_fileset_id"
+---
+
+import { ActionHeader } from '../../../components/ActionHeader';
+import { Tabs, Tab } from '@theme';
+
+<ActionHeader name={"get_fileset_id"} summary={"从分享码/链接获取 fileset_id"} readOnly={true} category={"扩展"} />
+
+通过 `POST http://127.0.0.1:3000/get_fileset_id`（请求体为 JSON 参数）或 WebSocket 调用。
+
+## 输入参数
+
+| 参数 | 类型 | 必填 | 默认 | 说明 |
+| --- | --- | --- | --- | --- |
+| `share_code` | string | ✓ |  |  |
+
+## 返回 (data)
+
+{ fileset_id }：解析出的文件集 ID。
+
+所有响应都包裹在标准信封中：`{ "status": "ok", "retcode": 0, "data": ... }`。下表描述 `data` 字段。
+
+| 字段 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- |
+| `fileset_id` | string | ✓ | 文件集 ID |
+
+<details>
+<summary>原始 JSON Schema</summary>
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "fileset_id": {
+      "type": "string",
+      "description": "文件集 ID"
+    }
+  },
+  "required": [
+    "fileset_id"
+  ]
+}
+```
+
+</details>
+
+## 调用示例
+
+<Tabs>
+<Tab label="curl">
+
+```bash
+curl -X POST http://127.0.0.1:3000/get_fileset_id \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer <access-token>' \
+  -d '{"share_code":""}'
+```
+
+</Tab>
+<Tab label="Python">
+
+```python
+import requests
+
+resp = requests.post(
+    "http://127.0.0.1:3000/get_fileset_id",
+    json={
+        "share_code": ""
+    },
+    headers={"Authorization": "Bearer <access-token>"},  # 若已配置 access token
+)
+print(resp.json())
+```
+
+</Tab>
+<Tab label="JavaScript">
+
+```js
+const resp = await fetch("http://127.0.0.1:3000/get_fileset_id", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "Authorization": "Bearer <access-token>", // 若已配置 access token
+  },
+  body: JSON.stringify({
+  "share_code": ""
+}),
+});
+console.log(await resp.json());
+```
+
+</Tab>
+<Tab label="Go">
+
+```go
+package main
+
+import (
+	"bytes"
+	"fmt"
+	"io"
+	"net/http"
+)
+
+func main() {
+	body := []byte(`{"share_code":""}`)
+	req, _ := http.NewRequest("POST", "http://127.0.0.1:3000/get_fileset_id", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer <access-token>") // 若已配置 access token
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+	out, _ := io.ReadAll(resp.Body)
+	fmt.Println(string(out))
+}
+```
+
+</Tab>
+<Tab label="SnowLuma SDK">
+
+```ts
+import { SnowLumaHttpClient } from '@snowluma/sdk';
+
+const bot = new SnowLumaHttpClient({
+  baseUrl: 'http://127.0.0.1:3000/',
+  accessToken: process.env.SNOWLUMA_TOKEN, // 若已配置 access token
+});
+
+const data = await bot.call('get_fileset_id', {
+  "share_code": ""
+});
+console.log(data);
+```
+
+</Tab>
+</Tabs>
+
+:::tip 在用 AI 助手？
+支持 MCP 的客户端可直接发现并调用本动作，无需手写 HTTP。见 [MCP 接入](/mcp/)。
+:::

@@ -1,0 +1,164 @@
+---
+title: "get_emoji_likes"
+---
+
+import { ActionHeader } from '../../../components/ActionHeader';
+import { Tabs, Tab } from '@theme';
+
+<ActionHeader name={"get_emoji_likes"} summary={"获取表情回应用户"} readOnly={true} category={"扩展"} />
+
+通过 `POST http://127.0.0.1:3000/get_emoji_likes`（请求体为 JSON 参数）或 WebSocket 调用。
+
+## 输入参数
+
+| 参数 | 类型 | 必填 | 默认 | 说明 |
+| --- | --- | --- | --- | --- |
+| `message_id` | messageId | ✓ |  |  |
+| `emoji_id` | string | ✓ |  |  |
+
+## 返回 (data)
+
+{ emoji_like_list }：回应该表情的用户列表（nick_name 恒为空串）。
+
+所有响应都包裹在标准信封中：`{ "status": "ok", "retcode": 0, "data": ... }`。下表描述 `data` 字段。
+
+| 字段 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- |
+| `emoji_like_list` | object[] | ✓ | 回应用户列表 |
+
+<details>
+<summary>原始 JSON Schema</summary>
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "emoji_like_list": {
+      "type": "array",
+      "description": "回应用户列表",
+      "items": {
+        "type": "object",
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "description": "用户 QQ 号（字符串）"
+          },
+          "nick_name": {
+            "type": "string",
+            "description": "昵称（当前实现恒为空串）"
+          }
+        },
+        "required": [
+          "user_id",
+          "nick_name"
+        ]
+      }
+    }
+  },
+  "required": [
+    "emoji_like_list"
+  ]
+}
+```
+
+</details>
+
+## 调用示例
+
+<Tabs>
+<Tab label="curl">
+
+```bash
+curl -X POST http://127.0.0.1:3000/get_emoji_likes \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer <access-token>' \
+  -d '{"message_id":100001,"emoji_id":""}'
+```
+
+</Tab>
+<Tab label="Python">
+
+```python
+import requests
+
+resp = requests.post(
+    "http://127.0.0.1:3000/get_emoji_likes",
+    json={
+        "message_id": 100001,
+        "emoji_id": ""
+    },
+    headers={"Authorization": "Bearer <access-token>"},  # 若已配置 access token
+)
+print(resp.json())
+```
+
+</Tab>
+<Tab label="JavaScript">
+
+```js
+const resp = await fetch("http://127.0.0.1:3000/get_emoji_likes", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "Authorization": "Bearer <access-token>", // 若已配置 access token
+  },
+  body: JSON.stringify({
+  "message_id": 100001,
+  "emoji_id": ""
+}),
+});
+console.log(await resp.json());
+```
+
+</Tab>
+<Tab label="Go">
+
+```go
+package main
+
+import (
+	"bytes"
+	"fmt"
+	"io"
+	"net/http"
+)
+
+func main() {
+	body := []byte(`{"message_id":100001,"emoji_id":""}`)
+	req, _ := http.NewRequest("POST", "http://127.0.0.1:3000/get_emoji_likes", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer <access-token>") // 若已配置 access token
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+	out, _ := io.ReadAll(resp.Body)
+	fmt.Println(string(out))
+}
+```
+
+</Tab>
+<Tab label="SnowLuma SDK">
+
+```ts
+import { SnowLumaHttpClient } from '@snowluma/sdk';
+
+const bot = new SnowLumaHttpClient({
+  baseUrl: 'http://127.0.0.1:3000/',
+  accessToken: process.env.SNOWLUMA_TOKEN, // 若已配置 access token
+});
+
+const data = await bot.call('get_emoji_likes', {
+  "message_id": 100001,
+  "emoji_id": ""
+});
+console.log(data);
+```
+
+</Tab>
+</Tabs>
+
+:::tip 在用 AI 助手？
+支持 MCP 的客户端可直接发现并调用本动作，无需手写 HTTP。见 [MCP 接入](/mcp/)。
+:::

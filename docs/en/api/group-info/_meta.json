@@ -1,0 +1,37 @@
+[
+  {
+    "type": "file",
+    "name": "index",
+    "label": "Overview"
+  },
+  {
+    "type": "file",
+    "name": "get_group_honor_info",
+    "label": "get_group_honor_info"
+  },
+  {
+    "type": "file",
+    "name": "get_group_info",
+    "label": "get_group_info"
+  },
+  {
+    "type": "file",
+    "name": "get_group_list",
+    "label": "get_group_list"
+  },
+  {
+    "type": "file",
+    "name": "get_group_member_info",
+    "label": "get_group_member_info"
+  },
+  {
+    "type": "file",
+    "name": "get_group_member_list",
+    "label": "get_group_member_list"
+  },
+  {
+    "type": "file",
+    "name": "get_group_system_msg",
+    "label": "get_group_system_msg"
+  }
+]

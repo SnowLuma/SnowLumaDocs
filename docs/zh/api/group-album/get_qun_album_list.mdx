@@ -1,0 +1,182 @@
+---
+title: "get_qun_album_list"
+---
+
+import { ActionHeader } from '../../../components/ActionHeader';
+import { Tabs, Tab } from '@theme';
+
+<ActionHeader name={"get_qun_album_list"} readOnly={true} category={"群相册"} />
+
+通过 `POST http://127.0.0.1:3000/get_qun_album_list`（请求体为 JSON 参数）或 WebSocket 调用。
+
+## 输入参数
+
+| 参数 | 类型 | 必填 | 默认 | 说明 |
+| --- | --- | --- | --- | --- |
+| `group_id` | uint | ✓ |  | 群号 |
+
+## 返回 (data)
+
+NapCat 风格的相册列表封套：{album_list, attach_info, has_more}（本实现 attach_info 恒为空串、has_more 恒为 false）。
+
+所有响应都包裹在标准信封中：`{ "status": "ok", "retcode": 0, "data": ... }`。下表描述 `data` 字段。
+
+| 字段 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- |
+| `album_list` | object[] | ✓ | 相册列表 |
+| `attach_info` | string | ✓ | 分页游标（本 web 实现一次取满，恒为空串） |
+| `has_more` | boolean | ✓ | 是否还有更多（本 web 实现恒为 false） |
+
+<details>
+<summary>原始 JSON Schema</summary>
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "album_list": {
+      "type": "array",
+      "description": "相册列表",
+      "items": {
+        "type": "object",
+        "properties": {
+          "album_id": {
+            "type": "string",
+            "description": "相册 id"
+          },
+          "album_name": {
+            "type": "string",
+            "description": "相册名称"
+          },
+          "create_time": {
+            "type": "integer",
+            "description": "相册创建时间（unix 秒）"
+          },
+          "pic_num": {
+            "type": "integer",
+            "description": "相册内照片数量"
+          }
+        },
+        "required": [
+          "album_id",
+          "album_name",
+          "create_time",
+          "pic_num"
+        ]
+      }
+    },
+    "attach_info": {
+      "type": "string",
+      "description": "分页游标（本 web 实现一次取满，恒为空串）"
+    },
+    "has_more": {
+      "type": "boolean",
+      "description": "是否还有更多（本 web 实现恒为 false）"
+    }
+  },
+  "required": [
+    "album_list",
+    "attach_info",
+    "has_more"
+  ]
+}
+```
+
+</details>
+
+## 调用示例
+
+<Tabs>
+<Tab label="curl">
+
+```bash
+curl -X POST http://127.0.0.1:3000/get_qun_album_list \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer <access-token>' \
+  -d '{"group_id":123456}'
+```
+
+</Tab>
+<Tab label="Python">
+
+```python
+import requests
+
+resp = requests.post(
+    "http://127.0.0.1:3000/get_qun_album_list",
+    json={
+        "group_id": 123456
+    },
+    headers={"Authorization": "Bearer <access-token>"},  # 若已配置 access token
+)
+print(resp.json())
+```
+
+</Tab>
+<Tab label="JavaScript">
+
+```js
+const resp = await fetch("http://127.0.0.1:3000/get_qun_album_list", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "Authorization": "Bearer <access-token>", // 若已配置 access token
+  },
+  body: JSON.stringify({
+  "group_id": 123456
+}),
+});
+console.log(await resp.json());
+```
+
+</Tab>
+<Tab label="Go">
+
+```go
+package main
+
+import (
+	"bytes"
+	"fmt"
+	"io"
+	"net/http"
+)
+
+func main() {
+	body := []byte(`{"group_id":123456}`)
+	req, _ := http.NewRequest("POST", "http://127.0.0.1:3000/get_qun_album_list", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer <access-token>") // 若已配置 access token
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+	out, _ := io.ReadAll(resp.Body)
+	fmt.Println(string(out))
+}
+```
+
+</Tab>
+<Tab label="SnowLuma SDK">
+
+```ts
+import { SnowLumaHttpClient } from '@snowluma/sdk';
+
+const bot = new SnowLumaHttpClient({
+  baseUrl: 'http://127.0.0.1:3000/',
+  accessToken: process.env.SNOWLUMA_TOKEN, // 若已配置 access token
+});
+
+const data = await bot.call('get_qun_album_list', {
+  "group_id": 123456
+});
+console.log(data);
+```
+
+</Tab>
+</Tabs>
+
+:::tip 在用 AI 助手？
+支持 MCP 的客户端可直接发现并调用本动作，无需手写 HTTP。见 [MCP 接入](/mcp/)。
+:::

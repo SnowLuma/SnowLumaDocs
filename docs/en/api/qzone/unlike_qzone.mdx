@@ -1,0 +1,125 @@
+---
+title: "unlike_qzone"
+---
+
+import { ActionHeader } from '../../../components/ActionHeader';
+import { Tabs, Tab } from '@theme';
+
+<ActionHeader name={"unlike_qzone"} summary={"取消对一条说说的点赞（QQ 空间；取消赞端点待真机核实）"} readOnly={false} category={"空间"} />
+
+Call via `POST http://127.0.0.1:3000/unlike_qzone` (JSON params as the body) or WebSocket.
+
+## Parameters
+
+| Param | Type | Required | Default | Description |
+| --- | --- | --- | --- | --- |
+| `tid` | string | ✓ |  | 说说 tid |
+| `target_uin` | uint | – |  | 说说所属 QQ 号，省略则为机器人自己 |
+| `abstime` | int | – | `0` | 说说发表时间（unix 秒），传真实值更可靠 |
+
+## Returns (data)
+
+Returns the standard OneBot envelope; the `data` shape is not yet documented.
+
+## Examples
+
+<Tabs>
+<Tab label="curl">
+
+```bash
+curl -X POST http://127.0.0.1:3000/unlike_qzone \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer <access-token>' \
+  -d '{"tid":"","target_uin":0,"abstime":0}'
+```
+
+</Tab>
+<Tab label="Python">
+
+```python
+import requests
+
+resp = requests.post(
+    "http://127.0.0.1:3000/unlike_qzone",
+    json={
+        "tid": "",
+        "target_uin": 0,
+        "abstime": 0
+    },
+    headers={"Authorization": "Bearer <access-token>"},  # if an access token is configured
+)
+print(resp.json())
+```
+
+</Tab>
+<Tab label="JavaScript">
+
+```js
+const resp = await fetch("http://127.0.0.1:3000/unlike_qzone", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "Authorization": "Bearer <access-token>", // if an access token is configured
+  },
+  body: JSON.stringify({
+  "tid": "",
+  "target_uin": 0,
+  "abstime": 0
+}),
+});
+console.log(await resp.json());
+```
+
+</Tab>
+<Tab label="Go">
+
+```go
+package main
+
+import (
+	"bytes"
+	"fmt"
+	"io"
+	"net/http"
+)
+
+func main() {
+	body := []byte(`{"tid":"","target_uin":0,"abstime":0}`)
+	req, _ := http.NewRequest("POST", "http://127.0.0.1:3000/unlike_qzone", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer <access-token>") // if an access token is configured
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+	out, _ := io.ReadAll(resp.Body)
+	fmt.Println(string(out))
+}
+```
+
+</Tab>
+<Tab label="SnowLuma SDK">
+
+```ts
+import { SnowLumaHttpClient } from '@snowluma/sdk';
+
+const bot = new SnowLumaHttpClient({
+  baseUrl: 'http://127.0.0.1:3000/',
+  accessToken: process.env.SNOWLUMA_TOKEN, // if an access token is configured
+});
+
+const data = await bot.call('unlike_qzone', {
+  "tid": "",
+  "target_uin": 0,
+  "abstime": 0
+});
+console.log(data);
+```
+
+</Tab>
+</Tabs>
+
+:::tip Using an AI assistant?
+MCP-capable clients can discover and call this action directly — no hand-written HTTP. See [MCP](/en/mcp/).
+:::

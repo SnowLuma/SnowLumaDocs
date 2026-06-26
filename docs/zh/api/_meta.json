@@ -5,53 +5,63 @@
     "label": "API 参考"
   },
   {
-    "type": "file",
+    "type": "dir",
     "name": "extended",
-    "label": "扩展"
+    "label": "扩展",
+    "collapsed": true
   },
   {
-    "type": "file",
+    "type": "dir",
     "name": "system",
-    "label": "信息"
+    "label": "信息",
+    "collapsed": true
   },
   {
-    "type": "file",
+    "type": "dir",
     "name": "group-album",
-    "label": "群相册"
+    "label": "群相册",
+    "collapsed": true
   },
   {
-    "type": "file",
+    "type": "dir",
     "name": "qzone",
-    "label": "空间"
+    "label": "空间",
+    "collapsed": true
   },
   {
-    "type": "file",
+    "type": "dir",
     "name": "group-file",
-    "label": "群文件"
+    "label": "群文件",
+    "collapsed": true
   },
   {
-    "type": "file",
+    "type": "dir",
     "name": "friend",
-    "label": "好友"
+    "label": "好友",
+    "collapsed": true
   },
   {
-    "type": "file",
+    "type": "dir",
     "name": "message",
-    "label": "消息"
+    "label": "消息",
+    "collapsed": true
   },
   {
-    "type": "file",
+    "type": "dir",
     "name": "group-info",
-    "label": "群信息"
+    "label": "群信息",
+    "collapsed": true
   },
   {
-    "type": "file",
+    "type": "dir",
     "name": "request",
-    "label": "请求"
+    "label": "请求",
+    "collapsed": true
   },
   {
-    "type": "file",
+    "type": "dir",
     "name": "group-admin",
-    "label": "群管理"
+    "label": "群管理",
+    "collapsed": true
   }
 ]

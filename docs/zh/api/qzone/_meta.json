@@ -1,0 +1,42 @@
+[
+  {
+    "type": "file",
+    "name": "index",
+    "label": "概览"
+  },
+  {
+    "type": "file",
+    "name": "comment_qzone",
+    "label": "comment_qzone"
+  },
+  {
+    "type": "file",
+    "name": "delete_qzone_msg",
+    "label": "delete_qzone_msg"
+  },
+  {
+    "type": "file",
+    "name": "get_qzone_feeds",
+    "label": "get_qzone_feeds"
+  },
+  {
+    "type": "file",
+    "name": "get_qzone_msg_list",
+    "label": "get_qzone_msg_list"
+  },
+  {
+    "type": "file",
+    "name": "like_qzone",
+    "label": "like_qzone"
+  },
+  {
+    "type": "file",
+    "name": "send_qzone_msg",
+    "label": "send_qzone_msg"
+  },
+  {
+    "type": "file",
+    "name": "unlike_qzone",
+    "label": "unlike_qzone"
+  }
+]

@@ -1,0 +1,17 @@
+[
+  {
+    "type": "file",
+    "name": "index",
+    "label": "Overview"
+  },
+  {
+    "type": "file",
+    "name": "set_friend_add_request",
+    "label": "set_friend_add_request"
+  },
+  {
+    "type": "file",
+    "name": "set_group_add_request",
+    "label": "set_group_add_request"
+  }
+]

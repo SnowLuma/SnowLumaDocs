@@ -1,0 +1,552 @@
+[
+  {
+    "type": "file",
+    "name": "index",
+    "label": "Overview"
+  },
+  {
+    "type": "file",
+    "name": "_del_group_notice",
+    "label": "_del_group_notice"
+  },
+  {
+    "type": "file",
+    "name": "_get_group_notice",
+    "label": "_get_group_notice"
+  },
+  {
+    "type": "file",
+    "name": "_get_model_show",
+    "label": "_get_model_show"
+  },
+  {
+    "type": "file",
+    "name": "_mark_all_as_read",
+    "label": "_mark_all_as_read"
+  },
+  {
+    "type": "file",
+    "name": "_send_group_notice",
+    "label": "_send_group_notice"
+  },
+  {
+    "type": "file",
+    "name": "_set_model_show",
+    "label": "_set_model_show"
+  },
+  {
+    "type": "file",
+    "name": ".get_word_slices",
+    "label": ".get_word_slices"
+  },
+  {
+    "type": "file",
+    "name": "add_custom_face",
+    "label": "add_custom_face"
+  },
+  {
+    "type": "file",
+    "name": "bot_exit",
+    "label": "bot_exit"
+  },
+  {
+    "type": "file",
+    "name": "cancel_group_todo",
+    "label": "cancel_group_todo"
+  },
+  {
+    "type": "file",
+    "name": "check_url_safely",
+    "label": "check_url_safely"
+  },
+  {
+    "type": "file",
+    "name": "clean_cache",
+    "label": "clean_cache"
+  },
+  {
+    "type": "file",
+    "name": "click_inline_keyboard_button",
+    "label": "click_inline_keyboard_button"
+  },
+  {
+    "type": "file",
+    "name": "complete_group_todo",
+    "label": "complete_group_todo"
+  },
+  {
+    "type": "file",
+    "name": "create_collection",
+    "label": "create_collection"
+  },
+  {
+    "type": "file",
+    "name": "create_flash_task",
+    "label": "create_flash_task"
+  },
+  {
+    "type": "file",
+    "name": "delete_custom_face",
+    "label": "delete_custom_face"
+  },
+  {
+    "type": "file",
+    "name": "delete_essence_msg",
+    "label": "delete_essence_msg"
+  },
+  {
+    "type": "file",
+    "name": "delete_flash_file",
+    "label": "delete_flash_file"
+  },
+  {
+    "type": "file",
+    "name": "delete_group_folder",
+    "label": "delete_group_folder"
+  },
+  {
+    "type": "file",
+    "name": "download_file",
+    "label": "download_file"
+  },
+  {
+    "type": "file",
+    "name": "download_fileset",
+    "label": "download_fileset"
+  },
+  {
+    "type": "file",
+    "name": "fetch_custom_face",
+    "label": "fetch_custom_face"
+  },
+  {
+    "type": "file",
+    "name": "fetch_emoji_like",
+    "label": "fetch_emoji_like"
+  },
+  {
+    "type": "file",
+    "name": "fetch_ptt_text",
+    "label": "fetch_ptt_text"
+  },
+  {
+    "type": "file",
+    "name": "forward_friend_single_msg",
+    "label": "forward_friend_single_msg"
+  },
+  {
+    "type": "file",
+    "name": "forward_group_single_msg",
+    "label": "forward_group_single_msg"
+  },
+  {
+    "type": "file",
+    "name": "friend_poke",
+    "label": "friend_poke"
+  },
+  {
+    "type": "file",
+    "name": "get_ai_characters",
+    "label": "get_ai_characters"
+  },
+  {
+    "type": "file",
+    "name": "get_ai_record",
+    "label": "get_ai_record"
+  },
+  {
+    "type": "file",
+    "name": "get_clientkey",
+    "label": "get_clientkey"
+  },
+  {
+    "type": "file",
+    "name": "get_collection_list",
+    "label": "get_collection_list"
+  },
+  {
+    "type": "file",
+    "name": "get_cookies",
+    "label": "get_cookies"
+  },
+  {
+    "type": "file",
+    "name": "get_credentials",
+    "label": "get_credentials"
+  },
+  {
+    "type": "file",
+    "name": "get_csrf_token",
+    "label": "get_csrf_token"
+  },
+  {
+    "type": "file",
+    "name": "get_doubt_friends_add_request",
+    "label": "get_doubt_friends_add_request"
+  },
+  {
+    "type": "file",
+    "name": "get_emoji_likes",
+    "label": "get_emoji_likes"
+  },
+  {
+    "type": "file",
+    "name": "get_essence_msg_list",
+    "label": "get_essence_msg_list"
+  },
+  {
+    "type": "file",
+    "name": "get_file",
+    "label": "get_file"
+  },
+  {
+    "type": "file",
+    "name": "get_fileset_id",
+    "label": "get_fileset_id"
+  },
+  {
+    "type": "file",
+    "name": "get_fileset_info",
+    "label": "get_fileset_info"
+  },
+  {
+    "type": "file",
+    "name": "get_flash_file_list",
+    "label": "get_flash_file_list"
+  },
+  {
+    "type": "file",
+    "name": "get_flash_file_url",
+    "label": "get_flash_file_url"
+  },
+  {
+    "type": "file",
+    "name": "get_forward_msg",
+    "label": "get_forward_msg"
+  },
+  {
+    "type": "file",
+    "name": "get_friend_msg_history",
+    "label": "get_friend_msg_history"
+  },
+  {
+    "type": "file",
+    "name": "get_friends_with_category",
+    "label": "get_friends_with_category"
+  },
+  {
+    "type": "file",
+    "name": "get_group_at_all_remain",
+    "label": "get_group_at_all_remain"
+  },
+  {
+    "type": "file",
+    "name": "get_group_detail_info",
+    "label": "get_group_detail_info"
+  },
+  {
+    "type": "file",
+    "name": "get_group_file_system_info",
+    "label": "get_group_file_system_info"
+  },
+  {
+    "type": "file",
+    "name": "get_group_ignore_add_request",
+    "label": "get_group_ignore_add_request"
+  },
+  {
+    "type": "file",
+    "name": "get_group_ignored_notifies",
+    "label": "get_group_ignored_notifies"
+  },
+  {
+    "type": "file",
+    "name": "get_group_info_ex",
+    "label": "get_group_info_ex"
+  },
+  {
+    "type": "file",
+    "name": "get_group_msg_history",
+    "label": "get_group_msg_history"
+  },
+  {
+    "type": "file",
+    "name": "get_group_shut_list",
+    "label": "get_group_shut_list"
+  },
+  {
+    "type": "file",
+    "name": "get_group_signed_list",
+    "label": "get_group_signed_list"
+  },
+  {
+    "type": "file",
+    "name": "get_image",
+    "label": "get_image"
+  },
+  {
+    "type": "file",
+    "name": "get_mini_app_ark",
+    "label": "get_mini_app_ark"
+  },
+  {
+    "type": "file",
+    "name": "get_online_clients",
+    "label": "get_online_clients"
+  },
+  {
+    "type": "file",
+    "name": "get_profile_like",
+    "label": "get_profile_like"
+  },
+  {
+    "type": "file",
+    "name": "get_recent_contact",
+    "label": "get_recent_contact"
+  },
+  {
+    "type": "file",
+    "name": "get_record",
+    "label": "get_record"
+  },
+  {
+    "type": "file",
+    "name": "get_rkey",
+    "label": "get_rkey"
+  },
+  {
+    "type": "file",
+    "name": "get_rkey_server",
+    "label": "get_rkey_server"
+  },
+  {
+    "type": "file",
+    "name": "get_share_link",
+    "label": "get_share_link"
+  },
+  {
+    "type": "file",
+    "name": "get_unidirectional_friend_list",
+    "label": "get_unidirectional_friend_list"
+  },
+  {
+    "type": "file",
+    "name": "group_poke",
+    "label": "group_poke"
+  },
+  {
+    "type": "file",
+    "name": "list_filesets",
+    "label": "list_filesets"
+  },
+  {
+    "type": "file",
+    "name": "mark_group_msg_as_read",
+    "label": "mark_group_msg_as_read"
+  },
+  {
+    "type": "file",
+    "name": "mark_msg_as_read",
+    "label": "mark_msg_as_read"
+  },
+  {
+    "type": "file",
+    "name": "mark_private_msg_as_read",
+    "label": "mark_private_msg_as_read"
+  },
+  {
+    "type": "file",
+    "name": "modify_custom_face",
+    "label": "modify_custom_face"
+  },
+  {
+    "type": "file",
+    "name": "move_custom_face_to_front",
+    "label": "move_custom_face_to_front"
+  },
+  {
+    "type": "file",
+    "name": "nc_get_packet_status",
+    "label": "nc_get_packet_status"
+  },
+  {
+    "type": "file",
+    "name": "nc_get_user_status",
+    "label": "nc_get_user_status"
+  },
+  {
+    "type": "file",
+    "name": "ocr_image",
+    "label": "ocr_image"
+  },
+  {
+    "type": "file",
+    "name": "rename_flash_file",
+    "label": "rename_flash_file"
+  },
+  {
+    "type": "file",
+    "name": "request_decrypt_key",
+    "label": "request_decrypt_key"
+  },
+  {
+    "type": "file",
+    "name": "send_ark_share",
+    "label": "send_ark_share"
+  },
+  {
+    "type": "file",
+    "name": "send_flash_msg",
+    "label": "send_flash_msg"
+  },
+  {
+    "type": "file",
+    "name": "send_forward_msg",
+    "label": "send_forward_msg"
+  },
+  {
+    "type": "file",
+    "name": "send_group_ai_record",
+    "label": "send_group_ai_record"
+  },
+  {
+    "type": "file",
+    "name": "send_group_ark_share",
+    "label": "send_group_ark_share"
+  },
+  {
+    "type": "file",
+    "name": "send_group_forward_msg",
+    "label": "send_group_forward_msg"
+  },
+  {
+    "type": "file",
+    "name": "send_like",
+    "label": "send_like"
+  },
+  {
+    "type": "file",
+    "name": "send_packet",
+    "label": "send_packet"
+  },
+  {
+    "type": "file",
+    "name": "send_poke",
+    "label": "send_poke"
+  },
+  {
+    "type": "file",
+    "name": "send_private_forward_msg",
+    "label": "send_private_forward_msg"
+  },
+  {
+    "type": "file",
+    "name": "set_diy_online_status",
+    "label": "set_diy_online_status"
+  },
+  {
+    "type": "file",
+    "name": "set_doubt_friends_add_request",
+    "label": "set_doubt_friends_add_request"
+  },
+  {
+    "type": "file",
+    "name": "set_essence_msg",
+    "label": "set_essence_msg"
+  },
+  {
+    "type": "file",
+    "name": "set_friend_remark",
+    "label": "set_friend_remark"
+  },
+  {
+    "type": "file",
+    "name": "set_group_reaction",
+    "label": "set_group_reaction"
+  },
+  {
+    "type": "file",
+    "name": "set_group_remark",
+    "label": "set_group_remark"
+  },
+  {
+    "type": "file",
+    "name": "set_group_robot_add_option",
+    "label": "set_group_robot_add_option"
+  },
+  {
+    "type": "file",
+    "name": "set_group_sign",
+    "label": "set_group_sign"
+  },
+  {
+    "type": "file",
+    "name": "set_group_todo",
+    "label": "set_group_todo"
+  },
+  {
+    "type": "file",
+    "name": "set_input_status",
+    "label": "set_input_status"
+  },
+  {
+    "type": "file",
+    "name": "set_msg_emoji_like",
+    "label": "set_msg_emoji_like"
+  },
+  {
+    "type": "file",
+    "name": "set_online_status",
+    "label": "set_online_status"
+  },
+  {
+    "type": "file",
+    "name": "set_qq_avatar",
+    "label": "set_qq_avatar"
+  },
+  {
+    "type": "file",
+    "name": "set_qq_profile",
+    "label": "set_qq_profile"
+  },
+  {
+    "type": "file",
+    "name": "set_restart",
+    "label": "set_restart"
+  },
+  {
+    "type": "file",
+    "name": "set_self_longnick",
+    "label": "set_self_longnick"
+  },
+  {
+    "type": "file",
+    "name": "share_group_ex",
+    "label": "share_group_ex"
+  },
+  {
+    "type": "file",
+    "name": "share_peer",
+    "label": "share_peer"
+  },
+  {
+    "type": "file",
+    "name": "trans_group_file",
+    "label": "trans_group_file"
+  },
+  {
+    "type": "file",
+    "name": "translate_en2zh",
+    "label": "translate_en2zh"
+  },
+  {
+    "type": "file",
+    "name": "upload_forward_msg",
+    "label": "upload_forward_msg"
+  },
+  {
+    "type": "file",
+    "name": "upload_foward_msg",
+    "label": "upload_foward_msg"
+  }
+]
