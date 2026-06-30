@@ -62,6 +62,8 @@ docker run -d \
   --cap-add=SYS_PTRACE \
   --security-opt seccomp=unconfined \
   -e VNC_PASSWD=vncpasswd \
+  -e SNOWLUMA_WEBUI_PORT=5099 \
+  -e SNOWLUMA_QQ_FLAGS="--disable-gpu --disable-software-rasterizer --disable-gpu-compositing" \
   -p 5900:5900 \
   -p 6081:6081 \
   -p 5099:5099 \
@@ -148,7 +150,7 @@ docker compose up -d
 | `SNOWLUMA_SCREEN`        | `1920x1080x24` | Xvfb resolution + color depth.                                                               |
 | `SNOWLUMA_HOOK_AUTOLOAD` | `1`            | Image opts into auto-injection by default. Set `0` to fall back to the manual Load workflow. |
 | `SNOWLUMA_EXTRA_QQ_HOMES` | empty          | Comma- or space-separated extra QQ `/app/...` `HOME` paths for auto-starting multiple accounts. |
-| `SNOWLUMA_QQ_FLAGS`      | see below      | Flags passed to Linux QQ. The default disables GPU / SwiftShader software rendering.          |
+| `SNOWLUMA_QQ_FLAGS`      | `--disable-gpu --disable-software-rasterizer --disable-gpu-compositing` | Flags passed to Linux QQ. The default disables GPU / SwiftShader software rendering to prevent memory leaks. |
 | `VNC_PORT`               | `5900`         | VNC host mapping port.                                                                       |
 | `NOVNC_PORT`             | `6081`         | noVNC host mapping port.                                                                     |
 | `ONEBOT_HTTP_PORT`       | `3000`         | OneBot HTTP host mapping port.                                                               |
