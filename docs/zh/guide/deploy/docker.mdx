@@ -62,6 +62,8 @@ docker run -d \
   --cap-add=SYS_PTRACE \
   --security-opt seccomp=unconfined \
   -e VNC_PASSWD=vncpasswd \
+  -e SNOWLUMA_WEBUI_PORT=5099 \
+  -e SNOWLUMA_QQ_FLAGS="--disable-gpu --disable-software-rasterizer --disable-gpu-compositing" \
   -p 5900:5900 \
   -p 6081:6081 \
   -p 5099:5099 \
@@ -100,7 +102,7 @@ services:
       SNOWLUMA_GID: ${SNOWLUMA_GID:-1000}
       SNOWLUMA_WEBUI_PORT: ${SNOWLUMA_WEBUI_PORT:-5099}
       SNOWLUMA_LOG_LEVEL: ${SNOWLUMA_LOG_LEVEL:-info}
-      SNOWLUMA_SCREEN: ${SNOWLUMA_SCREEN:-1920x1080x16}
+      SNOWLUMA_SCREEN: ${SNOWLUMA_SCREEN:-1920x1080x24}
       SNOWLUMA_HOOK_AUTOLOAD: ${SNOWLUMA_HOOK_AUTOLOAD:-1}
       SNOWLUMA_EXTRA_QQ_HOMES: "${SNOWLUMA_EXTRA_QQ_HOMES:-}"
       SNOWLUMA_QQ_FLAGS: "${SNOWLUMA_QQ_FLAGS:---disable-gpu --disable-software-rasterizer --disable-gpu-compositing}"
@@ -139,14 +141,20 @@ docker compose up -d
 | 变量                     | 默认           | 说明                                                                |
 | ------------------------ | -------------- | ------------------------------------------------------------------- |
 | `VNC_PASSWD`             | `vncpasswd`    | VNC / noVNC 登录密码。**改成自己的**，不然别人也能进容器里看你 QQ。 |
+| `TZ`                    | `Asia/Shanghai` | 容器时区。Dockerfile 预设，可通过环境变量覆盖。                    |
 | `SNOWLUMA_UID`           | `1000`         | 容器内 `snowluma` 用户的 uid。和你挂载卷的宿主属主匹配。            |
 | `SNOWLUMA_GID`           | `1000`         | 容器内 `snowluma` 用户的 gid。                                      |
 | `SNOWLUMA_WEBUI_PORT`    | `5099`         | WebUI 监听端口（容器内）。                                          |
+| `SNOWLUMA_WEBUI_HOST_PORT` | `5099`       | WebUI 宿主机映射端口（默认同容器内端口）。                          |
 | `SNOWLUMA_LOG_LEVEL`     | `info`         | `error` / `warn` / `info` / `debug`。                               |
-| `SNOWLUMA_SCREEN`        | `1920x1080x16` | Xvfb 分辨率 + 色深。                                                |
+| `SNOWLUMA_SCREEN`        | `1920x1080x24` | Xvfb 分辨率 + 色深。                                                |
 | `SNOWLUMA_HOOK_AUTOLOAD` | `1`            | 镜像默认开自动注入。设 `0` 切回手动 Load 流程。                     |
 | `SNOWLUMA_EXTRA_QQ_HOMES` | 空             | 逗号或空格分隔的额外 QQ `/app/...` `HOME` 列表，用于多开账号自动启动。 |
-| `SNOWLUMA_QQ_FLAGS`      | 见下方         | 传给 Linux QQ 的启动参数，默认关闭 GPU / SwiftShader 软件渲染。     |
+| `SNOWLUMA_QQ_FLAGS`      | `--disable-gpu --disable-software-rasterizer --disable-gpu-compositing` | 传给 Linux QQ 的启动参数。默认关闭 GPU / SwiftShader 软件渲染，防止内存泄漏。 |
+| `VNC_PORT`               | `5900`         | VNC 宿主机映射端口。                                                |
+| `NOVNC_PORT`             | `6081`         | noVNC 宿主机映射端口。                                              |
+| `ONEBOT_HTTP_PORT`       | `3000`         | OneBot HTTP 宿主机映射端口。                                        |
+| `ONEBOT_WS_PORT`         | `3001`         | OneBot WebSocket 宿主机映射端口。                                   |
 
 环境变量优先级高于 `runtime.json`，所以 Docker 用环境变量覆盖最方便。
 
