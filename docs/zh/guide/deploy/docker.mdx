@@ -1,58 +1,50 @@
 ---
-title: Docker 部署
-description: 在 Linux 上用官方 Docker 镜像运行 SnowLuma
+title: Docker 閮ㄧ讲
+description: 鍦?Linux 涓婄敤瀹樻柟 Docker 闀滃儚杩愯 SnowLuma
 ---
 
-SnowLuma 在 Linux 上**只通过 Docker 运行**。镜像内置 Linux QQ + Xvfb + VNC + noVNC + supervisord，开箱即用；宿主机只需要 Docker。
+SnowLuma 鍦?Linux 涓?*鍙€氳繃 Docker 杩愯**銆傞暅鍍忓唴缃?Linux QQ + Xvfb + VNC + noVNC + supervisord锛屽紑绠卞嵆鐢紱瀹夸富鏈哄彧闇€瑕?Docker銆?
+闀滃儚鏋勫缓鑴氭湰涓?Compose 妯℃澘鍦ㄧ嫭绔嬩粨搴?[`SnowLuma/SnowLuma.Docker.Framework`](https://github.com/SnowLuma/SnowLuma.Docker.Framework)銆?
+## 闀滃儚淇℃伅
 
-镜像构建脚本与 Compose 模板在独立仓库 [`SnowLuma/SnowLuma.Docker.Framework`](https://github.com/SnowLuma/SnowLuma.Docker.Framework)。
-
-## 镜像信息
-
-| 项   | 值                                                              |
+| 椤?  | 鍊?                                                             |
 | ---- | --------------------------------------------------------------- |
-| 镜像 | `motricseven7/snowluma:latest` (或具体 tag `:v1.10.0`)           |
-| 架构 | `linux/amd64`、`linux/arm64`                                    |
-| 基础 | `node:22-bookworm-slim`                                         |
-| 内置 | Linux QQ、Xvfb、VNC、noVNC、supervisord、SnowLuma `lite` 发行包 |
+| 闀滃儚 | `motricseven7/snowluma:latest` (鎴栧叿浣?tag `:v1.10.0`)           |
+| 鏋舵瀯 | `linux/amd64`銆乣linux/arm64`                                    |
+| 鍩虹 | `node:22-bookworm-slim`                                         |
+| 鍐呯疆 | Linux QQ銆乆vfb銆乂NC銆乶oVNC銆乻upervisord銆丼nowLuma `lite` 鍙戣鍖?|
 
-镜像不在容器内重新编译 SnowLuma —— 它消费主仓 GitHub Release 的预编译 `lite` tarball，所以发版与镜像构建解耦。
+闀滃儚涓嶅湪瀹瑰櫒鍐呴噸鏂扮紪璇?SnowLuma 鈥斺€?瀹冩秷璐逛富浠?GitHub Release 鐨勯缂栬瘧 `lite` tarball锛屾墍浠ュ彂鐗堜笌闀滃儚鏋勫缓瑙ｈ€︺€?
+## 绔彛
 
-## 端口
-
-| 端口   | 用途                                |
+| 绔彛   | 鐢ㄩ€?                               |
 | ------ | ----------------------------------- |
-| `5900` | VNC（远程桌面，密码登录 QQ 用）     |
-| `6081` | noVNC（浏览器版 VNC，无客户端访问） |
+| `5900` | VNC锛堣繙绋嬫闈紝瀵嗙爜鐧诲綍 QQ 鐢級     |
+| `6081` | noVNC锛堟祻瑙堝櫒鐗?VNC锛屾棤瀹㈡埛绔闂級 |
 | `5099` | SnowLuma WebUI                      |
-| `3000` | OneBot HTTP（默认）                 |
-| `3001` | OneBot WebSocket（默认）            |
+| `3000` | OneBot HTTP锛堥粯璁わ級                 |
+| `3001` | OneBot WebSocket锛堥粯璁わ級            |
 
-## ptrace 权限
+## ptrace 鏉冮檺
 
 :::warning
-`--cap-add=SYS_PTRACE` 和 `--security-opt seccomp=unconfined` 仍然不能省。
-:::
+`--cap-add=SYS_PTRACE` 鍜?`--security-opt seccomp=unconfined` 浠嶇劧涓嶈兘鐪併€?:::
 
-SnowLuma 的 native addon 通过 `ptrace` 把 hook 注入到容器内的 QQ 进程。官方镜像会给 `/usr/local/bin/node` 设置 `cap_sys_ptrace`，所以 SnowLuma 即使用 `snowluma` 普通用户运行，也能在容器的 capability 边界内完成注入。
-
-因此，新版官方镜像**不需要**再修改宿主机的 `kernel.yama.ptrace_scope`。只要启动容器时保留：
-
+SnowLuma 鐨?native addon 閫氳繃 `ptrace` 鎶?hook 娉ㄥ叆鍒板鍣ㄥ唴鐨?QQ 杩涚▼銆傚畼鏂归暅鍍忎細缁?`/usr/local/bin/node` 璁剧疆 `cap_sys_ptrace`锛屾墍浠?SnowLuma 鍗充娇鐢?`snowluma` 鏅€氱敤鎴疯繍琛岋紝涔熻兘鍦ㄥ鍣ㄧ殑 capability 杈圭晫鍐呭畬鎴愭敞鍏ャ€?
+鍥犳锛屾柊鐗堝畼鏂归暅鍍?*涓嶉渶瑕?*鍐嶄慨鏀瑰涓绘満鐨?`kernel.yama.ptrace_scope`銆傚彧瑕佸惎鍔ㄥ鍣ㄦ椂淇濈暀锛?
 ```bash
 --cap-add=SYS_PTRACE
 --security-opt seccomp=unconfined
 ```
 
-如果你想确认镜像内的 file capability 是否存在：
-
+濡傛灉浣犳兂纭闀滃儚鍐呯殑 file capability 鏄惁瀛樺湪锛?
 ```bash
 docker exec snowluma getcap /usr/local/bin/node
-# 期望包含：cap_sys_ptrace=ep
+# 鏈熸湜鍖呭惈锛歝ap_sys_ptrace=ep
 ```
 
-如果旧镜像仍要求你修改宿主机 sysctl，优先升级镜像；只有在无法升级的临时排障场景下，才考虑调整宿主机 `kernel.yama.ptrace_scope`。
-
-## 一行 docker run
+濡傛灉鏃ч暅鍍忎粛瑕佹眰浣犱慨鏀瑰涓绘満 sysctl锛屼紭鍏堝崌绾ч暅鍍忥紱鍙湁鍦ㄦ棤娉曞崌绾х殑涓存椂鎺掗殰鍦烘櫙涓嬶紝鎵嶈€冭檻璋冩暣瀹夸富鏈?`kernel.yama.ptrace_scope`銆?
+## 涓€琛?docker run
 
 ```bash
 docker run -d \
@@ -62,6 +54,8 @@ docker run -d \
   --cap-add=SYS_PTRACE \
   --security-opt seccomp=unconfined \
   -e VNC_PASSWD=vncpasswd \
+  -e SNOWLUMA_WEBUI_PORT=5099 \
+  -e SNOWLUMA_QQ_FLAGS="--disable-gpu --disable-software-rasterizer --disable-gpu-compositing" \
   -p 5900:5900 \
   -p 6081:6081 \
   -p 5099:5099 \
@@ -74,15 +68,12 @@ docker run -d \
 ```
 
 :::warning
-`--cap-add=SYS_PTRACE` 和 `--security-opt seccomp=unconfined` **不能省**。SnowLuma 的 native addon 通过 ptrace 把 hook 注入 QQ 进程，默认 seccomp profile 会拦截。
-:::
+`--cap-add=SYS_PTRACE` 鍜?`--security-opt seccomp=unconfined` **涓嶈兘鐪?*銆係nowLuma 鐨?native addon 閫氳繃 ptrace 鎶?hook 娉ㄥ叆 QQ 杩涚▼锛岄粯璁?seccomp profile 浼氭嫤鎴€?:::
 
-`--shm-size=1g` 是 QQ（基于 Chromium）的运行要求，容器默认 `/dev/shm` 太小会崩。
-
+`--shm-size=1g` 鏄?QQ锛堝熀浜?Chromium锛夌殑杩愯瑕佹眰锛屽鍣ㄩ粯璁?`/dev/shm` 澶皬浼氬穿銆?
 ## docker-compose
 
-更推荐用 Compose。仓库 `docker-compose.yml`：
-
+鏇存帹鑽愮敤 Compose銆備粨搴?`docker-compose.yml`锛?
 ```yaml
 services:
   snowluma:
@@ -100,7 +91,7 @@ services:
       SNOWLUMA_GID: ${SNOWLUMA_GID:-1000}
       SNOWLUMA_WEBUI_PORT: ${SNOWLUMA_WEBUI_PORT:-5099}
       SNOWLUMA_LOG_LEVEL: ${SNOWLUMA_LOG_LEVEL:-info}
-      SNOWLUMA_SCREEN: ${SNOWLUMA_SCREEN:-1920x1080x16}
+      SNOWLUMA_SCREEN: ${SNOWLUMA_SCREEN:-1920x1080x24}
       SNOWLUMA_HOOK_AUTOLOAD: ${SNOWLUMA_HOOK_AUTOLOAD:-1}
       SNOWLUMA_EXTRA_QQ_HOMES: "${SNOWLUMA_EXTRA_QQ_HOMES:-}"
       SNOWLUMA_QQ_FLAGS: "${SNOWLUMA_QQ_FLAGS:---disable-gpu --disable-software-rasterizer --disable-gpu-compositing}"
@@ -121,93 +112,79 @@ volumes:
   snowluma-qq-data:
 ```
 
-启动：
-
+鍚姩锛?
 ```bash
 docker compose up -d
 ```
 
-升级镜像：
-
+鍗囩骇闀滃儚锛?
 ```bash
 docker compose pull
 docker compose up -d
 ```
 
-## 环境变量
+## 鐜鍙橀噺
 
-| 变量                     | 默认           | 说明                                                                |
-| ------------------------ | -------------- | ------------------------------------------------------------------- |
-| `VNC_PASSWD`             | `vncpasswd`    | VNC / noVNC 登录密码。**改成自己的**，不然别人也能进容器里看你 QQ。 |
-| `SNOWLUMA_UID`           | `1000`         | 容器内 `snowluma` 用户的 uid。和你挂载卷的宿主属主匹配。            |
-| `SNOWLUMA_GID`           | `1000`         | 容器内 `snowluma` 用户的 gid。                                      |
-| `SNOWLUMA_WEBUI_PORT`    | `5099`         | WebUI 监听端口（容器内）。                                          |
-| `SNOWLUMA_LOG_LEVEL`     | `info`         | `error` / `warn` / `info` / `debug`。                               |
-| `SNOWLUMA_SCREEN`        | `1920x1080x16` | Xvfb 分辨率 + 色深。                                                |
-| `SNOWLUMA_HOOK_AUTOLOAD` | `1`            | 镜像默认开自动注入。设 `0` 切回手动 Load 流程。                     |
-| `SNOWLUMA_EXTRA_QQ_HOMES` | 空             | 逗号或空格分隔的额外 QQ `/app/...` `HOME` 列表，用于多开账号自动启动。 |
-| `SNOWLUMA_QQ_FLAGS`      | 见下方         | 传给 Linux QQ 的启动参数，默认关闭 GPU / SwiftShader 软件渲染。     |
+| 鍙橀噺                     | 榛樿鍊?                                        | 璇存槑                                                                |
+| ------------------------ | ---------------------------------------------- | ------------------------------------------------------------------- |
+| `VNC_PASSWD`             | `vncpasswd`                                    | VNC / noVNC 鐧诲綍瀵嗙爜銆?*鏀规垚鑷繁鐨?*锛屼笉鐒跺埆浜轰篃鑳借繘瀹瑰櫒閲岀湅浣?QQ銆?|
+| `SNOWLUMA_UID`           | `1000`                                         | 瀹瑰櫒鍐?`snowluma` 鐢ㄦ埛鐨?uid銆傚拰浣犳寕杞藉嵎鐨勫涓诲睘涓诲尮閰嶃€?           |
+| `SNOWLUMA_GID`           | `1000`                                         | 瀹瑰櫒鍐?`snowluma` 鐢ㄦ埛鐨?gid銆?                                     |
+| `SNOWLUMA_WEBUI_PORT`    | `5099`                                         | WebUI 鐩戝惉绔彛锛堝鍣ㄥ唴锛夈€?                                         |
+| `SNOWLUMA_LOG_LEVEL`     | `info`                                         | `error` / `warn` / `info` / `debug`銆?                              |
+| `SNOWLUMA_SCREEN`        | `1920x1080x24`                                 | Xvfb 鍒嗚鲸鐜?+ 鑹叉繁銆?                                               |
+| `SNOWLUMA_HOOK_AUTOLOAD` | `1`                                            | 闀滃儚榛樿寮€鑷姩娉ㄥ叆銆傝 `0` 鍒囧洖鎵嬪姩 Load 娴佺▼銆?                    |
+| `SNOWLUMA_EXTRA_QQ_HOMES` | 绌?                                           | 閫楀彿鎴栫┖鏍煎垎闅旂殑棰濆 QQ `/app/...` `HOME` 鍒楄〃锛岀敤浜庡寮€璐﹀彿鑷姩鍚姩銆?|
+| `SNOWLUMA_QQ_FLAGS`      | `--disable-gpu --disable-software-rasterizer --disable-gpu-compositing` | 浼犵粰 Linux QQ 鐨勫惎鍔ㄥ弬鏁帮紝榛樿鍏抽棴 GPU / SwiftShader 杞欢娓叉煋銆?|
+| `TZ`                     | `Asia/Shanghai`                                | 瀹瑰櫒鏃跺尯銆傚彲鍦ㄥ惎鍔ㄦ椂閫氳繃 `-e TZ=UTC` 瑕嗙洊銆?                        |
 
-环境变量优先级高于 `runtime.json`，所以 Docker 用环境变量覆盖最方便。
-
-## 数据卷
-
-| 卷                   | 容器路径             | 内容                                                                                  |
+鐜鍙橀噺浼樺厛绾ч珮浜?`runtime.json`锛屾墍浠?Docker 鐢ㄧ幆澧冨彉閲忚鐩栨渶鏂逛究銆?
+## 鏁版嵁鍗?
+| 鍗?                  | 瀹瑰櫒璺緞             | 鍐呭                                                                                  |
 | -------------------- | -------------------- | ------------------------------------------------------------------------------------- |
-| `snowluma-data`      | `/app/snowluma-data` | SnowLuma 配置、缓存、SDB 等。`config/onebot.json` 和 `config/runtime.json` 都在这里。 |
-| `snowluma-qq-config` | `/app/.config`       | QQ 客户端配置。                                                                       |
-| `snowluma-qq-data`   | `/app/.local/share`  | QQ 用户数据（登录态、缓存等）。                                                       |
+| `snowluma-data`      | `/app/snowluma-data` | SnowLuma 閰嶇疆銆佺紦瀛樸€丼DB 绛夈€俙config/onebot.json` 鍜?`config/runtime.json` 閮藉湪杩欓噷銆?|
+| `snowluma-qq-config` | `/app/.config`       | QQ 瀹㈡埛绔厤缃€?                                                                      |
+| `snowluma-qq-data`   | `/app/.local/share`  | QQ 鐢ㄦ埛鏁版嵁锛堢櫥褰曟€併€佺紦瀛樼瓑锛夈€?                                                      |
 
-**升级镜像不要删这三个卷**，否则会丢登录态和配置。
+**鍗囩骇闀滃儚涓嶈鍒犺繖涓変釜鍗?*锛屽惁鍒欎細涓㈢櫥褰曟€佸拰閰嶇疆銆?
+## 棣栨鐧诲綍
 
-## 首次登录
+1. 鍚姩瀹瑰櫒鍚庣敤娴忚鍣ㄦ墦寮€ `http://<IP>:6081/`锛坣oVNC锛夛紝杈撳叆 `VNC_PASSWD`銆?2. 鍦ㄨ繙绋嬫闈㈤噷鑳界湅鍒?QQ 宸茶嚜鍔ㄨ捣鏉ワ紝鎵爜鐧诲綍銆?3. 鐧诲綍瀹屾垚鍚?hook 浼氳嚜鍔ㄤ粠琚姩瑙傚療鍒囧埌宸ヤ綔妯″紡锛屾棤闇€鍦?WebUI 閲屾墜鍔?Load銆?4. 娴忚鍣ㄦ墦寮€ `http://<IP>:5099/` 璁块棶 SnowLuma WebUI銆?
+### 鎵?WebUI 涓存椂瀵嗙爜
 
-1. 启动容器后用浏览器打开 `http://<IP>:6081/`（noVNC），输入 `VNC_PASSWD`。
-2. 在远程桌面里能看到 QQ 已自动起来，扫码登录。
-3. 登录完成后 hook 会自动从被动观察切到工作模式，无需在 WebUI 里手动 Load。
-4. 浏览器打开 `http://<IP>:5099/` 访问 SnowLuma WebUI。
-
-### 找 WebUI 临时密码
-
-首次启动会在日志里输出一次性密码：
+棣栨鍚姩浼氬湪鏃ュ織閲岃緭鍑轰竴娆℃€у瘑鐮侊細
 
 ```bash
-docker logs snowluma 2>&1 | grep -E "临时密码|initial credentials" | tail -n 1
+docker logs snowluma 2>&1 | grep -E "涓存椂瀵嗙爜|initial credentials" | tail -n 1
 ```
 
-只要密码字符串：
+鍙瀵嗙爜瀛楃涓诧細
 
 ```bash
 docker logs snowluma 2>&1 | \
-  sed -nE 's/.*(临时密码: |initial credentials: user=admin password=)([^[:space:]]+).*/\2/p' | tail -n 1
+  sed -nE 's/.*(涓存椂瀵嗙爜: |initial credentials: user=admin password=)([^[:space:]]+).*/\2/p' | tail -n 1
 ```
 
 :::info
-临时密码**只在全新数据卷首次启动时**输出一次。复用旧卷 / 重启都不会重新生成。
-:::
+涓存椂瀵嗙爜**鍙湪鍏ㄦ柊鏁版嵁鍗烽娆″惎鍔ㄦ椂**杈撳嚭涓€娆°€傚鐢ㄦ棫鍗?/ 閲嶅惎閮戒笉浼氶噸鏂扮敓鎴愩€?:::
 
-## 多开 QQ（多账号）
+## 澶氬紑 QQ锛堝璐﹀彿锛?
+Linux QQ 鑷甫鍗曞疄渚嬮攣锛氬湪宸叉湁 QQ 璺戠潃鐨勬闈㈤噷鐩存帴鍐嶇偣涓€娆?QQ 鍥炬爣锛屽彧浼氭妸宸叉湁绐楀彛鑱氱劍锛?*璧蜂笉鏉ョ浜屼釜杩涚▼**銆傞攣鏂囦欢钀藉湪 `$HOME/.config/QQ/SingletonLock`锛屾墍浠ヨВ娉曟槸缁欑浜屼釜瀹炰緥涓€涓?*鐙珛鐨?`HOME`**銆?
+SnowLuma 涓€渚т笉闇€瑕佷换浣曢澶栭厤缃細[HookManager](https://github.com/SnowLuma/SnowLuma/blob/main/packages/core/src/hook/hook-manager.ts) 浼氶亶鍘嗘墍鏈?QQ 涓昏繘绋嬶紝鏂板惎鍔ㄤ竴涓氨鑷姩娉ㄥ叆涓€涓紝姣忎釜 UIN 鎷変竴涓嫭绔?`OneBotInstance`锛岄厤缃瓨鍒板搴旂殑 `config/onebot_<uin>.json`銆?
+### 鎺ㄨ崘锛氱敤鐜鍙橀噺鑷姩鍚姩
 
-Linux QQ 自带单实例锁：在已有 QQ 跑着的桌面里直接再点一次 QQ 图标，只会把已有窗口聚焦，**起不来第二个进程**。锁文件落在 `$HOME/.config/QQ/SingletonLock`，所以解法是给第二个实例一个**独立的 `HOME`**。
-
-SnowLuma 一侧不需要任何额外配置：[HookManager](https://github.com/SnowLuma/SnowLuma/blob/main/packages/core/src/hook/hook-manager.ts) 会遍历所有 QQ 主进程，新启动一个就自动注入一个，每个 UIN 拉一个独立 `OneBotInstance`，配置存到对应的 `config/onebot_<uin>.json`。
-
-### 推荐：用环境变量自动启动
-
-给每个额外账号准备一个独立卷，并把对应容器路径写进 `SNOWLUMA_EXTRA_QQ_HOMES`。列表支持逗号或空格分隔：
+缁欐瘡涓澶栬处鍙峰噯澶囦竴涓嫭绔嬪嵎锛屽苟鎶婂搴斿鍣ㄨ矾寰勫啓杩?`SNOWLUMA_EXTRA_QQ_HOMES`銆傚垪琛ㄦ敮鎸侀€楀彿鎴栫┖鏍煎垎闅旓細
 
 ```yaml
 services:
   snowluma:
-    # ... 原有配置 ...
+    # ... 鍘熸湁閰嶇疆 ...
     environment:
       SNOWLUMA_EXTRA_QQ_HOMES: /app/qq-acct2,/app/qq-acct3
     volumes:
       - snowluma-data:/app/snowluma-data
-      - snowluma-qq-config:/app/.config # 主账号
-      - snowluma-qq-data:/app/.local/share # 主账号
-      - snowluma-qq2:/app/qq-acct2 # 第二个账号的完整 HOME
-      - snowluma-qq3:/app/qq-acct3 # 第三个账号 ...
+      - snowluma-qq-config:/app/.config # 涓昏处鍙?      - snowluma-qq-data:/app/.local/share # 涓昏处鍙?      - snowluma-qq2:/app/qq-acct2 # 绗簩涓处鍙风殑瀹屾暣 HOME
+      - snowluma-qq3:/app/qq-acct3 # 绗笁涓处鍙?...
 
 volumes:
   snowluma-data:
@@ -217,19 +194,15 @@ volumes:
   snowluma-qq3:
 ```
 
-容器启动时会为每个额外 `HOME` 生成一个 supervisor program，使用 `snowluma` 用户、同一个 `DISPLAY=:1` 和同一组 `SNOWLUMA_QQ_FLAGS` 启动 QQ。这样不会出现手动 `docker exec` 默认 root 导致 SnowLuma 无法注入的问题。
-
-查看进程状态：
+瀹瑰櫒鍚姩鏃朵細涓烘瘡涓澶?`HOME` 鐢熸垚涓€涓?supervisor program锛屼娇鐢?`snowluma` 鐢ㄦ埛銆佸悓涓€涓?`DISPLAY=:1` 鍜屽悓涓€缁?`SNOWLUMA_QQ_FLAGS` 鍚姩 QQ銆傝繖鏍蜂笉浼氬嚭鐜版墜鍔?`docker exec` 榛樿 root 瀵艰嚧 SnowLuma 鏃犳硶娉ㄥ叆鐨勯棶棰樸€?
+鏌ョ湅杩涚▼鐘舵€侊細
 
 ```bash
 docker exec snowluma supervisorctl status
-# qq、qq-extra-1、qq-extra-2、snowluma 都应处于 RUNNING 或启动中的状态
-```
+# qq銆乹q-extra-1銆乹q-extra-2銆乻nowluma 閮藉簲澶勪簬 RUNNING 鎴栧惎鍔ㄤ腑鐨勭姸鎬?```
 
-### 临时手动启动一个账号
-
-如果只是临时多开，不想改 Compose，也可以手动启动。关键是**不要用 root**，要显式指定 `snowluma` 用户、`DISPLAY` 和独立 `HOME`：
-
+### 涓存椂鎵嬪姩鍚姩涓€涓处鍙?
+濡傛灉鍙槸涓存椂澶氬紑锛屼笉鎯虫敼 Compose锛屼篃鍙互鎵嬪姩鍚姩銆傚叧閿槸**涓嶈鐢?root**锛岃鏄惧紡鎸囧畾 `snowluma` 鐢ㄦ埛銆乣DISPLAY` 鍜岀嫭绔?`HOME`锛?
 ```bash
 docker exec -u snowluma \
   -e DISPLAY=:1 \
@@ -238,85 +211,71 @@ docker exec -u snowluma \
   sh -lc 'qq --no-sandbox ${SNOWLUMA_QQ_FLAGS}'
 ```
 
-如果 `/app/qq-acct2` 没有挂卷，容器重建后这个账号的登录态会丢；长期使用仍推荐上面的 Compose 方式。
+濡傛灉 `/app/qq-acct2` 娌℃湁鎸傚嵎锛屽鍣ㄩ噸寤哄悗杩欎釜璐﹀彿鐨勭櫥褰曟€佷細涓紱闀挎湡浣跨敤浠嶆帹鑽愪笂闈㈢殑 Compose 鏂瑰紡銆?
+### 闄愬埗 & 娉ㄦ剰
 
-### 限制 & 注意
+- **姣忎釜 QQ 瀹炰緥鐙崰鑷繁鐨?`HOME`** 鈥斺€?鍒涓や釜 QQ 鍏辩敤鍚屼竴涓?`HOME`锛屼細鍐茬獊銆?- **璧勬簮**锛氭瘡涓?QQ 杩涚▼璺?Chromium 澶ф鍚?300-500MB 鍐呭瓨锛宍--shm-size` 涓昏处鍙?1GB 澶熺敤锛屽寮€寤鸿鍔犲埌 `2gb` 鎴栨洿楂樸€?- **noVNC 鍚屽睆鍙**锛氬涓?QQ 绐楀彛閮藉湪鍚屼竴涓?Xvfb 妗岄潰閲岋紝VNC 杩涘幓鍙互鍒嗗埆鎿嶄綔銆傚鏋滃彧鎯崇櫥涓€娆″氨璧帮紝鐧诲畬鍚庢妸 QQ 绐楀彛鏈€灏忓寲鍗冲彲锛屼笉浼氬奖鍝?hook銆?- **WebUI 鑷姩鍒楀嚭鎵€鏈?UIN**锛歋nowLuma 涓嶉渶瑕佸崟鐙厤缃氨鑳借瘑鍒柊鐧诲綍鐨勮处鍙凤紝WebUI / `get_login_info` 閮戒細鍑虹幇鏂?UIN銆?- **涓嶈鐢ㄦ闈?autostart 鐩綍**锛氶暅鍍忎娇鐢?`fluxbox`锛屼笉鏄?XFCE/GNOME 浼氳瘽锛沗~/.config/autostart/*.desktop` 涓嶄竴瀹氫細琚鍙栥€傚寮€鑷惎浜ょ粰 supervisor 鏇寸ǔ銆?
+## 鑷姩娉ㄥ叆
 
-- **每个 QQ 实例独占自己的 `HOME`** —— 别让两个 QQ 共用同一个 `HOME`，会冲突。
-- **资源**：每个 QQ 进程跑 Chromium 大概吃 300-500MB 内存，`--shm-size` 主账号 1GB 够用，多开建议加到 `2gb` 或更高。
-- **noVNC 同屏可见**：多个 QQ 窗口都在同一个 Xvfb 桌面里，VNC 进去可以分别操作。如果只想登一次就走，登完后把 QQ 窗口最小化即可，不会影响 hook。
-- **WebUI 自动列出所有 UIN**：SnowLuma 不需要单独配置就能识别新登录的账号，WebUI / `get_login_info` 都会出现新 UIN。
-- **不要用桌面 autostart 目录**：镜像使用 `fluxbox`，不是 XFCE/GNOME 会话；`~/.config/autostart/*.desktop` 不一定会被读取。多开自启交给 supervisor 更稳。
+闀滃儚榛樿寮€ `SNOWLUMA_HOOK_AUTOLOAD=1`锛氬鍣ㄤ竴鍚姩灏辨妸 hook 娉ㄥ叆 QQ 涓昏繘绋嬶紙琚姩瑙傚療锛夛紝鎵爜鐧诲綍瀹屾垚鍚?hook 鑷姩鍒囧埌宸ヤ綔妯″紡銆俿upervisor 璁?QQ 宕╂簝鑷姩閲嶅惎鏃朵篃璧板悓鏍锋祦绋嬨€?
+### 鍏抽棴鑷姩娉ㄥ叆
 
-## 自动注入
-
-镜像默认开 `SNOWLUMA_HOOK_AUTOLOAD=1`：容器一启动就把 hook 注入 QQ 主进程（被动观察），扫码登录完成后 hook 自动切到工作模式。supervisor 让 QQ 崩溃自动重启时也走同样流程。
-
-### 关闭自动注入
-
-想保留传统的"WebUI 里手动 Load"流程：
-
+鎯充繚鐣欎紶缁熺殑"WebUI 閲屾墜鍔?Load"娴佺▼锛?
 ```bash
 docker run -e SNOWLUMA_HOOK_AUTOLOAD=0 ... motricseven7/snowluma:latest
 ```
 
-或在 `docker-compose.yml` 改 `SNOWLUMA_HOOK_AUTOLOAD: 0`，或编辑持久卷里的 `/app/snowluma-data/config/runtime.json` 设 `"hookAutoLoad": false`。环境变量优先。
+鎴栧湪 `docker-compose.yml` 鏀?`SNOWLUMA_HOOK_AUTOLOAD: 0`锛屾垨缂栬緫鎸佷箙鍗烽噷鐨?`/app/snowluma-data/config/runtime.json` 璁?`"hookAutoLoad": false`銆傜幆澧冨彉閲忎紭鍏堛€?
+## 甯哥敤杩愮淮
 
-## 常用运维
-
-进容器：
+杩涘鍣細
 
 ```bash
 docker exec -it snowluma bash
 ```
 
-查日志：
+鏌ユ棩蹇楋細
 
 ```bash
 docker logs -f snowluma
 ```
 
-只看 SnowLuma 主进程日志（过滤掉 QQ 自己的输出）：
-
+鍙湅 SnowLuma 涓昏繘绋嬫棩蹇楋紙杩囨护鎺?QQ 鑷繁鐨勮緭鍑猴級锛?
 ```bash
 docker logs -f snowluma 2>&1 | grep -v "QtNetwork\|GLib\|libQt6"
 ```
 
-进入 SnowLuma 数据目录：
-
+杩涘叆 SnowLuma 鏁版嵁鐩綍锛?
 ```bash
 docker exec -it snowluma bash -c "cd /app/snowluma-data && ls -la"
 ```
 
-修改 OneBot 配置：编辑 `/app/snowluma-data/config/onebot_<uin>.json`，重启容器：
+淇敼 OneBot 閰嶇疆锛氱紪杈?`/app/snowluma-data/config/onebot_<uin>.json`锛岄噸鍚鍣細
 
 ```bash
 docker restart snowluma
 ```
 
-## 端口冲突
+## 绔彛鍐茬獊
 
-宿主机端口被占用时，调宿主侧映射即可，容器内端口不变。例：把 OneBot HTTP 改为宿主的 `8080`：
-
+瀹夸富鏈虹鍙ｈ鍗犵敤鏃讹紝璋冨涓讳晶鏄犲皠鍗冲彲锛屽鍣ㄥ唴绔彛涓嶅彉銆備緥锛氭妸 OneBot HTTP 鏀逛负瀹夸富鐨?`8080`锛?
 ```yaml
 ports:
-  - "8080:3000" # 宿主 8080 → 容器 3000
+  - "8080:3000" # 瀹夸富 8080 鈫?瀹瑰櫒 3000
 ```
 
-或通过环境变量（Compose 模板已支持）：
-
+鎴栭€氳繃鐜鍙橀噺锛圕ompose 妯℃澘宸叉敮鎸侊級锛?
 ```bash
 ONEBOT_HTTP_PORT=8080 docker compose up -d
 ```
 
-## 自己构建镜像
+## 鑷繁鏋勫缓闀滃儚
 
-如果想用未发布的 SnowLuma 版本（比如本地分支）：
-
+濡傛灉鎯崇敤鏈彂甯冪殑 SnowLuma 鐗堟湰锛堟瘮濡傛湰鍦板垎鏀級锛?
 ```bash
-# 在 SnowLuma 主仓本地构建出 lite tarball
+# 鍦?SnowLuma 涓讳粨鏈湴鏋勫缓鍑?lite tarball
 pnpm build:all
-# 把 SnowLuma-<TAG>-linux-x64-lite.tar.gz 放到 Docker 仓根目录并重命名
+# 鎶?SnowLuma-<TAG>-linux-x64-lite.tar.gz 鏀惧埌 Docker 浠撴牴鐩綍骞堕噸鍛藉悕
 cp dist/SnowLuma-*-linux-x64-lite.tar.gz \
    ../SnowLuma.Docker.Framework/SnowLuma.Framework.tar.gz
 
@@ -324,16 +283,13 @@ cd ../SnowLuma.Docker.Framework
 ./scripts/build-image.sh
 ```
 
-或者直接让脚本从 release 拉：
+鎴栬€呯洿鎺ヨ鑴氭湰浠?release 鎷夛細
 
 ```bash
 SNOWLUMA_TAG=v1.10.0 ./scripts/build-image.sh
 ```
 
-多架构 manifest 合并请走 CI（`.github/workflows/docker-image.yml`）；本地脚本只构建单平台。
+澶氭灦鏋?manifest 鍚堝苟璇疯蛋 CI锛坄.github/workflows/docker-image.yml`锛夛紱鏈湴鑴氭湰鍙瀯寤哄崟骞冲彴銆?
+## 瀹夊叏鎻愮ず
 
-## 安全提示
-
-- SnowLuma 用 native addon 把代码注入 QQ 进程；容器启动需要 `SYS_PTRACE` 能力和 `seccomp=unconfined`。仅在受信任的宿主上运行。
-- VNC / noVNC 默认密码 `vncpasswd` **务必改掉**，否则你的 QQ 桌面在公网上裸奔。
-- 请遵守 NTQQ / Tencent 的使用许可，以及 SnowLuma 与依赖项的开源协议。
+- SnowLuma 鐢?native addon 鎶婁唬鐮佹敞鍏?QQ 杩涚▼锛涘鍣ㄥ惎鍔ㄩ渶瑕?`SYS_PTRACE` 鑳藉姏鍜?`seccomp=unconfined`銆備粎鍦ㄥ彈淇′换鐨勫涓讳笂杩愯銆?- VNC / noVNC 榛樿瀵嗙爜 `vncpasswd` **鍔″繀鏀规帀**锛屽惁鍒欎綘鐨?QQ 妗岄潰鍦ㄥ叕缃戜笂瑁稿銆?- 璇烽伒瀹?NTQQ / Tencent 鐨勪娇鐢ㄨ鍙紝浠ュ強 SnowLuma 涓庝緷璧栭」鐨勫紑婧愬崗璁€?

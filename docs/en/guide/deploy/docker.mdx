@@ -16,13 +16,13 @@ The image build scripts and Compose template live in a separate repo: [`SnowLuma
 | Base    | `node:22-bookworm-slim`                                            |
 | Bundled | Linux QQ, Xvfb, VNC, noVNC, supervisord, SnowLuma `lite`           |
 
-The image does **not** rebuild SnowLuma — it consumes the prebuilt `lite` tarball from each SnowLuma GitHub Release, so the release and the image build are decoupled.
+The image does **not** rebuild SnowLuma 鈥?it consumes the prebuilt `lite` tarball from each SnowLuma GitHub Release, so the release and the image build are decoupled.
 
 ## Ports
 
 | Port   | Purpose                                        |
 | ------ | ---------------------------------------------- |
-| `5900` | VNC (remote desktop — needed to scan-login QQ) |
+| `5900` | VNC (remote desktop 鈥?needed to scan-login QQ) |
 | `6081` | noVNC (browser VNC, no client needed)          |
 | `5099` | SnowLuma WebUI                                 |
 | `3000` | OneBot HTTP (default)                          |
@@ -62,6 +62,8 @@ docker run -d \
   --cap-add=SYS_PTRACE \
   --security-opt seccomp=unconfined \
   -e VNC_PASSWD=vncpasswd \
+  -e SNOWLUMA_WEBUI_PORT=5099 \
+  -e SNOWLUMA_QQ_FLAGS="--disable-gpu --disable-software-rasterizer --disable-gpu-compositing" \
   -p 5900:5900 \
   -p 6081:6081 \
   -p 5099:5099 \
@@ -77,7 +79,7 @@ docker run -d \
 `--cap-add=SYS_PTRACE` and `--security-opt seccomp=unconfined` are **mandatory**. SnowLuma's native addon uses ptrace to inject the hook into the QQ process; the default seccomp profile blocks that.
 :::
 
-`--shm-size=1g` is needed for QQ's Chromium runtime — the default container `/dev/shm` is too small and QQ will crash.
+`--shm-size=1g` is needed for QQ's Chromium runtime 鈥?the default container `/dev/shm` is too small and QQ will crash.
 
 ## docker-compose
 
@@ -100,7 +102,7 @@ services:
       SNOWLUMA_GID: ${SNOWLUMA_GID:-1000}
       SNOWLUMA_WEBUI_PORT: ${SNOWLUMA_WEBUI_PORT:-5099}
       SNOWLUMA_LOG_LEVEL: ${SNOWLUMA_LOG_LEVEL:-info}
-      SNOWLUMA_SCREEN: ${SNOWLUMA_SCREEN:-1920x1080x16}
+      SNOWLUMA_SCREEN: ${SNOWLUMA_SCREEN:-1920x1080x24}
       SNOWLUMA_HOOK_AUTOLOAD: ${SNOWLUMA_HOOK_AUTOLOAD:-1}
       SNOWLUMA_EXTRA_QQ_HOMES: "${SNOWLUMA_EXTRA_QQ_HOMES:-}"
       SNOWLUMA_QQ_FLAGS: "${SNOWLUMA_QQ_FLAGS:---disable-gpu --disable-software-rasterizer --disable-gpu-compositing}"
@@ -136,17 +138,18 @@ docker compose up -d
 
 ## Environment variables
 
-| Var                      | Default        | Notes                                                                                        |
-| ------------------------ | -------------- | -------------------------------------------------------------------------------------------- |
-| `VNC_PASSWD`             | `vncpasswd`    | VNC / noVNC login password. **Change this**, otherwise anyone can see your QQ desktop.       |
-| `SNOWLUMA_UID`           | `1000`         | uid of the in-container `snowluma` user. Match it to the host owner of your mounted volumes. |
-| `SNOWLUMA_GID`           | `1000`         | gid of the in-container `snowluma` user.                                                     |
-| `SNOWLUMA_WEBUI_PORT`    | `5099`         | WebUI listen port (inside the container).                                                    |
-| `SNOWLUMA_LOG_LEVEL`     | `info`         | `error` / `warn` / `info` / `debug`.                                                         |
-| `SNOWLUMA_SCREEN`        | `1920x1080x16` | Xvfb resolution + color depth.                                                               |
-| `SNOWLUMA_HOOK_AUTOLOAD` | `1`            | Image opts into auto-injection by default. Set `0` to fall back to the manual Load workflow. |
-| `SNOWLUMA_EXTRA_QQ_HOMES` | empty          | Comma- or space-separated extra QQ `/app/...` `HOME` paths for auto-starting multiple accounts. |
-| `SNOWLUMA_QQ_FLAGS`      | see below      | Flags passed to Linux QQ. The default disables GPU / SwiftShader software rendering.          |
+| Var                        | Default                                                                                  | Notes                                                                                        |
+| -------------------------- | ---------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| `VNC_PASSWD`               | `vncpasswd`                                                                              | VNC / noVNC login password. **Change this**, otherwise anyone can see your QQ desktop.       |
+| `SNOWLUMA_UID`             | `1000`                                                                                   | uid of the in-container `snowluma` user. Match it to the host owner of your mounted volumes. |
+| `SNOWLUMA_GID`             | `1000`                                                                                   | gid of the in-container `snowluma` user.                                                     |
+| `SNOWLUMA_WEBUI_PORT`      | `5099`                                                                                   | WebUI listen port (inside the container).                                                    |
+| `SNOWLUMA_LOG_LEVEL`       | `info`                                                                                   | `error` / `warn` / `info` / `debug`.                                                         |
+| `SNOWLUMA_SCREEN`          | `1920x1080x24`                                                                           | Xvfb resolution + color depth.                                                               |
+| `SNOWLUMA_HOOK_AUTOLOAD`   | `1`                                                                                      | Image opts into auto-injection by default. Set `0` to fall back to the manual Load workflow. |
+| `SNOWLUMA_EXTRA_QQ_HOMES`  | empty                                                                                    | Comma- or space-separated extra QQ `/app/...` `HOME` paths for auto-starting multiple accounts. |
+| `SNOWLUMA_QQ_FLAGS`        | `--disable-gpu --disable-software-rasterizer --disable-gpu-compositing`                  | Flags passed to Linux QQ. The default disables GPU / SwiftShader software rendering.          |
+| `TZ`                       | `Asia/Shanghai`                                                                          | Container timezone. Override with `-e TZ=UTC` at runtime.                                    |
 
 Environment variables override `runtime.json`, so they're the ergonomic knob in Docker.
 
@@ -158,13 +161,13 @@ Environment variables override `runtime.json`, so they're the ergonomic knob in 
 | `snowluma-qq-config` | `/app/.config`       | QQ client config.                                                                        |
 | `snowluma-qq-data`   | `/app/.local/share`  | QQ user data (login state, cache).                                                       |
 
-**Don't delete these on upgrade** — you'll lose login state and configuration.
+**Don't delete these on upgrade** 鈥?you'll lose login state and configuration.
 
 ## First-time login
 
 1. Open `http://<host>:6081/` (noVNC) and enter `VNC_PASSWD`.
 2. Inside the remote desktop you'll see QQ already running. Scan the QR to log in.
-3. Once login completes the hook auto-switches from passive observation to working mode — no need to click Load in the WebUI.
+3. Once login completes the hook auto-switches from passive observation to working mode 鈥?no need to click Load in the WebUI.
 4. Open `http://<host>:5099/` for the SnowLuma WebUI.
 
 ### Finding the WebUI bootstrap password
@@ -172,14 +175,14 @@ Environment variables override `runtime.json`, so they're the ergonomic knob in 
 On a fresh data volume the first launch logs a one-time password:
 
 ```bash
-docker logs snowluma 2>&1 | grep -E "临时密码|initial credentials" | tail -n 1
+docker logs snowluma 2>&1 | grep -E "涓存椂瀵嗙爜|initial credentials" | tail -n 1
 ```
 
 Just the password string:
 
 ```bash
 docker logs snowluma 2>&1 | \
-  sed -nE 's/.*(临时密码: |initial credentials: user=admin password=)([^[:space:]]+).*/\2/p' | tail -n 1
+  sed -nE 's/.*(涓存椂瀵嗙爜: |initial credentials: user=admin password=)([^[:space:]]+).*/\2/p' | tail -n 1
 ```
 
 :::info
@@ -188,7 +191,7 @@ The bootstrap password is logged **only on a brand-new data volume's first boot*
 
 ## Running multiple QQ accounts
 
-Linux QQ ships a single-instance lock — clicking the QQ icon again on a desktop that already has one running just focuses the existing window, it doesn't start a second process. The lock file lives at `$HOME/.config/QQ/SingletonLock`, so the solution is to give each instance its **own `HOME`**.
+Linux QQ ships a single-instance lock 鈥?clicking the QQ icon again on a desktop that already has one running just focuses the existing window, it doesn't start a second process. The lock file lives at `$HOME/.config/QQ/SingletonLock`, so the solution is to give each instance its **own `HOME`**.
 
 SnowLuma needs no extra configuration: [HookManager](https://github.com/SnowLuma/SnowLuma/blob/main/packages/core/src/hook/hook-manager.ts) walks every QQ main process it can find, injects the hook into each, and spins up a separate `OneBotInstance` per UIN with its own `config/onebot_<uin>.json`.
 
@@ -242,10 +245,10 @@ If `/app/qq-acct2` is not mounted to a volume, recreating the container loses th
 
 ### Caveats
 
-- **One HOME per QQ instance** — never share a `HOME` between two QQs; they'll fight over the lock file.
+- **One HOME per QQ instance** 鈥?never share a `HOME` between two QQs; they'll fight over the lock file.
 - **Resources**: each QQ is a full Chromium process, ~300-500 MB RAM. The default `--shm-size=1g` is fine for one; bump to `2gb`+ for multi-account.
 - **All windows share the same Xvfb desktop**: noVNC shows every QQ window; minimize the ones you've already logged into. Hook keeps working regardless of window state.
-- **WebUI lists every UIN automatically**: no manual configuration — SnowLuma surfaces each new account in the WebUI and `get_login_info` returns the new UINs once login completes.
+- **WebUI lists every UIN automatically**: no manual configuration 鈥?SnowLuma surfaces each new account in the WebUI and `get_login_info` returns the new UINs once login completes.
 - **Do not rely on desktop autostart folders**: the image uses `fluxbox`, not an XFCE/GNOME session. `~/.config/autostart/*.desktop` may not be read. Let supervisor handle multi-account boot instead.
 
 ## Auto-injection
@@ -301,7 +304,7 @@ If a host port is taken, just shift the host side; container ports stay the same
 
 ```yaml
 ports:
-  - "8080:3000" # host 8080 → container 3000
+  - "8080:3000" # host 8080 鈫?container 3000
 ```
 
 Or via env (the Compose template already supports it):
@@ -337,5 +340,5 @@ Multi-arch manifests are merged by CI (`.github/workflows/docker-image.yml`); th
 ## Security notes
 
 - SnowLuma's native addon injects code into the QQ process; the container needs `SYS_PTRACE` and `seccomp=unconfined`. Only run on trusted hosts.
-- The default `VNC_PASSWD` (`vncpasswd`) **must** be changed before exposing the container to anything other than localhost — otherwise your QQ desktop is wide open.
+- The default `VNC_PASSWD` (`vncpasswd`) **must** be changed before exposing the container to anything other than localhost 鈥?otherwise your QQ desktop is wide open.
 - Comply with NTQQ / Tencent's terms of service plus SnowLuma's and its dependencies' open-source licenses.
