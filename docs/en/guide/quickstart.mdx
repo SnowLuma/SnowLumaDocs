@@ -75,6 +75,22 @@ Whichever path you take, first-time setup always involves these:
 Change the default VNC password, and do **not** expose VNC / noVNC / WebUI / OneBot ports raw on the public internet.
 :::
 
+## Password-free login (URL token)
+
+Tired of typing the password every visit? The WebUI can sign in directly from a **password** carried in the URL:
+
+```
+http://<server-ip>:5099/?token=<your WebUI login password>
+```
+
+- The query key is `token`, and its **value is your normal WebUI login password**. SnowLuma runs it through the login endpoint; a correct password lands you straight on the home page.
+- **Consumed once**: the password is **stripped from the address bar immediately** after load (`history.replaceState`) so it can't leak via browser history / access logs / the Referer header.
+- The server still verifies it as usual — a wrong password just drops back to the login page, there's no bypass.
+
+:::warning
+Putting a password in a URL is **relatively risky** (it enters browser history and may be recorded by intermediate proxies). Only use it on a trusted local / LAN machine; don't share password links, don't paste them into chats / issues, and don't use them on a shared device.
+:::
+
 ## Next
 
 - [Choose a deployment](/en/guide/deploy/) — detailed comparison of every path.
