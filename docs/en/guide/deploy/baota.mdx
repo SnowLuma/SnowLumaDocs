@@ -1,0 +1,43 @@
+---
+title: BT Panel Deploy
+description: One-click deploy SnowLuma via Docker App Store on a Linux server with BT Panel (Baota)
+---
+
+:::tip Community
+This is a community-contributed and maintained solution. If you encounter issues, please [submit an issue](https://github.com/makotowu/SnowLuma.Docker.Baota/issues).
+:::
+
+This page is for "I already run BT Panel, and want to import SnowLuma in one click through the panel's Docker App Store". Under the hood it's the same image as [Docker deployment](/en/guide/deploy/docker) — you just skip writing the Compose file manually.
+
+## Import & Install
+
+1. In BT Panel, go to **Docker → App Store**
+2. Switch to the **External Apps** tab and click **Import App**
+3. Enter the repository URL: `https://github.com/makotowu/SnowLuma.Docker.Baota`
+4. Find **SnowLuma** and click install
+5. Fill in the settings:
+   - **VNC Password**: required, used for remote desktop QR login — change the default
+   - **WebUI Port**: default `5099`
+   - **noVNC Port**: default `6081`, browser-based remote desktop
+   - **OneBot WS Port**: default `3001`, for bot framework integration
+
+Once installed, the container appears in BT Panel's Docker management — logs, start/stop, and editing are all available through the panel UI.
+
+## First Login
+
+After startup, it works exactly the same as standard Docker deployment:
+
+1. Open `http://<server-ip>:6081/` (noVNC) in a browser and enter your VNC password
+2. Scan the QR code with your phone's QQ app in the remote desktop
+3. The hook automatically switches to working mode after login
+4. Open `http://<server-ip>:5099/` to access the SnowLuma WebUI
+
+:::warning
+The initial WebUI one-time password is available via `docker logs`. BT Panel's container management UI lets you view logs directly.
+:::
+
+## See also
+
+- [Docker (Linux) deployment](/en/guide/deploy/docker) — full reference for the image, ports, Compose, environment variables, volumes, and multi-account setup
+- [Configuration guide](/en/guide/configuration) — customizing ports, access tokens, and adapters
+- [Choose a deployment method](/en/guide/deploy/) — detailed comparison of all paths
