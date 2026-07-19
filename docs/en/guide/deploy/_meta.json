@@ -6,5 +6,6 @@
   { "type": "file", "name": "wsl2", "label": "WSL2" },
   { "type": "file", "name": "linux-manual", "label": "Linux (manual, advanced)" },
   { "type": "file", "name": "mobile", "label": "Mobile (experimental)" },
+  { "type": "file", "name": "baota", "label": "BT Panel (community)" },
   { "type": "file", "name": "update", "label": "Updating" }
 ]

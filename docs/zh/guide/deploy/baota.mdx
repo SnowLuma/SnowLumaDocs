@@ -1,0 +1,43 @@
+---
+title: 宝塔面板部署
+description: 在已安装宝塔面板的 Linux 服务器上通过 Docker 应用商店一键部署 SnowLuma
+---
+
+:::tip 社区方案
+此方案由社区贡献与维护。遇到问题欢迎 [提交 Issue](https://github.com/makotowu/SnowLuma.Docker.Baota/issues) 反馈。
+:::
+
+本页讲的是"你已经有宝塔面板，想通过面板的 Docker 应用商店一键导入 SnowLuma"。底层仍然是 [Docker 部署](/zh/guide/deploy/docker) 的同一镜像，只是省去了手写 Compose 文件的步骤。
+
+## 导入并安装
+
+1. 在宝塔面板中进入 **Docker → 应用商店**
+2. 切换到 **外部应用** 分类，点击右上角 **导入应用**
+3. 填入仓库地址：`https://github.com/makotowu/SnowLuma.Docker.Baota`
+4. 找到 **SnowLuma**，点击安装
+5. 按提示填写配置：
+   - **VNC 密码**：必填，用于远程桌面扫码登录，务必修改
+   - **WebUI 端口**：默认 `5099`
+   - **noVNC 端口**：默认 `6081`，浏览器远程桌面
+   - **OneBot WS 端口**：默认 `3001`，机器人框架对接
+
+安装完成后，容器即在宝塔的 Docker 管理中可见，日志、启停、编辑均可通过面板操作。
+
+## 首次登录
+
+启动后和使用标准 Docker 部署**完全一样**：
+
+1. 浏览器打开 `http://<服务器IP>:6081/`（noVNC），输入你设置的 VNC 密码
+2. 在远程桌面里用手机 QQ 扫码登录
+3. 登录完成后 hook 自动切到工作模式
+4. 浏览器打开 `http://<服务器IP>:5099/` 进入 SnowLuma WebUI
+
+:::warning
+首次启动时的 WebUI 临时密码通过 `docker logs` 获取，宝塔面板的容器管理界面可以直接查看日志。
+:::
+
+## 相关链接
+
+- [Docker（Linux）部署](/zh/guide/deploy/docker) —— 镜像、端口、Compose、环境变量、数据卷、多账号的完整参考
+- [配置说明](/zh/guide/configuration) —— 改端口、access token、适配器
+- [部署方式选择](/zh/guide/deploy/) —— 各路径详细对比
