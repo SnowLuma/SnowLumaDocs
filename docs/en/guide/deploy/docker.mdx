@@ -62,6 +62,7 @@ docker run -d \
   --cap-add=SYS_PTRACE \
   --security-opt seccomp=unconfined \
   -e VNC_PASSWD=vncpasswd \
+  -e SNOWLUMA_WEBUI_HOST=0.0.0.0 \
   -e SNOWLUMA_WEBUI_PORT=5099 \
   -e SNOWLUMA_QQ_FLAGS="--disable-gpu --disable-software-rasterizer --disable-gpu-compositing" \
   -p 5900:5900 \
@@ -100,6 +101,7 @@ services:
       VNC_PASSWD: ${VNC_PASSWD:-vncpasswd}
       SNOWLUMA_UID: ${SNOWLUMA_UID:-1000}
       SNOWLUMA_GID: ${SNOWLUMA_GID:-1000}
+      SNOWLUMA_WEBUI_HOST: ${SNOWLUMA_WEBUI_HOST:-0.0.0.0}
       SNOWLUMA_WEBUI_PORT: ${SNOWLUMA_WEBUI_PORT:-5099}
       SNOWLUMA_LOG_LEVEL: ${SNOWLUMA_LOG_LEVEL:-info}
       SNOWLUMA_SCREEN: ${SNOWLUMA_SCREEN:-1920x1080x24}
@@ -144,6 +146,7 @@ docker compose up -d
 | `TZ`                    | `Asia/Shanghai` | Container timezone. Set in Dockerfile, overridable via env.             |
 | `SNOWLUMA_UID`           | `1000`         | uid of the in-container `snowluma` user. Match it to the host owner of your mounted volumes. |
 | `SNOWLUMA_GID`           | `1000`         | gid of the in-container `snowluma` user.                                                     |
+| `SNOWLUMA_WEBUI_HOST`    | `0.0.0.0`      | WebUI bind address. Docker examples listen on all container interfaces so published ports work. |
 | `SNOWLUMA_WEBUI_PORT`    | `5099`         | WebUI listen port (inside the container).                                                    |
 | `SNOWLUMA_WEBUI_HOST_PORT` | `5099`       | WebUI host mapping port (defaults to same as container port).            |
 | `SNOWLUMA_LOG_LEVEL`     | `info`         | `error` / `warn` / `info` / `debug`.                                                         |
@@ -156,7 +159,7 @@ docker compose up -d
 | `ONEBOT_HTTP_PORT`       | `3000`         | OneBot HTTP host mapping port.                                                               |
 | `ONEBOT_WS_PORT`         | `3001`         | OneBot WebSocket host mapping port.                                                          |
 
-Environment variables override `runtime.json`, so they're the ergonomic knob in Docker.
+Environment variables take precedence over `runtime.json`. To restrict the WebUI to the container itself, set `SNOWLUMA_WEBUI_HOST` to `127.0.0.1` and recreate the container.
 
 ## Volumes
 

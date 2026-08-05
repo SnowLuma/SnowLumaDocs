@@ -62,6 +62,7 @@ docker run -d \
   --cap-add=SYS_PTRACE \
   --security-opt seccomp=unconfined \
   -e VNC_PASSWD=vncpasswd \
+  -e SNOWLUMA_WEBUI_HOST=0.0.0.0 \
   -e SNOWLUMA_WEBUI_PORT=5099 \
   -e SNOWLUMA_QQ_FLAGS="--disable-gpu --disable-software-rasterizer --disable-gpu-compositing" \
   -p 5900:5900 \
@@ -100,6 +101,7 @@ services:
       VNC_PASSWD: ${VNC_PASSWD:-vncpasswd}
       SNOWLUMA_UID: ${SNOWLUMA_UID:-1000}
       SNOWLUMA_GID: ${SNOWLUMA_GID:-1000}
+      SNOWLUMA_WEBUI_HOST: ${SNOWLUMA_WEBUI_HOST:-0.0.0.0}
       SNOWLUMA_WEBUI_PORT: ${SNOWLUMA_WEBUI_PORT:-5099}
       SNOWLUMA_LOG_LEVEL: ${SNOWLUMA_LOG_LEVEL:-info}
       SNOWLUMA_SCREEN: ${SNOWLUMA_SCREEN:-1920x1080x24}
@@ -144,6 +146,7 @@ docker compose up -d
 | `TZ`                    | `Asia/Shanghai` | 容器时区。Dockerfile 预设，可通过环境变量覆盖。                    |
 | `SNOWLUMA_UID`           | `1000`         | 容器内 `snowluma` 用户的 uid。和你挂载卷的宿主属主匹配。            |
 | `SNOWLUMA_GID`           | `1000`         | 容器内 `snowluma` 用户的 gid。                                      |
+| `SNOWLUMA_WEBUI_HOST`    | `0.0.0.0`      | WebUI 监听地址。Docker 示例监听所有容器网卡，使端口映射可访问。      |
 | `SNOWLUMA_WEBUI_PORT`    | `5099`         | WebUI 监听端口（容器内）。                                          |
 | `SNOWLUMA_WEBUI_HOST_PORT` | `5099`       | WebUI 宿主机映射端口（默认同容器内端口）。                          |
 | `SNOWLUMA_LOG_LEVEL`     | `info`         | `error` / `warn` / `info` / `debug`。                               |
@@ -156,7 +159,7 @@ docker compose up -d
 | `ONEBOT_HTTP_PORT`       | `3000`         | OneBot HTTP 宿主机映射端口。                                        |
 | `ONEBOT_WS_PORT`         | `3001`         | OneBot WebSocket 宿主机映射端口。                                   |
 
-环境变量优先级高于 `runtime.json`，所以 Docker 用环境变量覆盖最方便。
+环境变量优先级高于 `runtime.json`。若要限制 WebUI 只允许容器本机访问，可将 `SNOWLUMA_WEBUI_HOST` 改为 `127.0.0.1`；修改后需要重建容器。
 
 ## 数据卷
 
