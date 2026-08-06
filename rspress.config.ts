@@ -54,6 +54,19 @@ export default defineConfig({
   route: {
     exclude: ['components/**', 'styles/**'],
   },
+  plugins: [
+    {
+      name: 'exclude-unlisted-pages-from-search',
+      modifySearchIndexData(pages) {
+        for (const page of pages) {
+          if (page.frontmatter?.unlisted !== true) continue;
+          page.title = '';
+          page.content = '';
+          page.toc = [];
+        }
+      },
+    },
+  ],
   locales: [
     {
       lang: 'zh',
