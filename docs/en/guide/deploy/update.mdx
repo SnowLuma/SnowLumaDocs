@@ -27,7 +27,7 @@ docker stop snowluma && docker rm snowluma
 ```
 
 :::danger
-**Do not delete the data volumes** (`snowluma-data`, `snowluma-qq-config`, `snowluma-qq-data`). Deleting them loses your login and config. `docker rm` only removes the container, not the volumes — recreate with the same volume names and it picks up right where it left off.
+**Do not delete the data volumes** (`qq-gateway-data`, `qq-client-config`, `qq-client-data`). Deleting them loses your login and config. `docker rm` only removes the container, not the volumes — recreate with the same volume names and it picks up right where it left off.
 :::
 
 ## Manual tarball

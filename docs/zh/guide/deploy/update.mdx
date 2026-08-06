@@ -27,7 +27,7 @@ docker stop snowluma && docker rm snowluma
 ```
 
 :::danger
-**不要删除数据卷**（`snowluma-data`、`snowluma-qq-config`、`snowluma-qq-data`）。删了就会丢登录态和配置。`docker rm` 只删容器、不删卷，重建时挂上同名卷即可无缝衔接。
+**不要删除数据卷**（`qq-gateway-data`、`qq-client-config`、`qq-client-data`）。删了就会丢登录态和配置。`docker rm` 只删容器、不删卷，重建时挂上同名卷即可无缝衔接。
 :::
 
 ## 手动 tarball

@@ -70,9 +70,9 @@ docker run -d \
   -p 5099:5099 \
   -p 3000:3000 \
   -p 3001:3001 \
-  -v snowluma-data:/app/snowluma-data \
-  -v snowluma-qq-config:/app/.config \
-  -v snowluma-qq-data:/app/.local/share \
+  -v qq-gateway-data:/app/data \
+  -v qq-client-config:/app/.config \
+  -v qq-client-data:/app/.local/share \
   motricseven7/snowluma:latest
 ```
 
@@ -115,14 +115,17 @@ services:
       - "${ONEBOT_HTTP_PORT:-3000}:3000"
       - "${ONEBOT_WS_PORT:-3001}:3001"
     volumes:
-      - snowluma-data:/app/snowluma-data
-      - snowluma-qq-config:/app/.config
-      - snowluma-qq-data:/app/.local/share
+      - qq-gateway-data:/app/data
+      - qq-client-config:/app/.config
+      - qq-client-data:/app/.local/share
 
 volumes:
-  snowluma-data:
-  snowluma-qq-config:
-  snowluma-qq-data:
+  qq-gateway-data:
+    name: qq-gateway-data
+  qq-client-config:
+    name: qq-client-config
+  qq-client-data:
+    name: qq-client-data
 ```
 
 启动：
@@ -163,11 +166,11 @@ docker compose up -d
 
 ## 数据卷
 
-| 卷                   | 容器路径             | 内容                                                                                  |
-| -------------------- | -------------------- | ------------------------------------------------------------------------------------- |
-| `snowluma-data`      | `/app/snowluma-data` | SnowLuma 配置、缓存、SDB 等。`config/onebot.json` 和 `config/runtime.json` 都在这里。 |
-| `snowluma-qq-config` | `/app/.config`       | QQ 客户端配置。                                                                       |
-| `snowluma-qq-data`   | `/app/.local/share`  | QQ 用户数据（登录态、缓存等）。                                                       |
+| 卷                 | 容器路径            | 内容                                                                                  |
+| ------------------ | ------------------- | ------------------------------------------------------------------------------------- |
+| `qq-gateway-data`  | `/app/data`         | SnowLuma 配置、缓存、SDB 等。`config/onebot.json` 和 `config/runtime.json` 都在这里。 |
+| `qq-client-config` | `/app/.config`      | QQ 客户端配置。                                                                       |
+| `qq-client-data`   | `/app/.local/share` | QQ 用户数据（登录态、缓存等）。                                                       |
 
 **升级镜像不要删这三个卷**，否则会丢登录态和配置。
 
@@ -214,18 +217,23 @@ services:
     environment:
       SNOWLUMA_EXTRA_QQ_HOMES: /app/qq-acct2,/app/qq-acct3
     volumes:
-      - snowluma-data:/app/snowluma-data
-      - snowluma-qq-config:/app/.config # 主账号
-      - snowluma-qq-data:/app/.local/share # 主账号
-      - snowluma-qq2:/app/qq-acct2 # 第二个账号的完整 HOME
-      - snowluma-qq3:/app/qq-acct3 # 第三个账号 ...
+      - qq-gateway-data:/app/data
+      - qq-client-config:/app/.config # 主账号
+      - qq-client-data:/app/.local/share # 主账号
+      - qq-client-account-2:/app/qq-acct2 # 第二个账号的完整 HOME
+      - qq-client-account-3:/app/qq-acct3 # 第三个账号 ...
 
 volumes:
-  snowluma-data:
-  snowluma-qq-config:
-  snowluma-qq-data:
-  snowluma-qq2:
-  snowluma-qq3:
+  qq-gateway-data:
+    name: qq-gateway-data
+  qq-client-config:
+    name: qq-client-config
+  qq-client-data:
+    name: qq-client-data
+  qq-client-account-2:
+    name: qq-client-account-2
+  qq-client-account-3:
+    name: qq-client-account-3
 ```
 
 容器启动时会为每个额外 `HOME` 生成一个 supervisor program，使用 `snowluma` 用户、同一个 `DISPLAY=:1` 和同一组 `SNOWLUMA_QQ_FLAGS` 启动 QQ。这样不会出现手动 `docker exec` 默认 root 导致 SnowLuma 无法注入的问题。
@@ -271,7 +279,7 @@ docker exec -u snowluma \
 docker run -e SNOWLUMA_HOOK_AUTOLOAD=0 ... motricseven7/snowluma:latest
 ```
 
-或在 `docker-compose.yml` 改 `SNOWLUMA_HOOK_AUTOLOAD: 0`，或编辑持久卷里的 `/app/snowluma-data/config/runtime.json` 设 `"hookAutoLoad": false`。环境变量优先。
+或在 `docker-compose.yml` 改 `SNOWLUMA_HOOK_AUTOLOAD: 0`，或编辑持久卷里的 `/app/data/config/runtime.json` 设 `"hookAutoLoad": false`。环境变量优先。
 
 ## 常用运维
 
@@ -296,10 +304,10 @@ docker logs -f snowluma 2>&1 | grep -v "QtNetwork\|GLib\|libQt6"
 进入 SnowLuma 数据目录：
 
 ```bash
-docker exec -it snowluma bash -c "cd /app/snowluma-data && ls -la"
+docker exec -it snowluma bash -c "cd /app/data && ls -la"
 ```
 
-修改 OneBot 配置：编辑 `/app/snowluma-data/config/onebot_<uin>.json`，重启容器：
+修改 OneBot 配置：编辑 `/app/data/config/onebot_<uin>.json`，重启容器：
 
 ```bash
 docker restart snowluma

@@ -34,9 +34,9 @@ docker run -d \
   --security-opt seccomp=unconfined \
   -e VNC_PASSWD=change-me \
   -p 6081:6081 -p 5099:5099 -p 3000:3000 -p 3001:3001 \
-  -v snowluma-data:/app/snowluma-data \
-  -v snowluma-qq-config:/app/.config \
-  -v snowluma-qq-data:/app/.local/share \
+  -v qq-gateway-data:/app/data \
+  -v qq-client-config:/app/.config \
+  -v qq-client-data:/app/.local/share \
   motricseven7/snowluma:latest
 ```
 

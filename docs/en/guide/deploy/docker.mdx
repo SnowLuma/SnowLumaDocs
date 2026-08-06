@@ -70,9 +70,9 @@ docker run -d \
   -p 5099:5099 \
   -p 3000:3000 \
   -p 3001:3001 \
-  -v snowluma-data:/app/snowluma-data \
-  -v snowluma-qq-config:/app/.config \
-  -v snowluma-qq-data:/app/.local/share \
+  -v qq-gateway-data:/app/data \
+  -v qq-client-config:/app/.config \
+  -v qq-client-data:/app/.local/share \
   motricseven7/snowluma:latest
 ```
 
@@ -115,14 +115,17 @@ services:
       - "${ONEBOT_HTTP_PORT:-3000}:3000"
       - "${ONEBOT_WS_PORT:-3001}:3001"
     volumes:
-      - snowluma-data:/app/snowluma-data
-      - snowluma-qq-config:/app/.config
-      - snowluma-qq-data:/app/.local/share
+      - qq-gateway-data:/app/data
+      - qq-client-config:/app/.config
+      - qq-client-data:/app/.local/share
 
 volumes:
-  snowluma-data:
-  snowluma-qq-config:
-  snowluma-qq-data:
+  qq-gateway-data:
+    name: qq-gateway-data
+  qq-client-config:
+    name: qq-client-config
+  qq-client-data:
+    name: qq-client-data
 ```
 
 Start:
@@ -163,11 +166,11 @@ Environment variables take precedence over `runtime.json`. To restrict the WebUI
 
 ## Volumes
 
-| Volume               | Container path       | Contents                                                                                 |
-| -------------------- | -------------------- | ---------------------------------------------------------------------------------------- |
-| `snowluma-data`      | `/app/snowluma-data` | SnowLuma config, cache, SQLite. Includes `config/onebot.json` and `config/runtime.json`. |
-| `snowluma-qq-config` | `/app/.config`       | QQ client config.                                                                        |
-| `snowluma-qq-data`   | `/app/.local/share`  | QQ user data (login state, cache).                                                       |
+| Volume             | Container path      | Contents                                                                                 |
+| ------------------ | ------------------- | ---------------------------------------------------------------------------------------- |
+| `qq-gateway-data`  | `/app/data`         | SnowLuma config, cache, SQLite. Includes `config/onebot.json` and `config/runtime.json`. |
+| `qq-client-config` | `/app/.config`      | QQ client config.                                                                        |
+| `qq-client-data`   | `/app/.local/share` | QQ user data (login state, cache).                                                       |
 
 **Don't delete these on upgrade** — you'll lose login state and configuration.
 
@@ -214,18 +217,23 @@ services:
     environment:
       SNOWLUMA_EXTRA_QQ_HOMES: /app/qq-acct2,/app/qq-acct3
     volumes:
-      - snowluma-data:/app/snowluma-data
-      - snowluma-qq-config:/app/.config # primary account
-      - snowluma-qq-data:/app/.local/share # primary account
-      - snowluma-qq2:/app/qq-acct2 # second account's full HOME
-      - snowluma-qq3:/app/qq-acct3 # third account...
+      - qq-gateway-data:/app/data
+      - qq-client-config:/app/.config # primary account
+      - qq-client-data:/app/.local/share # primary account
+      - qq-client-account-2:/app/qq-acct2 # second account's full HOME
+      - qq-client-account-3:/app/qq-acct3 # third account...
 
 volumes:
-  snowluma-data:
-  snowluma-qq-config:
-  snowluma-qq-data:
-  snowluma-qq2:
-  snowluma-qq3:
+  qq-gateway-data:
+    name: qq-gateway-data
+  qq-client-config:
+    name: qq-client-config
+  qq-client-data:
+    name: qq-client-data
+  qq-client-account-2:
+    name: qq-client-account-2
+  qq-client-account-3:
+    name: qq-client-account-3
 ```
 
 On boot, the container generates one supervisor program per extra `HOME`. Each extra QQ runs as the `snowluma` user with the same `DISPLAY=:1` and the same `SNOWLUMA_QQ_FLAGS`, so injection won't fail because a manual `docker exec` accidentally launched QQ as root.
@@ -271,7 +279,7 @@ If you prefer the legacy "manual Load via WebUI" workflow:
 docker run -e SNOWLUMA_HOOK_AUTOLOAD=0 ... motricseven7/snowluma:latest
 ```
 
-Or set `SNOWLUMA_HOOK_AUTOLOAD: 0` in `docker-compose.yml`, or edit `/app/snowluma-data/config/runtime.json` inside the volume to `"hookAutoLoad": false`. Environment variables win.
+Or set `SNOWLUMA_HOOK_AUTOLOAD: 0` in `docker-compose.yml`, or edit `/app/data/config/runtime.json` inside the volume to `"hookAutoLoad": false`. Environment variables win.
 
 ## Common ops
 
@@ -296,13 +304,13 @@ docker logs -f snowluma 2>&1 | grep -v "QtNetwork\|GLib\|libQt6"
 Browse the data directory:
 
 ```bash
-docker exec -it snowluma bash -c "cd /app/snowluma-data && ls -la"
+docker exec -it snowluma bash -c "cd /app/data && ls -la"
 ```
 
 Edit OneBot config and restart:
 
 ```bash
-# edit /app/snowluma-data/config/onebot_<uin>.json
+# edit /app/data/config/onebot_<uin>.json
 docker restart snowluma
 ```
 
