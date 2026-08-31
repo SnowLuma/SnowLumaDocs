@@ -25,7 +25,15 @@ export default async function Layout({ params, children }: LayoutProps<'/[lang]'
   return (
     <html lang={lang} className={`${sans.variable} ${serif.variable}`} suppressHydrationWarning>
       <body className="flex min-h-screen flex-col" style={{ fontFamily: 'var(--font-sans), sans-serif' }}>
-        <RootProvider i18n={i18nProvider(translations, lang)} search={{ enabled: false }}>
+        <RootProvider
+          i18n={i18nProvider(translations, lang)}
+          search={{
+            options: {
+              type: 'static',
+              api: '/api/search',
+            },
+          }}
+        >
           {children}
         </RootProvider>
       </body>

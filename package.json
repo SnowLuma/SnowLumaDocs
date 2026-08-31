@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "next dev --port 5173",
     "build": "pnpm openapi && next build",
+    "build:pages": "DOCS_EXPORT=1 pnpm openapi && DOCS_EXPORT=1 next build && node tools/write-legacy-redirects.mjs",
     "start": "next start --port 5173",
     "openapi": "node tools/catalog-to-openapi.mjs",
     "prebuild": "node tools/catalog-to-openapi.mjs"
