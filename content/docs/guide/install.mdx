@@ -3,18 +3,19 @@ title: 一键安装（Linux）
 description: 官方安装器：独立 Docker、接入已有机器人网络、或进阶本机安装
 ---
 
-Linux 上推荐用官方 `install.sh`。不要 `curl … | bash`。先下载、看一眼、核对校验，再执行。
-
-脚本在 [`SnowLuma.Docker.Framework`](https://github.com/SnowLuma/SnowLuma.Docker.Framework) 仓库根目录。
+Linux 上推荐官方安装器，一条命令，不用克隆仓库。有 TTY 时交互问模式；也可以把参数直接传进去。
 
 ```bash
-# 克隆框架仓后
-./install.sh
-# 或非交互
-./install.sh --mode docker --yes
-./install.sh --mode compose --network maim_bot --yes
-./install.sh --dry-run --mode docker
+curl -fsSL https://raw.githubusercontent.com/SnowLuma/SnowLuma.Docker.Framework/main/install.sh | bash
 ```
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/SnowLuma/SnowLuma.Docker.Framework/main/install.sh | bash -s -- --mode docker --yes
+curl -fsSL https://raw.githubusercontent.com/SnowLuma/SnowLuma.Docker.Framework/main/install.sh | bash -s -- --mode compose --network maim_bot --yes
+curl -fsSL https://raw.githubusercontent.com/SnowLuma/SnowLuma.Docker.Framework/main/install.sh | bash -s -- --dry-run --mode docker
+```
+
+国内打不开 `raw.githubusercontent.com` 时，把 URL 换成 `https://ghfast.top/https://raw.githubusercontent.com/SnowLuma/SnowLuma.Docker.Framework/main/install.sh`。脚本本体在 [`SnowLuma.Docker.Framework`](https://github.com/SnowLuma/SnowLuma.Docker.Framework)。
 
 ## 三种模式
 

@@ -3,16 +3,19 @@ title: One-click install (Linux)
 description: Official installer for standalone Docker, sidecar compose, or advanced host install
 ---
 
-On Linux, use the official `install.sh`. Do **not** `curl … | bash`. Download it, read it, verify checksums, then run it.
-
-The script lives at the root of [`SnowLuma.Docker.Framework`](https://github.com/SnowLuma/SnowLuma.Docker.Framework).
+On Linux, run the official installer as one command. You do not need to clone the repo. With a TTY it asks for a mode; you can also pass flags.
 
 ```bash
-./install.sh
-./install.sh --mode docker --yes
-./install.sh --mode compose --network maim_bot --yes
-./install.sh --dry-run --mode docker
+curl -fsSL https://raw.githubusercontent.com/SnowLuma/SnowLuma.Docker.Framework/main/install.sh | bash
 ```
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/SnowLuma/SnowLuma.Docker.Framework/main/install.sh | bash -s -- --mode docker --yes
+curl -fsSL https://raw.githubusercontent.com/SnowLuma/SnowLuma.Docker.Framework/main/install.sh | bash -s -- --mode compose --network maim_bot --yes
+curl -fsSL https://raw.githubusercontent.com/SnowLuma/SnowLuma.Docker.Framework/main/install.sh | bash -s -- --dry-run --mode docker
+```
+
+If `raw.githubusercontent.com` is blocked, swap the URL for `https://ghfast.top/https://raw.githubusercontent.com/SnowLuma/SnowLuma.Docker.Framework/main/install.sh`. The script lives in [`SnowLuma.Docker.Framework`](https://github.com/SnowLuma/SnowLuma.Docker.Framework).
 
 ## Modes
 

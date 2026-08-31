@@ -28,6 +28,16 @@ Do not pipe random Gitee installers.
 - The installer uses those, then `get.docker.com --mirror Aliyun`
 - OpenCloudOS / openEuler: do not use the distro's ancient `docker` package
 
+## Installer script
+
+If `raw.githubusercontent.com` is blocked in the one-liner:
+
+```bash
+curl -fsSL https://ghfast.top/https://raw.githubusercontent.com/SnowLuma/SnowLuma.Docker.Framework/main/install.sh | bash
+```
+
+Templates then come from jsDelivr / ghfast. Do not swap in a random Gitee installer.
+
 ## GitHub releases (lite tarball, host mode)
 
 `github.com` / `objects.githubusercontent.com` can stall. The host-mode installer tries ghfast, gh-proxy, then GitHub, and verifies checksums when they exist.

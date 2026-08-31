@@ -21,31 +21,29 @@ When in doubt, choose **Docker on Linux** — it's the official, easiest path to
 
 ## Fastest path (Docker)
 
-The most common path is the official image on Linux. Three steps:
+**1. Install**
 
-**1. Start the container**
+On Linux, one command — no clone. With a TTY it asks for a mode; add `--mode docker --yes` if you already want the standalone image.
 
 ```bash
-docker run -d \
-  --name snowluma \
-  --restart unless-stopped \
-  --shm-size=1g \
-  --cap-add=SYS_PTRACE \
-  --security-opt seccomp=unconfined \
-  -e VNC_PASSWD=change-me \
-  -p 6081:6081 -p 5099:5099 -p 3000:3000 -p 3001:3001 \
-  -v qq-gateway-data:/app/data \
-  -v qq-client-config:/app/.config \
-  -v qq-client-data:/app/.local/share \
-  motricseven7/snowluma:latest
+curl -fsSL https://raw.githubusercontent.com/SnowLuma/SnowLuma.Docker.Framework/main/install.sh | bash
 ```
 
-> [!DANGER]
-> `--cap-add=SYS_PTRACE` and `--security-opt seccomp=unconfined` are **not optional**: the hook injects into QQ via ptrace, and the default seccomp profile blocks it. `--shm-size=1g` is also required by QQ (Chromium-based).
+```bash
+curl -fsSL https://raw.githubusercontent.com/SnowLuma/SnowLuma.Docker.Framework/main/install.sh | bash -s -- --mode docker --yes
+```
+
+Modes, sidecar, and host install: [One-click install](/docs/guide/install). If you already have Docker and just want `docker run`, see [Docker deployment](/docs/guide/deploy/docker).
 
 **2. Scan the login QR**
 
-Open `http://<server-ip>:6081/` (noVNC) in a browser and enter the `VNC_PASSWD` you set. QQ is already running on the remote desktop — scan the QR with your QQ mobile app. After login, the hook auto-switches from passive observation to working mode.
+Open `http://<server-ip>:6081/` (noVNC). The remote-desktop password is printed once in the container logs:
+
+```bash
+docker logs snowluma 2>&1 | grep -E "远程桌面密码:|remote desktop password:" | tail -n 1
+```
+
+QQ is already running on the remote desktop — scan the QR with the QQ mobile app.
 
 **3. Open the WebUI**
 

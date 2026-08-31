@@ -21,31 +21,29 @@ description: 一页弄清楚该走哪条部署路径，并完成最常见的 Doc
 
 ## 最快上手（Docker）
 
-最常见的路径是在 Linux 上用官方镜像。三步：
+**1. 安装**
 
-**1. 拉起容器**
+Linux 上一条命令，不用克隆仓库。有终端就会问模式；已经想好用独立镜像就加 `--mode docker --yes`。
 
 ```bash
-docker run -d \
-  --name snowluma \
-  --restart unless-stopped \
-  --shm-size=1g \
-  --cap-add=SYS_PTRACE \
-  --security-opt seccomp=unconfined \
-  -e VNC_PASSWD=改成你自己的密码 \
-  -p 6081:6081 -p 5099:5099 -p 3000:3000 -p 3001:3001 \
-  -v qq-gateway-data:/app/data \
-  -v qq-client-config:/app/.config \
-  -v qq-client-data:/app/.local/share \
-  motricseven7/snowluma:latest
+curl -fsSL https://raw.githubusercontent.com/SnowLuma/SnowLuma.Docker.Framework/main/install.sh | bash
 ```
 
-> [!DANGER]
-> `--cap-add=SYS_PTRACE` 和 `--security-opt seccomp=unconfined` **不能省**：hook 通过 ptrace 注入 QQ，默认 seccomp profile 会拦截。`--shm-size=1g` 也是 QQ（Chromium）必需。
+```bash
+curl -fsSL https://raw.githubusercontent.com/SnowLuma/SnowLuma.Docker.Framework/main/install.sh | bash -s -- --mode docker --yes
+```
+
+模式、sidecar、本机安装见 [一键安装](/docs/guide/install)。已经有 Docker、只想自己 `docker run` 的写法见 [Docker 部署](/docs/guide/deploy/docker)。
 
 **2. 扫码登录**
 
-浏览器打开 `http://<服务器IP>:6081/`（noVNC），输入上面设置的 `VNC_PASSWD`。远程桌面里 QQ 已自动启动，用手机 QQ 扫码登录。登录后 hook 会自动从被动观察切到工作模式。
+浏览器打开 `http://<服务器IP>:6081/`（noVNC）。远程桌面密码在容器日志里打印一次，用：
+
+```bash
+docker logs snowluma 2>&1 | grep -E "远程桌面密码:|remote desktop password:" | tail -n 1
+```
+
+远程桌面里 QQ 已自动启动，用手机 QQ 扫码登录。
 
 **3. 打开 WebUI**
 

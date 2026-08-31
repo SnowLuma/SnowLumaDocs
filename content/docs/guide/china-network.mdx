@@ -28,6 +28,16 @@ docker tag docker.1ms.run/motricseven7/snowluma:latest motricseven7/snowluma:lat
 - 安装器会走这些源；失败再试 `get.docker.com --mirror Aliyun`
 - OpenCloudOS / openEuler 不要用仓库里自带的超老 docker
 
+## 安装器脚本
+
+一条命令里的 `raw.githubusercontent.com` 打不开时：
+
+```bash
+curl -fsSL https://ghfast.top/https://raw.githubusercontent.com/SnowLuma/SnowLuma.Docker.Framework/main/install.sh | bash
+```
+
+模板文件会再走 jsDelivr / ghfast。不要换成来路不明的 Gitee 一键脚本。
+
 ## GitHub Release（lite 包、host 模式）
 
 `github.com` / `objects.githubusercontent.com` 可能很慢。host 模式安装器会依次试 ghfast、gh-proxy、GitHub 直连，下载后能校验哈希就校验。
