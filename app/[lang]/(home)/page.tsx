@@ -29,39 +29,41 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
   const items = zh ? cards.zh : cards.en;
 
   return (
-    <>
+    <div className="sl-home">
       <section className="sl-hero">
-        <p className="sl-kicker">{zh ? 'QQ → OneBot 协议端' : 'QQ → OneBot protocol layer'}</p>
-        <h1 style={{ fontFamily: 'var(--font-serif), serif' }}>
-          {zh ? (
-            <>
-              把 QQ 原生能力
-              <br />
-              <em>交给标准接口</em>
-            </>
-          ) : (
-            <>
-              Native QQ,
-              <br />
-              <em>standard OneBot</em>
-            </>
-          )}
-        </h1>
-        <p className="sl-lead">
-          {zh
-            ? 'SnowLuma 不是机器人框架。它把已登录的 QQ 进程暴露成 OneBot v11，让 MaiBot、AstrBot、NoneBot 或你自己的客户端去用。'
-            : 'SnowLuma is not a bot framework. It exposes a logged-in QQ process as OneBot v11 for MaiBot, AstrBot, NoneBot, or your own client.'}
-        </p>
-        <div className="sl-actions">
-          <DynamicLink className="sl-btn sl-btn-primary" href="/[lang]/docs/guide/quickstart">
-            {zh ? '开始安装' : 'Install'}
-          </DynamicLink>
-          <DynamicLink className="sl-btn sl-btn-ghost" href="/[lang]/docs/guide/deploy">
-            {zh ? '选择部署方式' : 'Choose a deploy path'}
-          </DynamicLink>
+        <div className="sl-home-inner">
+          <p className="sl-kicker">{zh ? 'QQ → OneBot 协议端' : 'QQ → OneBot protocol layer'}</p>
+          <h1 style={{ fontFamily: 'var(--font-serif), serif' }}>
+            {zh ? (
+              <>
+                把 QQ 原生能力
+                <br />
+                <em>交给标准接口</em>
+              </>
+            ) : (
+              <>
+                Native QQ,
+                <br />
+                <em>standard OneBot</em>
+              </>
+            )}
+          </h1>
+          <p className="sl-lead">
+            {zh
+              ? 'SnowLuma 不是机器人框架。它把已登录的 QQ 进程暴露成 OneBot v11，让 MaiBot、AstrBot、NoneBot 或你自己的客户端去用。'
+              : 'SnowLuma is not a bot framework. It exposes a logged-in QQ process as OneBot v11 for MaiBot, AstrBot, NoneBot, or your own client.'}
+          </p>
+          <div className="sl-actions">
+            <DynamicLink className="sl-btn sl-btn-primary" href="/[lang]/docs/guide/quickstart">
+              {zh ? '开始安装' : 'Install'}
+            </DynamicLink>
+            <DynamicLink className="sl-btn sl-btn-ghost" href="/[lang]/docs/guide/deploy">
+              {zh ? '选择部署方式' : 'Choose a deploy path'}
+            </DynamicLink>
+          </div>
         </div>
       </section>
-      <div className="sl-grid">
+      <div className="sl-home-inner sl-grid">
         {items.map((card) => (
           <DynamicLink key={card.href} href={card.href} className="sl-card">
             <h2>{card.title}</h2>
@@ -69,6 +71,6 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
           </DynamicLink>
         ))}
       </div>
-    </>
+    </div>
   );
 }
