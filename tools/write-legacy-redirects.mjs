@@ -94,6 +94,9 @@ const extras = [
   ['/zh/guide/docker', '/zh/docs/guide/deploy/docker'],
   ['/en/guide/docker', '/en/docs/guide/deploy/docker'],
   ['/guide/docker', '/zh/docs/guide/deploy/docker'],
+  ['/zh/guide/install', '/zh/docs/guide/deploy/install'],
+  ['/en/guide/install', '/en/docs/guide/deploy/install'],
+  ['/guide/install', '/zh/docs/guide/deploy/install'],
 ];
 
 for (const [from, to] of extras) {

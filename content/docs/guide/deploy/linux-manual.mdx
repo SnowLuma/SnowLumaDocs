@@ -24,15 +24,23 @@ description: 不用 Docker，在 Linux 上手动复刻镜像内部流程运行 S
 
 SnowLuma 需要 **Node.js ≥ 22**。2026 年 **Node 24（"Krypton"）是 Active LTS**，22（"Jod"）已进入 Maintenance LTS，新装建议直接 24。lite 发行包不带运行时，所以这一步必须做。
 
-用官方 NodeSource 仓库（Debian/Ubuntu）：
+Debian/Ubuntu 任选一种：
 
-```bash
+```bash tab="NodeSource"
 curl -fsSL https://deb.nodesource.com/setup_24.x | sudo -E bash -
 sudo apt-get install -y nodejs
 node -v   # 期望 v24.x
 ```
 
-或用 `nvm` / 你习惯的版本管理器装 Node 24。Node 版本详情见官方页：[https://nodejs.org/en/about/previous-releases](https://nodejs.org/en/about/previous-releases)。
+```bash tab="nvm"
+curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
+# 重新打开终端，或: source "$HOME/.nvm/nvm.sh"
+nvm install 24
+nvm use 24
+node -v
+```
+
+Node 版本见 [Node 发布说明](https://nodejs.org/en/about/previous-releases)。用 nvm 时，后面的 `setcap` 必须打在 **nvm 解出来的真实 node 二进制**上，每次 `nvm install` / `nvm use` 换版本都要重做。
 
 > [!INFO]
 > 如果你下的是 **full** tarball（自带 Node 运行时），可以跳过这一步——但 full 包体积大很多，本页全程基于更常用的 **lite** 流程。
@@ -173,14 +181,84 @@ export DISPLAY=:1
 - **包名 / 路径**因发行版而异（上文按 Ubuntu 24.04）。Debian、Arch、RHEL 系的 `libasound`、X 工具、noVNC 启动器路径都不一样。
 - **setcap** 在某些容器化 / overlay / tmpfs 文件系统上会失败（见第 4 节）。
 - **Yama `ptrace_scope=3`** 会让 ptrace 注入彻底失效。
-- **会话保活**：上面用 `&` 后台起的进程会随 shell 退出而死。长期运行请用 systemd / supervisor / tmux 之类托管 Xvfb、fluxbox、x11vnc、noVNC、QQ、SnowLuma。
 
-如果其中任何一步在你的环境里卡住，**最省心的办法仍然是回到 [Docker 部署](/zh/guide/deploy/docker)**——镜像已经把这些坑全趟平了。
+如果其中任何一步在你的环境里卡住，**最省心的办法仍然是回到 [Docker 部署](/docs/guide/deploy/docker)**——镜像已经把这些坑全趟平了。
+
+## 8. 会话保活
+
+SSH 一断，上面用 `&` 拉起的 Xvfb / VNC / QQ / SnowLuma 都会收到 `SIGHUP` 跟着死。登录态在 QQ 的 `HOME` 里，**进程没了二维码界面也没了**，下次还得重新拉起整套。长期跑必须有人托管这些进程。
+
+> [!TIP]
+> 先用 **tmux** 把流程跑通；确认扫码、WebUI、发消息都稳定之后，再换成 **systemd**。Docker 路径没有这个问题：`--restart unless-stopped` 已经在管。
+
+这些进程必须共享同一个 `DISPLAY=:1`，顺序不能反：先 Xvfb，再窗口管理器，再 VNC / noVNC，再 QQ，最后 SnowLuma。
+
+```bash tab="tmux"
+sudo apt-get install -y tmux
+tmux new -s snowluma
+# 在这个会话里按第 3、6、7 节的顺序启动，不要再挂到 SSH 那个壳上。
+# 分离：Ctrl-b，再按 d
+# 回来：tmux attach -t snowluma
+```
+
+```bash tab="systemd"
+# 以普通用户为例，工作目录和 lite 解包路径按实际改。
+# 下面是最小可跑通的 user unit：一个 wrapper 按顺序拉起整栈。
+mkdir -p ~/.config/systemd/user
+cat > ~/snowluma-stack.sh <<'EOF'
+#!/bin/bash
+set -euo pipefail
+export DISPLAY=:1
+export HOME="${HOME}"
+Xvfb :1 -screen 0 1920x1080x24 -nolisten tcp &
+sleep 1
+fluxbox &
+x11vnc -display :1 -rfbauth "${HOME}/.vnc/passwd" -forever -shared -localhost &
+/usr/share/novnc/utils/novnc_proxy --vnc localhost:5900 --listen 6081 &
+/opt/QQ/qq --no-sandbox --disable-gpu --disable-software-rasterizer --disable-gpu-compositing &
+cd "${HOME}/snowluma-lite"
+exec node ./index.mjs
+EOF
+chmod +x ~/snowluma-stack.sh
+
+cat > ~/.config/systemd/user/snowluma-stack.service <<'EOF'
+[Unit]
+Description=SnowLuma host stack
+After=default.target
+
+[Service]
+Type=simple
+Environment=DISPLAY=:1
+ExecStart=%h/snowluma-stack.sh
+Restart=always
+RestartSec=5
+LimitNOFILE=65536
+
+[Install]
+WantedBy=default.target
+EOF
+
+loginctl enable-linger "$USER"
+systemctl --user daemon-reload
+systemctl --user enable --now snowluma-stack.service
+```
+
+> [!INFO]
+> `loginctl enable-linger` 让用户 systemd 在 SSH 登出后继续跑。日志：`journalctl --user -u snowluma-stack -f`。改脚本后 `systemctl --user restart snowluma-stack`。
+>
+> 官方 host 模式安装器会拆成 Xvfb / fluxbox / VNC / noVNC / QQ / SnowLuma 六个 unit，挂在 `snowluma.target` 下。手搓先用这一条 wrapper 就够；要拆分再抄 [`templates/host`](https://github.com/SnowLuma/SnowLuma.Docker.Framework/tree/main/templates/host)。
+
+> [!WARNING]
+> - 不要用 `nohup … &` 当长期方案：没重启策略，也没有统一日志。
+> - systemd user unit 的 `HOME` 必须和 QQ 扫码时同一个，否则登录态对不上。
+> - `novnc_proxy` 路径因发行版而异；Debian/Ubuntu 常见 `/usr/share/novnc/utils/novnc_proxy`。
+> - 升级 Node 后记得重新 `setcap`，否则重启服务注入会失败。
 
 ## 相关链接
 
-- [部署方式选择](/zh/guide/deploy/) — 各平台部署对比
-- [Docker 部署](/zh/guide/deploy/docker) — Linux 上的推荐方式
+- [部署方式选择](/docs/guide/deploy/) — 各平台部署对比
+- [Docker 部署](/docs/guide/deploy/docker) — Linux 上的推荐方式
+- [一键安装（实验性）](/docs/guide/deploy/install) — Alpha 脚本，含 host 模式 unit
 - [手机部署](/zh/guide/deploy/mobile) — Android 上跑本页的手动流程
 - [更新升级](/zh/guide/deploy/update)
 - [配置说明](/zh/guide/configuration)

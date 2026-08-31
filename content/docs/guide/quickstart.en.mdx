@@ -21,9 +21,45 @@ When in doubt, choose **Docker on Linux** — it's the official, easiest path to
 
 ## Fastest path (Docker)
 
-**1. Install**
+On Linux the recommended path is the official image. Three steps:
 
-On Linux, one command — no clone. With a TTY it asks for a mode; add `--mode docker --yes` if you already want the standalone image.
+**1. Start the container**
+
+```bash
+docker run -d \
+  --name snowluma \
+  --restart unless-stopped \
+  --shm-size=1g \
+  --cap-add=SYS_PTRACE \
+  --security-opt seccomp=unconfined \
+  -p 6081:6081 -p 5099:5099 -p 3000:3000 -p 3001:3001 \
+  -v qq-gateway-data:/app/data \
+  -v qq-client-config:/app/.config \
+  -v qq-client-data:/app/.local/share \
+  motricseven7/snowluma:latest
+```
+
+> [!DANGER]
+> `--cap-add=SYS_PTRACE` and `--security-opt seccomp=unconfined` are **required**. `--shm-size=1g` is required by QQ. The remote-desktop password is generated on first start and printed once in the logs.
+
+**2. Scan the login QR**
+
+Open `http://<server-ip>:6081/` (noVNC). Password:
+
+```bash
+docker logs snowluma 2>&1 | grep -E "远程桌面密码:|remote desktop password:" | tail -n 1
+```
+
+QQ is already running on the remote desktop — scan with the QQ mobile app.
+
+**3. Open the WebUI**
+
+Open `http://<server-ip>:5099/`. Full Compose and multi-account notes: [Docker deployment](/docs/guide/deploy/docker).
+
+## Experimental: one-click installer (Alpha)
+
+> [!WARNING]
+> **Not the default.** This script is in Alpha and will change. If you already have Docker, use the section above. If you want to help test it:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/SnowLuma/SnowLuma.Docker.Framework/main/install.sh | bash
@@ -33,23 +69,7 @@ curl -fsSL https://raw.githubusercontent.com/SnowLuma/SnowLuma.Docker.Framework/
 curl -fsSL https://raw.githubusercontent.com/SnowLuma/SnowLuma.Docker.Framework/main/install.sh | bash -s -- --mode docker --yes
 ```
 
-Modes, sidecar, and host install: [One-click install](/docs/guide/install). If you already have Docker and just want `docker run`, see [Docker deployment](/docs/guide/deploy/docker).
-
-**2. Scan the login QR**
-
-Open `http://<server-ip>:6081/` (noVNC). The remote-desktop password is printed once in the container logs:
-
-```bash
-docker logs snowluma 2>&1 | grep -E "远程桌面密码:|remote desktop password:" | tail -n 1
-```
-
-QQ is already running on the remote desktop — scan the QR with the QQ mobile app.
-
-**3. Open the WebUI**
-
-Open `http://<server-ip>:5099/` to reach the SnowLuma WebUI.
-
-For the full Compose template, multi-account, and ops commands, see [Docker deployment](/en/guide/deploy/docker).
+Interactive mode asks which path; `--yes` without `--mode` defaults to docker. Details: [One-click install (experimental)](/docs/guide/deploy/install).
 
 ## Login and first access
 

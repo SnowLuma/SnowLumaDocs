@@ -37,6 +37,8 @@ const config = {
       { source: `/en/docs/${tag}/:path*`, destination: `/en/docs/api/${tag}/:path*`, permanent: true },
     ]);
     return [
+      { source: '/zh/docs/guide/install', destination: '/zh/docs/guide/deploy/install', permanent: true },
+      { source: '/en/docs/guide/install', destination: '/en/docs/guide/deploy/install', permanent: true },
       { source: '/zh/guide/docker', destination: '/zh/docs/guide/deploy/docker', permanent: true },
       { source: '/en/guide/docker', destination: '/en/docs/guide/deploy/docker', permanent: true },
       { source: '/zh/guide/:path*', destination: '/zh/docs/guide/:path*', permanent: true },

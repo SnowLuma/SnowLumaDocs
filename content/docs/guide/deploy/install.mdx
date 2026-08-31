@@ -1,9 +1,12 @@
 ---
-title: 一键安装（Linux）
-description: 官方安装器：独立 Docker、接入已有机器人网络、或进阶本机安装
+title: 一键安装（实验性）
+description: Alpha 安装脚本：独立 Docker、接入已有机器人网络、或进阶本机安装
 ---
 
-Linux 上推荐官方安装器，一条命令，不用克隆仓库。有 TTY 时交互问模式；也可以把参数直接传进去。
+> [!WARNING]
+> 这是 **Alpha 测试** 中的实验性脚本，**不是** Linux 上的官方首推。日常请走 [Docker 部署](/docs/guide/deploy/docker)。脚本会变、坑还没踩完，欢迎帮忙测，出问题先回到 Docker。
+
+一条命令，不用克隆仓库。有 TTY 时交互问模式；也可以把参数直接传进去。
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/SnowLuma/SnowLuma.Docker.Framework/main/install.sh | bash

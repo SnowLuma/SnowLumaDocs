@@ -3,6 +3,7 @@
   "pages": [
     "index",
     "docker",
+    "install",
     "windows",
     "windows-docker",
     "wsl2",

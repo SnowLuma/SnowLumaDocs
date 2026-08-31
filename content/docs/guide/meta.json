@@ -3,7 +3,6 @@
   "pages": [
     "introduction",
     "quickstart",
-    "install",
     "deploy",
     "connect-bot",
     "configuration",

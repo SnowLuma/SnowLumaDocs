@@ -2,7 +2,7 @@ import { DynamicLink } from 'fumadocs-core/dynamic-link';
 
 const cards = {
   zh: [
-    { href: '/[lang]/docs/guide/quickstart', title: '快速开始', body: '按你手上的环境选路，Linux 上一条安装命令就能扫码。' },
+    { href: '/[lang]/docs/guide/quickstart', title: '快速开始', body: '按你手上的环境选路，Linux 上 Docker 最省事。' },
     { href: '/[lang]/docs/guide/deploy', title: '部署', body: 'Docker、Windows、WSL2、宝塔、本机进阶路径都还在。' },
     { href: '/[lang]/docs/guide/connect-bot', title: '对接机器人', body: '把 OneBot HTTP / 正向 WS / 反向 WS 接到 MaiBot、AstrBot、NoneBot。' },
     { href: '/[lang]/docs/api', title: 'API 参考', body: '从运行时目录生成的 OpenAPI，不再手写每一页动作文档。' },
@@ -10,7 +10,7 @@ const cards = {
     { href: '/[lang]/docs/sdk', title: 'SDK', body: 'TypeScript 客户端，HTTP 与 WebSocket。' },
   ],
   en: [
-    { href: '/[lang]/docs/guide/quickstart', title: 'Quick start', body: 'Pick a path for your machine. On Linux, one installer command gets you to QR login.' },
+    { href: '/[lang]/docs/guide/quickstart', title: 'Quick start', body: 'Pick a path for your machine. On Linux, Docker is the easy one.' },
     { href: '/[lang]/docs/guide/deploy', title: 'Deploy', body: 'Docker, Windows, WSL2, Baota, and the advanced host path are all still here.' },
     { href: '/[lang]/docs/guide/connect-bot', title: 'Connect a bot', body: 'Wire OneBot HTTP, forward WS, or reverse WS to MaiBot, AstrBot, or NoneBot.' },
     { href: '/[lang]/docs/api', title: 'API reference', body: 'OpenAPI generated from the runtime catalog — not a page per action written by hand.' },

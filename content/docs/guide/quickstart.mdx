@@ -21,9 +21,45 @@ description: 一页弄清楚该走哪条部署路径，并完成最常见的 Doc
 
 ## 最快上手（Docker）
 
-**1. 安装**
+Linux 上官方推荐是自己起官方镜像。三步：
 
-Linux 上一条命令，不用克隆仓库。有终端就会问模式；已经想好用独立镜像就加 `--mode docker --yes`。
+**1. 拉起容器**
+
+```bash
+docker run -d \
+  --name snowluma \
+  --restart unless-stopped \
+  --shm-size=1g \
+  --cap-add=SYS_PTRACE \
+  --security-opt seccomp=unconfined \
+  -p 6081:6081 -p 5099:5099 -p 3000:3000 -p 3001:3001 \
+  -v qq-gateway-data:/app/data \
+  -v qq-client-config:/app/.config \
+  -v qq-client-data:/app/.local/share \
+  motricseven7/snowluma:latest
+```
+
+> [!DANGER]
+> `--cap-add=SYS_PTRACE` 和 `--security-opt seccomp=unconfined` **不能省**：默认 seccomp 会拦住注入，QQ（Chromium）也需要 `--shm-size=1g`。远程桌面密码首次启动会随机生成，只在日志里打一次。
+
+**2. 扫码登录**
+
+浏览器打开 `http://<服务器IP>:6081/`（noVNC）。密码：
+
+```bash
+docker logs snowluma 2>&1 | grep -E "远程桌面密码:|remote desktop password:" | tail -n 1
+```
+
+远程桌面里 QQ 已自动启动，用手机 QQ 扫码。
+
+**3. 打开 WebUI**
+
+浏览器打开 `http://<服务器IP>:5099/`。完整 Compose、多账号见 [Docker 部署](/docs/guide/deploy/docker)。
+
+## 实验性：一键安装脚本（Alpha）
+
+> [!WARNING]
+> **不是首推。** 正在 Alpha 测试，命令和默认行为都可能变。能跑 Docker 的请优先用上一节。愿意帮忙踩坑的，可以试：
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/SnowLuma/SnowLuma.Docker.Framework/main/install.sh | bash
@@ -33,23 +69,7 @@ curl -fsSL https://raw.githubusercontent.com/SnowLuma/SnowLuma.Docker.Framework/
 curl -fsSL https://raw.githubusercontent.com/SnowLuma/SnowLuma.Docker.Framework/main/install.sh | bash -s -- --mode docker --yes
 ```
 
-模式、sidecar、本机安装见 [一键安装](/docs/guide/install)。已经有 Docker、只想自己 `docker run` 的写法见 [Docker 部署](/docs/guide/deploy/docker)。
-
-**2. 扫码登录**
-
-浏览器打开 `http://<服务器IP>:6081/`（noVNC）。远程桌面密码在容器日志里打印一次，用：
-
-```bash
-docker logs snowluma 2>&1 | grep -E "远程桌面密码:|remote desktop password:" | tail -n 1
-```
-
-远程桌面里 QQ 已自动启动，用手机 QQ 扫码登录。
-
-**3. 打开 WebUI**
-
-浏览器打开 `http://<服务器IP>:5099/` 进入 SnowLuma WebUI。
-
-更完整的 Compose 写法、多账号、运维命令见 [Docker 部署](/zh/guide/deploy/docker)。
+交互会问模式；`--yes` 且不写 `--mode` 时默认 docker。细节、sidecar、本机模式见 [一键安装（实验性）](/docs/guide/deploy/install)。
 
 ## 登录与首次访问
 

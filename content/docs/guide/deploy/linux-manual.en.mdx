@@ -24,15 +24,23 @@ Manual deployment is the same things the image does, in order:
 
 SnowLuma needs **Node.js ≥ 22**. In 2026, **Node 24 ("Krypton") is Active LTS** and 22 ("Jod") is in Maintenance LTS — for a fresh install go with 24. The lite distribution has no bundled runtime, so this step is mandatory.
 
-Using the official NodeSource repo (Debian/Ubuntu):
+Pick one on Debian/Ubuntu:
 
-```bash
+```bash tab="NodeSource"
 curl -fsSL https://deb.nodesource.com/setup_24.x | sudo -E bash -
 sudo apt-get install -y nodejs
 node -v   # expect v24.x
 ```
 
-Or install Node 24 via `nvm` / your preferred version manager. Node release details: [https://nodejs.org/en/about/previous-releases](https://nodejs.org/en/about/previous-releases).
+```bash tab="nvm"
+curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
+# open a new shell, or: source "$HOME/.nvm/nvm.sh"
+nvm install 24
+nvm use 24
+node -v
+```
+
+Node releases: [Node release schedule](https://nodejs.org/en/about/previous-releases). With nvm, `setcap` must hit the **real node binary nvm resolved**; redo it after every `nvm install` / `nvm use`.
 
 > [!INFO]
 > If you downloaded the **full** tarball (which bundles a Node runtime), you can skip this step — but the full package is much larger. This page follows the more common **lite** flow throughout.
@@ -173,14 +181,83 @@ The manual flow is sensitive to your environment. These bits depend heavily on y
 - **Package names / paths** vary by distro (above assumes Ubuntu 24.04). Debian, Arch, and RHEL-family systems differ on `libasound`, the X tools, and the noVNC launcher path.
 - **setcap** fails on some containerized / overlay / tmpfs filesystems (see step 4).
 - **Yama `ptrace_scope=3`** disables ptrace injection entirely.
-- **Session persistence**: the `&`-backgrounded processes above die when your shell exits. For long-running setups, manage Xvfb, fluxbox, x11vnc, noVNC, QQ, and SnowLuma under systemd / supervisor / tmux.
 
-If any step gets stuck in your environment, **the easiest path remains [Docker deployment](/en/guide/deploy/docker)** — the image has already smoothed over all of this.
+If any step gets stuck in your environment, **the easiest path remains [Docker deployment](/docs/guide/deploy/docker)** — the image has already smoothed over all of this.
+
+## 8. Keeping the session alive
+
+When SSH drops, every process you started with `&` (Xvfb / VNC / QQ / SnowLuma) gets `SIGHUP` and dies. Login state lives in QQ's `HOME`; **if the processes are gone, the QR window is gone too**. Long-running hosts need a supervisor.
+
+> [!TIP]
+> Get the flow working in **tmux** first (QR, WebUI, send a message). Then move to **systemd**. The Docker path does not have this problem: `--restart unless-stopped` already supervises the stack.
+
+All of these processes must share `DISPLAY=:1`, in order: Xvfb, window manager, VNC / noVNC, QQ, SnowLuma.
+
+```bash tab="tmux"
+sudo apt-get install -y tmux
+tmux new -s snowluma
+# Inside this session, start steps 3, 6, and 7. Do not background them on the SSH shell.
+# Detach: Ctrl-b, then d
+# Return: tmux attach -t snowluma
+```
+
+```bash tab="systemd"
+# Example for a regular user. Adjust the lite unpack path.
+mkdir -p ~/.config/systemd/user
+cat > ~/snowluma-stack.sh <<'EOF'
+#!/bin/bash
+set -euo pipefail
+export DISPLAY=:1
+export HOME="${HOME}"
+Xvfb :1 -screen 0 1920x1080x24 -nolisten tcp &
+sleep 1
+fluxbox &
+x11vnc -display :1 -rfbauth "${HOME}/.vnc/passwd" -forever -shared -localhost &
+/usr/share/novnc/utils/novnc_proxy --vnc localhost:5900 --listen 6081 &
+/opt/QQ/qq --no-sandbox --disable-gpu --disable-software-rasterizer --disable-gpu-compositing &
+cd "${HOME}/snowluma-lite"
+exec node ./index.mjs
+EOF
+chmod +x ~/snowluma-stack.sh
+
+cat > ~/.config/systemd/user/snowluma-stack.service <<'EOF'
+[Unit]
+Description=SnowLuma host stack
+After=default.target
+
+[Service]
+Type=simple
+Environment=DISPLAY=:1
+ExecStart=%h/snowluma-stack.sh
+Restart=always
+RestartSec=5
+LimitNOFILE=65536
+
+[Install]
+WantedBy=default.target
+EOF
+
+loginctl enable-linger "$USER"
+systemctl --user daemon-reload
+systemctl --user enable --now snowluma-stack.service
+```
+
+> [!INFO]
+> `loginctl enable-linger` keeps the user systemd instance after SSH logout. Logs: `journalctl --user -u snowluma-stack -f`. After editing the script: `systemctl --user restart snowluma-stack`.
+>
+> The official host-mode installer splits Xvfb / fluxbox / VNC / noVNC / QQ / SnowLuma into units under `snowluma.target`. Hand-rolling can start with this one wrapper; split later using [`templates/host`](https://github.com/SnowLuma/SnowLuma.Docker.Framework/tree/main/templates/host).
+
+> [!WARNING]
+> - Do not treat `nohup … &` as a long-running solution: no restart policy, no unified logs.
+> - The systemd user unit's `HOME` must be the same one QQ used when you scanned the QR.
+> - The `novnc_proxy` path varies; Debian/Ubuntu often uses `/usr/share/novnc/utils/novnc_proxy`.
+> - After upgrading Node, run `setcap` again or injection fails on the next restart.
 
 ## See also
 
-- [Choosing a deployment](/en/guide/deploy/) — per-platform comparison
-- [Docker deployment](/en/guide/deploy/docker) — the recommended path on Linux
-- [Mobile (Android)](/en/guide/deploy/mobile) — running this manual flow on Android
+- [Choosing a deployment](/docs/guide/deploy/) — per-platform comparison
+- [Docker deployment](/docs/guide/deploy/docker) — the recommended path on Linux
+- [One-click install (experimental)](/docs/guide/deploy/install) — Alpha script, including host-mode units
+- [Mobile (Android)](/docs/guide/deploy/mobile) — running this manual flow on Android
 - [Updating](/en/guide/deploy/update)
 - [Configuration](/en/guide/configuration)
