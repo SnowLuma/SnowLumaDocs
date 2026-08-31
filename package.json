@@ -1,22 +1,35 @@
 {
   "name": "snowluma-docs",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
+  "type": "module",
   "scripts": {
-    "dev": "rspress dev --port 5173",
-    "build": "rspress build",
-    "preview": "rspress preview",
-    "api:generate": "node tools/generate-api-pages.mjs",
-    "prebuild": "node tools/generate-api-pages.mjs"
+    "dev": "next dev --port 5173",
+    "build": "pnpm openapi && next build",
+    "start": "next start --port 5173",
+    "openapi": "node tools/catalog-to-openapi.mjs",
+    "prebuild": "node tools/catalog-to-openapi.mjs"
   },
   "dependencies": {
-    "rspress": "^1.47.1"
+    "@fumadocs/language": "^0.2.4",
+    "fumadocs-core": "^16.15.4",
+    "fumadocs-mdx": "^15.4.0",
+    "fumadocs-openapi": "^11.3.5",
+    "fumadocs-ui": "^16.15.4",
+    "next": "16.3.3",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "shiki": "^4.4.3",
+    "zod": "^4"
   },
   "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.3",
+    "@types/mdx": "^2.0.14",
     "@types/node": "^25.6.2",
     "@types/react": "^19.2.15",
     "@types/react-dom": "^19.2.3",
-    "katex": "^0.16.0",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.3.3",
     "typescript": "^6.0.3"
   }
 }

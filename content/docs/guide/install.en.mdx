@@ -1,0 +1,44 @@
+---
+title: One-click install (Linux)
+description: Official installer for standalone Docker, sidecar compose, or advanced host install
+---
+
+On Linux, use the official `install.sh`. Do **not** `curl … | bash`. Download it, read it, verify checksums, then run it.
+
+The script lives at the root of [`SnowLuma.Docker.Framework`](https://github.com/SnowLuma/SnowLuma.Docker.Framework).
+
+```bash
+./install.sh
+./install.sh --mode docker --yes
+./install.sh --mode compose --network maim_bot --yes
+./install.sh --dry-run --mode docker
+```
+
+## Modes
+
+| Mode | What it does | Who it is for |
+| --- | --- | --- |
+| `docker` | Official image + our compose, QQ bundled | Empty VPS |
+| `compose` | Sidecar joining an existing Docker network; **does not edit** MaiBot/AstrBot files | You already have a bot stack |
+| `host` | Install QQ + SnowLuma on the host, no Docker | Advanced / **unofficial** |
+
+There is no joint compose file. The installer will not start MaiBot or AstrBot for you.
+
+## What it handles
+
+- Ubuntu/Debian, Fedora/RHEL/Rocky, OpenCloudOS/openEuler, Arch
+- RAM, disk, busy ports, `ptrace_scope`
+- China-reachable Docker CE mirrors; **never reinstalls Docker or rewrites `daemon.json` on 1Panel/Baota**
+- Image pull fallbacks if Docker Hub is blocked
+- A random remote-desktop password on first start, stored on the volume, printed once
+- Publishes `6081` (noVNC) by default; does **not** publish raw VNC `5900`
+
+## After install
+
+Open `http://<IP>:6081/` to scan the QR code. WebUI is `http://<IP>:5099/`.
+
+```bash
+docker logs snowluma 2>&1 | grep -E "远程桌面密码:|remote desktop password:|临时密码|initial credentials" | tail -n 8
+```
+
+Full ports, volumes, and multi-account notes: [Docker deployment](/docs/guide/deploy/docker).

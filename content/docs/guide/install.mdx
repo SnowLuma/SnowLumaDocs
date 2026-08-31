@@ -1,0 +1,46 @@
+---
+title: 一键安装（Linux）
+description: 官方安装器：独立 Docker、接入已有机器人网络、或进阶本机安装
+---
+
+Linux 上推荐用官方 `install.sh`。不要 `curl … | bash`。先下载、看一眼、核对校验，再执行。
+
+脚本在 [`SnowLuma.Docker.Framework`](https://github.com/SnowLuma/SnowLuma.Docker.Framework) 仓库根目录。
+
+```bash
+# 克隆框架仓后
+./install.sh
+# 或非交互
+./install.sh --mode docker --yes
+./install.sh --mode compose --network maim_bot --yes
+./install.sh --dry-run --mode docker
+```
+
+## 三种模式
+
+| 模式 | 做什么 | 给谁 |
+| --- | --- | --- |
+| `docker` | 官方镜像 + 我们的 compose，自带 QQ | 空 VPS |
+| `compose` | sidecar，加入已有 docker 网络，**不改** MaiBot/AstrBot 的文件 | 已经有机器人栈 |
+| `host` | 本机装 QQ + SnowLuma，不用 Docker | 进阶 / **非官方** |
+
+没有「联合 compose」。不会替你拉起 MaiBot 或 AstrBot。
+
+## 安装器会处理什么
+
+- 认 Ubuntu/Debian、Fedora/RHEL/Rocky、OpenCloudOS/openEuler、Arch
+- 内存、磁盘、端口占用、`ptrace_scope`
+- 国内源装 Docker CE；**1Panel / 宝塔不重装 Docker、不改 daemon.json**
+- 拉镜像失败会换前缀重试（直连 → 1ms → 轩辕 → DaoCloud）
+- 远程桌面密码首次随机生成，写进数据卷，日志里只打一次
+- 默认发布 `6081`（noVNC），**不**默认映射 raw VNC `5900`
+
+## 装完
+
+浏览器打开 `http://<IP>:6081/` 扫码；WebUI 在 `http://<IP>:5099/`。
+
+```bash
+docker logs snowluma 2>&1 | grep -E "远程桌面密码:|remote desktop password:|临时密码|initial credentials" | tail -n 8
+```
+
+完整端口、卷、多开说明见 [Docker 部署](/docs/guide/deploy/docker)。

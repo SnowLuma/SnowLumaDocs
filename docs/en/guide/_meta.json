@@ -1,7 +1,0 @@
-[
-  { "type": "file", "name": "introduction", "label": "Introduction" },
-  { "type": "file", "name": "quickstart", "label": "Quick Start" },
-  { "type": "dir", "name": "deploy", "label": "Deployment" },
-  { "type": "file", "name": "configuration", "label": "Configuration" },
-  { "type": "file", "name": "developer", "label": "Developer Guide" }
-]

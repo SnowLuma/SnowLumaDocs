@@ -1,0 +1,16 @@
+---
+title: API 参考
+description: 从运行时动作目录生成的 OpenAPI，HTTP POST 或 WebSocket 调用
+---
+
+SnowLuma 的 HTTP API 与 OneBot v11 兼容：`POST /{动作名}`，JSON 参数，标准应答信封。
+
+本区由 `catalog.json` 转成 OpenAPI 后，用 Fumadocs OpenAPI 插件渲染，不再为每个动作手写一页 MDX。
+
+- 服务默认：`http://127.0.0.1:3000/`（Docker 里对同网络容器是 `http://snowluma:3000/`）
+- 鉴权：`Authorization: Bearer <token>` 或 `?access_token=`
+- 也可用 WebSocket `ws://127.0.0.1:3001/`
+
+左侧按分类列出全部动作。参数、示例和试调在各动作页。
+
+MCP 客户端不必手写 HTTP，见 [MCP](/docs/mcp)。

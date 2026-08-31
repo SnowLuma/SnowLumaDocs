@@ -1,0 +1,16 @@
+---
+title: API reference
+description: OpenAPI generated from the runtime action catalog; call via HTTP POST or WebSocket
+---
+
+SnowLuma's HTTP API is OneBot v11 compatible: `POST /{action}`, JSON params, standard envelope.
+
+This section is rendered by the Fumadocs OpenAPI plugin from `catalog.json`. There is no hand-written MDX page per action.
+
+- Default server: `http://127.0.0.1:3000/` (from another container on the Docker network: `http://snowluma:3000/`)
+- Auth: `Authorization: Bearer <token>` or `?access_token=`
+- WebSocket: `ws://127.0.0.1:3001/`
+
+The sidebar lists every action by category. Parameters, examples, and the try-it panel live on each action page.
+
+MCP clients do not need handwritten HTTP. See [MCP](/docs/mcp).

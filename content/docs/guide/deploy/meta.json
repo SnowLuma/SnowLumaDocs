@@ -1,0 +1,15 @@
+{
+  "title": "部署",
+  "pages": [
+    "index",
+    "docker",
+    "windows",
+    "windows-docker",
+    "wsl2",
+    "linux-manual",
+    "mobile",
+    "baota",
+    "update",
+    "storage-migration"
+  ]
+}

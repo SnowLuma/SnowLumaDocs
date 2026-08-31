@@ -1,0 +1,14 @@
+{
+  "title": "Guide",
+  "pages": [
+    "introduction",
+    "quickstart",
+    "install",
+    "deploy",
+    "connect-bot",
+    "configuration",
+    "faq",
+    "china-network",
+    "developer"
+  ]
+}

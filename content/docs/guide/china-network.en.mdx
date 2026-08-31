@@ -1,0 +1,39 @@
+---
+title: Networks in China
+description: Docker Hub, GitHub, and QQ packages on mainland networks
+---
+
+The installer already treats failures per hop: it names the hop that failed and the next action. You can do the same by hand.
+
+## Docker images
+
+Official image: `motricseven7/snowluma`.
+
+If Hub times out or rate-limits, pull through a prefix and retag:
+
+```bash
+docker pull docker.1ms.run/motricseven7/snowluma:latest
+docker tag docker.1ms.run/motricseven7/snowluma:latest motricseven7/snowluma:latest
+```
+
+`docker.xuanyuan.me/` and `docker.m.daocloud.io/` are other public prefixes. They churn; do not treat any one of them as the only source.
+
+On cloud VMs prefer the vendor's registry mirror. On **1Panel / Baota**, set it in the panel. Do not let a script rewrite `daemon.json`.
+
+## Installing Docker Engine
+
+Do not pipe random Gitee installers.
+
+- Ubuntu/Debian: Aliyun / Tsinghua `docker-ce` mirrors
+- The installer uses those, then `get.docker.com --mirror Aliyun`
+- OpenCloudOS / openEuler: do not use the distro's ancient `docker` package
+
+## GitHub releases (lite tarball, host mode)
+
+`github.com` / `objects.githubusercontent.com` can stall. The host-mode installer tries ghfast, gh-proxy, then GitHub, and verifies checksums when they exist.
+
+Do not put GitHub reverse proxies into Docker `registry-mirrors`.
+
+## Linux QQ packages
+
+Use Tencent's CDN `qqdl.gtimg.cn`. The image build pins the current official filename plus a pinned backup; it never follows `latest`.

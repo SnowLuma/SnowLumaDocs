@@ -1,30 +1,8 @@
-# deps
-/node_modules
-
-# Rspress
+node_modules
+.next
+out
 doc_build
-.rspress_cache
-
-# test & build
-/coverage
-/dist
-/build
-*.tsbuildinfo
-
-# misc
+.source
 .DS_Store
-*.pem
-/.pnp
-.pnp.js
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-.next/
-.source/
-out/
-
-# others
-.env*.local
-.vercel
-.claude/settings.local.json
+*.log
+.env*

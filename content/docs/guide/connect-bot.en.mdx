@@ -1,0 +1,54 @@
+---
+title: Connect a bot
+description: Point MaiBot, AstrBot, or NoneBot at SnowLuma's OneBot HTTP and WebSocket
+---
+
+SnowLuma is a protocol layer, not a bot framework. The bot process connects to it.
+
+In the Docker image, OneBot listens on `0.0.0.0` so sibling containers on the same network can reach it. Non-Docker installs still default to loopback.
+
+Auth: `Authorization: Bearer <token>` or `?access_token=`. Tokens live in the WebUI or `config/onebot.json` / `onebot_<uin>.json`. HTTP and WS tokens can differ.
+
+## Forward: the bot dials SnowLuma
+
+This is what **MaiBot** expects (its SnowLuma / NapCat adapter is a client).
+
+| | |
+| --- | --- |
+| HTTP API | `http://snowluma:3000/` |
+| WebSocket | `ws://snowluma:3001/` |
+
+Inside a bot container use the Docker DNS name `snowluma`, not `127.0.0.1`.
+
+Clients on the host can use `http://127.0.0.1:3000/` when the port is published.
+
+## Reverse: SnowLuma dials the bot
+
+This is what **AstrBot** and **NoneBot2** expect. Add a `wsClients` entry in SnowLuma (WebUI: reverse WebSocket):
+
+| Framework | Typical URL |
+| --- | --- |
+| AstrBot | `ws://astrbot:6199/ws` |
+| NoneBot2 | `ws://nonebot:8080/onebot/v11/ws` |
+
+Trust the bot's own docs for the path. SnowLuma only dials out.
+
+HTTP event POST uses `httpClients` with the bot's webhook URL.
+
+## Sidecar install
+
+If you already have a MaiBot / AstrBot compose stack:
+
+```bash
+./install.sh --mode compose --network maim_bot --yes
+```
+
+Replace `maim_bot` with the real name from `docker network ls`. The installer **does not edit** the other project's files.
+
+Then point the bot adapter at `snowluma:3001` (forward) or fill in the reverse URL on the SnowLuma side.
+
+## Multiple accounts
+
+Each UIN has `onebot_<uin>.json`. Defaults all want `3000` / `3001`; a second account needs other ports, or reverse WS to distinct bot endpoints.
+
+Full field list: [Configuration](/docs/guide/configuration).

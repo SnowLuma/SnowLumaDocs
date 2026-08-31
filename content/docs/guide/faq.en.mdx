@@ -1,0 +1,50 @@
+---
+title: Troubleshooting
+description: QR login, passwords, ports, injection, and image pulls
+---
+
+## noVNC never connects / spins forever
+
+- Confirm port `6081` is published. The official template **no longer publishes 5900**.
+- Use the remote-desktop password from the logs. There is no shared default password.
+- High CPU and no handshake: pass `--ulimit nofile=65536:1048576` (already in official compose).
+
+```bash
+docker logs snowluma 2>&1 | grep -E "远程桌面密码:|remote desktop password:" | tail -n 1
+```
+
+## Cannot find the WebUI password
+
+The bootstrap password is printed only on the **first start of a fresh data volume**. Reusing a volume will not print a new one.
+
+```bash
+docker logs snowluma 2>&1 | grep -E "临时密码|initial credentials" | tail -n 1
+```
+
+## A bot cannot reach 3000 / 3001
+
+- In Docker, OneBot should listen on `0.0.0.0`. Upgrading the image rewrites a leftover loopback default; a host you set yourself is left alone.
+- On the compose network use the service name `snowluma`, not `127.0.0.1`.
+- Send the access token.
+
+## Injection fails / QQ runs but never comes online
+
+- You still need `SYS_PTRACE` and `seccomp=unconfined`.
+- Do not start a second QQ as root inside the container.
+- `ptrace_scope=3` refuses ptrace outright.
+- Do not delete the `qq-gateway-data`, `qq-client-config`, or `qq-client-data` volumes.
+
+## Image pull hangs in China
+
+That hop is Docker Hub. The installer retries with prefixes. Manually:
+
+```bash
+docker pull docker.1ms.run/motricseven7/snowluma:latest
+docker tag docker.1ms.run/motricseven7/snowluma:latest motricseven7/snowluma:latest
+```
+
+On 1Panel / Baota, set a registry mirror in the panel. The installer will not rewrite `daemon.json`.
+
+## Upgrade asks you to scan again
+
+Recreating the container can look like a new device. Keep the volumes. If you still must log in again, scan via noVNC.
