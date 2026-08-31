@@ -81,9 +81,9 @@ for (const file of htmlFiles) {
     continue;
   }
 
-  if (section === 'api' && !rest) {
-    await writePair(`/${lang}/api`, urlPath);
-    if (lang === 'zh') await writePair('/api', urlPath);
+  if (section === 'api') {
+    await writePair(`/${lang}/api${rest}`, urlPath);
+    if (lang === 'zh' && !rest) await writePair('/api', urlPath);
     continue;
   }
 

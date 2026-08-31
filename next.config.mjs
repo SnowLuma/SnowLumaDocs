@@ -5,8 +5,24 @@ const withMDX = createMDX();
 /** @type {import('next').NextConfig} */
 const isExport = process.env.DOCS_EXPORT === '1';
 
+const apiTags = [
+  'system',
+  'message',
+  'friend',
+  'group-info',
+  'group-admin',
+  'group-file',
+  'group-album',
+  'request',
+  'extended',
+  'qzone',
+  'sys-face',
+  'stream',
+];
+
 const config = {
   reactStrictMode: true,
+  allowedDevOrigins: ['127.0.0.1'],
   ...(isExport
     ? { output: 'export', distDir: 'doc_build', images: { unoptimized: true } }
     : {}),
@@ -14,6 +30,12 @@ const config = {
     root: import.meta.dirname,
   },
   async redirects() {
+    const tagMoves = apiTags.flatMap((tag) => [
+      { source: `/zh/docs/${tag}`, destination: `/zh/docs/api/${tag}`, permanent: true },
+      { source: `/zh/docs/${tag}/:path*`, destination: `/zh/docs/api/${tag}/:path*`, permanent: true },
+      { source: `/en/docs/${tag}`, destination: `/en/docs/api/${tag}`, permanent: true },
+      { source: `/en/docs/${tag}/:path*`, destination: `/en/docs/api/${tag}/:path*`, permanent: true },
+    ]);
     return [
       { source: '/zh/guide/docker', destination: '/zh/docs/guide/deploy/docker', permanent: true },
       { source: '/en/guide/docker', destination: '/en/docs/guide/deploy/docker', permanent: true },
@@ -28,9 +50,10 @@ const config = {
       { source: '/en/sdk', destination: '/en/docs/sdk', permanent: true },
       { source: '/en/sdk/:path*', destination: '/en/docs/sdk/:path*', permanent: true },
       { source: '/zh/api', destination: '/zh/docs/api', permanent: true },
-      { source: '/zh/api/:path*', destination: '/zh/docs/:path*', permanent: true },
+      { source: '/zh/api/:path*', destination: '/zh/docs/api/:path*', permanent: true },
       { source: '/en/api', destination: '/en/docs/api', permanent: true },
-      { source: '/en/api/:path*', destination: '/en/docs/:path*', permanent: true },
+      { source: '/en/api/:path*', destination: '/en/docs/api/:path*', permanent: true },
+      ...tagMoves,
       { source: '/guide', destination: '/zh/docs/guide', permanent: true },
       { source: '/guide/:path*', destination: '/zh/docs/guide/:path*', permanent: true },
       { source: '/mcp', destination: '/zh/docs/mcp', permanent: true },

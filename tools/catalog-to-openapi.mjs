@@ -1,8 +1,7 @@
 #!/usr/bin/env node
 // catalog.json → OpenAPI 3.1 (public/openapi/snowluma.json).
-// One POST /{actionName} per catalog action; inputSchema is the JSON body
-// (x-role stripped). returnsSchema, when present, is exposed only as
-// { data: schema } — no invented OneBot envelope fields.
+// One POST /{actionName} per catalog action. Request body is inputSchema
+// (x-role stripped). HTTP 200 is the OneBot envelope with data from returnsSchema.
 import { readFile, writeFile, mkdir, access } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -60,26 +59,68 @@ function stripXRole(value) {
 }
 
 function actionDescription(action) {
-  if (!action.aliases?.length) return undefined;
-  return `别名：${action.aliases.map((a) => `\`${a}\``).join(', ')}`;
+  const parts = [];
+  if (action.returns?.trim()) parts.push(action.returns.trim());
+  if (action.aliases?.length) {
+    parts.push(`别名：${action.aliases.map((a) => `\`${a}\``).join(', ')}`);
+  }
+  if (action.readOnly) parts.push('只读。');
+  return parts.length ? parts.join('\n\n') : undefined;
+}
+
+function enrichInputSchema(action) {
+  const schema = stripXRole(action.inputSchema ?? { type: 'object' });
+  if (!schema || typeof schema !== 'object' || Array.isArray(schema)) return schema;
+  const properties = schema.properties && typeof schema.properties === 'object' ? { ...schema.properties } : {};
+  for (const param of action.params ?? []) {
+    if (!param?.name) continue;
+    const current = properties[param.name] && typeof properties[param.name] === 'object' ? properties[param.name] : {};
+    const next = { ...current };
+    if (param.desc && !next.description) next.description = param.desc;
+    if (param.schema && typeof param.schema === 'object') {
+      for (const [k, v] of Object.entries(param.schema)) {
+        if (next[k] === undefined) next[k] = v;
+      }
+    }
+    if (!next.type && param.type === 'uint') {
+      next.type = 'integer';
+      if (next.minimum === undefined) next.minimum = 0;
+    }
+    properties[param.name] = next;
+  }
+  const required = Array.isArray(schema.required)
+    ? schema.required
+    : (action.params ?? []).filter((p) => p.required).map((p) => p.name);
+  return {
+    ...schema,
+    type: schema.type ?? 'object',
+    properties,
+    ...(required.length ? { required } : {}),
+  };
 }
 
 function actionResponse(action) {
-  const description = action.returns?.trim() || 'OK';
-  const response = { description };
-  if (action.returnsSchema) {
-    response.content = {
+  const dataDescription = action.returns?.trim();
+  const data = action.returnsSchema
+    ? stripXRole(action.returnsSchema)
+    : { description: dataDescription || 'Action payload' };
+  return {
+    description: dataDescription || 'OneBot HTTP envelope',
+    content: {
       'application/json': {
         schema: {
           type: 'object',
           properties: {
-            data: action.returnsSchema,
+            status: { type: 'string', enum: ['ok', 'failed'] },
+            retcode: { type: 'integer', description: '0 means success' },
+            data,
+            message: { type: 'string' },
+            wording: { type: 'string' },
           },
         },
       },
-    };
-  }
-  return response;
+    },
+  };
 }
 
 function buildOpenApi(catalog) {
@@ -103,16 +144,18 @@ function buildOpenApi(catalog) {
   for (const action of catalog.actions) {
     const category = action.category ?? '扩展';
     const tag = CATEGORY_SLUG[category] ?? 'extended';
+    const bodySchema = enrichInputSchema(action);
+    const hasBody = Boolean(bodySchema?.properties && Object.keys(bodySchema.properties).length);
     const op = {
       operationId: action.name,
       summary: action.summary ?? action.name,
       tags: [tag],
       security: [{ BearerAuth: [] }, { AccessTokenQuery: [] }],
       requestBody: {
-        required: true,
+        required: hasBody,
         content: {
           'application/json': {
-            schema: stripXRole(action.inputSchema ?? { type: 'object' }),
+            schema: bodySchema,
           },
         },
       },
@@ -133,12 +176,16 @@ function buildOpenApi(catalog) {
       version: '1.0.0',
       description:
         `OneBot v11-compatible HTTP API generated from catalog.json (${catalog.actions.length} actions). ` +
-        'Authenticate with `Authorization: Bearer <token>` or `?access_token=<token>` when a token is configured.',
+        'POST `/{action}` with a JSON body. Authenticate with `Authorization: Bearer <token>` or `?access_token=<token>` when a token is configured. ' +
+        'Every response is a OneBot envelope: `status`, `retcode`, `data`.',
     },
-    servers: [{ url: HOST }],
+    servers: [
+      { url: HOST, description: 'Default HTTP server on the host' },
+      { url: 'http://snowluma:3000', description: 'Docker Compose service name on the same network' },
+    ],
     tags: tagNames.map((name) => {
       const slug = CATEGORY_SLUG[name] ?? 'extended';
-      return { name: slug, description: name, 'x-category': name };
+      return { name: slug, description: name, 'x-displayName': name, 'x-category': name };
     }),
     paths,
     components: {

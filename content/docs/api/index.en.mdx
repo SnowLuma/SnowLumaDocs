@@ -1,16 +1,40 @@
 ---
 title: API reference
-description: OpenAPI generated from the runtime action catalog; call via HTTP POST or WebSocket
+description: OpenAPI generated from the runtime catalog — parameters, responses, examples, and try-it
 ---
 
-SnowLuma's HTTP API is OneBot v11 compatible: `POST /{action}`, JSON params, standard envelope.
+SnowLuma's HTTP API is OneBot v11 compatible. Each action is one page, rendered by the OpenAPI plugin: request body, auth, the response envelope, code samples, and a try-it panel against your own instance.
 
-This section is rendered by the Fumadocs OpenAPI plugin from `catalog.json`. There is no hand-written MDX page per action.
+## Calling it
 
-- Default server: `http://127.0.0.1:3000/` (from another container on the Docker network: `http://snowluma:3000/`)
-- Auth: `Authorization: Bearer <token>` or `?access_token=`
-- WebSocket: `ws://127.0.0.1:3001/`
+- Method: `POST /{action}`
+- Body: `Content-Type: application/json`
+- Default server: `http://127.0.0.1:3000/` (on the same Docker network: `http://snowluma:3000/`)
+- Auth (when a token is configured): `Authorization: Bearer <token>`, or `?access_token=`
+- WebSocket: `ws://127.0.0.1:3001/`, same action names as HTTP
 
-The sidebar lists every action by category. Parameters, examples, and the try-it panel live on each action page.
+## Response envelope
+
+HTTP 200 can still be a business failure. Read `retcode`:
+
+```json
+{
+  "status": "ok",
+  "retcode": 0,
+  "data": {},
+  "message": "",
+  "wording": ""
+}
+```
+
+Success is `retcode` `0`. The shape of `data` is on each action page.
+
+## Try it from the docs
+
+Open any action page, set the server URL and token, and send from the try-it panel. The browser talks to the server you entered, not to this documentation site.
 
 MCP clients do not need handwritten HTTP. See [MCP](/docs/mcp).
+
+## All actions
+
+<ApiCatalog lang="en" />

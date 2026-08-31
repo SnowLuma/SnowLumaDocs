@@ -14,6 +14,11 @@ export function baseOptions(locale: string): BaseLayoutProps {
   const zh = locale === 'zh';
   const prefix = `/${locale}`;
   return {
+    i18n: true,
+    themeSwitch: {
+      enabled: true,
+      mode: 'light-dark-system',
+    },
     nav: {
       title: (
         <span className="sl-wordmark">
