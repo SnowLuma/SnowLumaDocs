@@ -61,13 +61,13 @@ To run: unpack, then `node ./index.mjs`. On Windows you can also double-click `l
 | OneBot HTTP     | `0.0.0.0:3000`      | OneBot v11 HTTP API                    |
 | OneBot WS       | `0.0.0.0:3001`      | OneBot v11 WebSocket                   |
 | WebUI           | `0.0.0.0:5099`      | Built-in management UI                 |
-| VNC             | `5900`              | Docker only: remote desktop for QR login |
-| noVNC           | `6081`              | Docker only: browser-based VNC         |
+| VNC             | `5900`              | Docker internal only: native remote desktop. Official templates do not publish it |
+| noVNC           | `6081`              | Docker only: browser remote desktop for QR login                                  |
 
 Ports and listen addresses are configurable — see the [Configuration reference](/en/guide/configuration).
 
 > [!WARNING]
-> Do **not** expose VNC / noVNC / WebUI / OneBot ports raw on the public internet. For Docker, always change the default VNC password.
+> Do **not** expose noVNC / WebUI / OneBot ports raw on the public internet. Docker has **no** shared default remote-desktop password — the first start generates a random one and prints it once in the container logs.
 
 ## Project status
 

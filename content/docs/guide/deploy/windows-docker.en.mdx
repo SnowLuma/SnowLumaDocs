@@ -37,10 +37,9 @@ docker run -d `
   --name snowluma `
   --restart unless-stopped `
   --shm-size=1g `
+  --ulimit nofile=65536:1048576 `
   --cap-add=SYS_PTRACE `
   --security-opt seccomp=unconfined `
-  -e VNC_PASSWD=vncpasswd `
-  -p 5900:5900 `
   -p 6081:6081 `
   -p 5099:5099 `
   -p 3000:3000 `
@@ -74,7 +73,7 @@ Reach the container's services directly via `localhost` (Docker Desktop forwards
 The first-login flow (noVNC QR scan, finding the WebUI temporary password, etc.) is identical to Linux — see [Docker (Linux) deployment · first login](/en/guide/deploy/docker).
 
 > [!DANGER]
-> The VNC / noVNC default password is `vncpasswd` — **change it** (`-e VNC_PASSWD=...`), otherwise anyone can get into your QQ desktop. And never expose the noVNC / WebUI / OneBot ports raw on the public internet.
+> There is **no** shared default remote-desktop password: the first start generates a random one and prints it once in the container logs. Do not expose noVNC / WebUI / OneBot ports raw on the public internet. Full notes: [Docker deployment · Remote-desktop password](/en/guide/deploy/docker).
 
 ## Where to go next
 

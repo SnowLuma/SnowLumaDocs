@@ -5,8 +5,8 @@ description: QR login, passwords, ports, injection, and image pulls
 
 ## noVNC never connects / spins forever
 
-- Confirm port `6081` is published. The official template **no longer publishes 5900**.
-- Use the remote-desktop password from the logs. There is no shared default password.
+- Confirm port `6081` is published. Official templates **do not** publish `5900`.
+- There is **no** shared default remote-desktop password. The first start generates a random one and prints it once; later restarts will not print it again — use the value you saved.
 - High CPU and no handshake: pass `--ulimit nofile=65536:1048576` (already in official compose).
 
 ```bash

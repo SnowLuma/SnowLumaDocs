@@ -61,13 +61,13 @@ dist/
 | OneBot HTTP     | `0.0.0.0:3000`      | OneBot v11 HTTP API               |
 | OneBot WS       | `0.0.0.0:3001`      | OneBot v11 WebSocket              |
 | WebUI           | `0.0.0.0:5099`      | 内置管理界面                      |
-| VNC             | `5900`              | 仅 Docker：远程桌面，用于扫码登录 |
-| noVNC           | `6081`              | 仅 Docker：浏览器版 VNC           |
+| VNC             | `5900`              | 仅 Docker 内部：原生远程桌面。官方模板不对外映射 |
+| noVNC           | `6081`              | 仅 Docker：浏览器远程桌面，扫码登录             |
 
 端口、监听地址等可在配置里改，详见[配置参考](/zh/guide/configuration)。
 
 > [!WARNING]
-> **不要**把 VNC / noVNC / WebUI / OneBot 端口裸暴露在公网。Docker 部署务必修改默认 VNC 密码。
+> **不要**把 noVNC / WebUI / OneBot 端口裸暴露在公网。Docker 的远程桌面**没有**固定默认密码，第一次启动会随机生成，只在容器日志里打印一次。
 
 ## 项目状态
 

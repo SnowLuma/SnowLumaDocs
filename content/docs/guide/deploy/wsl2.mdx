@@ -74,10 +74,9 @@ docker run -d \
   --name snowluma \
   --restart unless-stopped \
   --shm-size=1g \
+  --ulimit nofile=65536:1048576 \
   --cap-add=SYS_PTRACE \
   --security-opt seccomp=unconfined \
-  -e VNC_PASSWD=vncpasswd \
-  -p 5900:5900 \
   -p 6081:6081 \
   -p 5099:5099 \
   -p 3000:3000 \
@@ -108,7 +107,7 @@ WSL2 默认会把容器监听的端口转发到 Windows 的 `localhost`，所以
 > 极少数环境下 `localhost` 转发可能失效（被关闭或网络模式不同）。这时用 `wsl hostname -I` 拿到 WSL 的 IP，再用那个 IP 访问。
 
 > [!DANGER]
-> 改掉 VNC / noVNC 默认密码（`-e VNC_PASSWD=...`）；不要把 noVNC / WebUI / OneBot 端口裸暴露到公网。
+> 远程桌面**没有**固定默认密码：第一次启动会随机生成，只在容器日志里打印一次。不要把 noVNC / WebUI / OneBot 端口裸暴露到公网。完整说明见 [Docker 部署 · 远程桌面密码](/zh/guide/deploy/docker)。
 
 ## 也可以：在 WSL2 里走 Linux 手动流程
 

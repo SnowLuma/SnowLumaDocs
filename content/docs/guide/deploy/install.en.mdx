@@ -36,8 +36,8 @@ There is no joint compose file. The installer will not start MaiBot or AstrBot f
 - RAM, disk, busy ports, `ptrace_scope`
 - China-reachable Docker CE mirrors; **never reinstalls Docker or rewrites `daemon.json` on 1Panel/Baota**
 - Image pull fallbacks if Docker Hub is blocked
-- A random remote-desktop password on first start, stored on the volume, printed once
-- Publishes `6081` (noVNC) by default; does **not** publish raw VNC `5900`
+- No shared default remote-desktop password: if you leave it unset, the first start generates a random one, keeps it on the volume, and prints it once
+- Publishes `6081` (browser remote desktop) by default; does **not** publish raw VNC `5900`
 
 ## After install
 

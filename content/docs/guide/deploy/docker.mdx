@@ -22,12 +22,30 @@ SnowLuma 在 Linux 上**只通过 Docker 运行**（本机手动是进阶/非官
 
 | 端口   | 用途                                |
 | ------ | ----------------------------------- |
-| `6081` | noVNC（浏览器远程桌面，扫码用；首次启动生成随机密码，日志只打一次） |
+| `6081` | noVNC（浏览器远程桌面，扫码用）     |
 | `5099` | SnowLuma WebUI                      |
 | `3000` | OneBot HTTP（默认）                 |
 | `3001` | OneBot WebSocket（默认）            |
 
-原生 VNC `5900` 默认不映射。需要时自行 `-p 127.0.0.1:5900:5900`。
+官方模板**只发布 `6081`**，不映射原生 VNC `5900`。需要直连 VNC 时再自行 `-p 127.0.0.1:5900:5900`。
+
+## 远程桌面密码
+
+官方镜像**没有**公开的固定密码，也不要去抄网上或旧文档里的示例值。
+
+- **不设 `VNC_PASSWD`**：第一次启动会生成随机密码，**只在容器日志里打印一次**（中英各一行）。之后保存在数据卷里；重建容器或升级镜像，只要卷还在，密码不变，日志也不会再打。
+- **想用自己的密码**：启动时设置 `VNC_PASSWD`。只有你主动改这个值时才会换密码，并再打印一次。
+- 环境变量里如果还写着旧文档的公开默认值，下次启动会当成「未设置」，换成新的随机密码。
+
+`6081` 也不要裸放到公网。
+
+查看当前密码（只在生成或你主动更换时会出现）：
+
+```bash
+docker logs snowluma 2>&1 | grep -E "远程桌面密码:|remote desktop password:" | tail -n 1
+```
+
+重启后日志里找不到是正常的，用第一次记下的那串即可。
 
 ## ptrace 权限
 
@@ -146,7 +164,7 @@ docker compose up -d
 
 | 变量                     | 默认           | 说明                                                                |
 | ------------------------ | -------------- | ------------------------------------------------------------------- |
-| `VNC_PASSWD`             | `vncpasswd`    | VNC / noVNC 登录密码。**改成自己的**，不然别人也能进容器里看你 QQ。 |
+| `VNC_PASSWD`             | （空）         | 远程桌面密码。留空则首次启动随机生成，只在日志打印一次；想用自己的密码再填。 |
 | `TZ`                    | `Asia/Shanghai` | 容器时区。Dockerfile 预设，可通过环境变量覆盖。                    |
 | `SNOWLUMA_UID`           | `1000`         | 容器内 `snowluma` 用户的 uid。和你挂载卷的宿主属主匹配。            |
 | `SNOWLUMA_GID`           | `1000`         | 容器内 `snowluma` 用户的 gid。                                      |
@@ -158,8 +176,7 @@ docker compose up -d
 | `SNOWLUMA_HOOK_AUTOLOAD` | `1`            | 镜像默认开自动注入。设 `0` 切回手动 Load 流程。                     |
 | `SNOWLUMA_EXTRA_QQ_HOMES` | 空             | 逗号或空格分隔的额外 QQ `/app/...` `HOME` 列表，用于多开账号自动启动。 |
 | `SNOWLUMA_QQ_FLAGS`      | `--disable-gpu --disable-software-rasterizer --disable-gpu-compositing` | 传给 Linux QQ 的启动参数。默认关闭 GPU / SwiftShader 软件渲染，防止内存泄漏。 |
-| `VNC_PORT`               | `5900`         | VNC 宿主机映射端口。                                                |
-| `NOVNC_PORT`             | `6081`         | noVNC 宿主机映射端口。                                              |
+| `NOVNC_PORT`             | `6081`         | noVNC 宿主机映射端口。官方模板只映射这一项远程桌面端口。            |
 | `ONEBOT_HTTP_PORT`       | `3000`         | OneBot HTTP 宿主机映射端口。                                        |
 | `ONEBOT_WS_PORT`         | `3001`         | OneBot WebSocket 宿主机映射端口。                                   |
 
@@ -177,7 +194,7 @@ docker compose up -d
 
 ## 首次登录
 
-1. 启动容器后用浏览器打开 `http://<IP>:6081/`（noVNC），输入 `VNC_PASSWD`。
+1. 启动容器后用浏览器打开 `http://<IP>:6081/`（noVNC），输入日志里的远程桌面密码（见「远程桌面密码」）。
 2. 在远程桌面里能看到 QQ 已自动起来，扫码登录。
 3. 登录完成后 hook 会自动从被动观察切到工作模式，无需在 WebUI 里手动 Load。
 4. 浏览器打开 `http://<IP>:5099/` 访问 SnowLuma WebUI。
@@ -354,5 +371,5 @@ SNOWLUMA_TAG=v1.10.0 ./scripts/build-image.sh
 ## 安全提示
 
 - SnowLuma 用 native addon 把代码注入 QQ 进程；容器启动需要 `SYS_PTRACE` 能力和 `seccomp=unconfined`。仅在受信任的宿主上运行。
-- VNC / noVNC 默认密码 `vncpasswd` **务必改掉**，否则你的 QQ 桌面在公网上裸奔。
+- 不要把 noVNC / WebUI / OneBot 端口裸放到公网。远程桌面没有固定默认密码，但端口暴露出去一样能被人连上。
 - 请遵守 NTQQ / Tencent 的使用许可，以及 SnowLuma 与依赖项的开源协议。

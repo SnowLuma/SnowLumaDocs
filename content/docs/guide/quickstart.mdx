@@ -88,7 +88,7 @@ curl -fsSL https://raw.githubusercontent.com/SnowLuma/SnowLuma.Docker.Framework/
 - **开放端口**：要从外部访问，放行 WebUI（`5099`）和你用到的 OneBot 端口（`3000` / `3001`）。
 
 > [!WARNING]
-> 切记修改默认 VNC 密码，**不要**把 VNC / noVNC / WebUI / OneBot 端口裸暴露在公网。
+> **不要**把 noVNC / WebUI / OneBot 端口裸暴露在公网。远程桌面没有固定默认密码，看容器日志即可。
 
 ## 免密登录（URL token）
 

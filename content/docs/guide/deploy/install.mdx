@@ -36,8 +36,8 @@ curl -fsSL https://raw.githubusercontent.com/SnowLuma/SnowLuma.Docker.Framework/
 - 内存、磁盘、端口占用、`ptrace_scope`
 - 国内源装 Docker CE；**1Panel / 宝塔不重装 Docker、不改 daemon.json**
 - 拉镜像失败会换前缀重试（直连 → 1ms → 轩辕 → DaoCloud）
-- 远程桌面密码首次随机生成，写进数据卷，日志里只打一次
-- 默认发布 `6081`（noVNC），**不**默认映射 raw VNC `5900`
+- 远程桌面**没有**固定默认密码：不设则首次随机生成，写进数据卷，日志只打一次
+- 默认发布 `6081`（浏览器远程桌面），**不**映射原生 VNC `5900`
 
 ## 装完
 

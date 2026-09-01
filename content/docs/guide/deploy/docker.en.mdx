@@ -22,12 +22,30 @@ The image does **not** rebuild SnowLuma — it consumes the prebuilt `lite` tarb
 
 | Port   | Purpose                                        |
 | ------ | ---------------------------------------------- |
-| `6081` | noVNC (browser desktop for QR login; a random password is generated on first start and printed once) |
+| `6081` | noVNC (browser desktop for QR login)           |
 | `5099` | SnowLuma WebUI                                 |
 | `3000` | OneBot HTTP (default)                          |
 | `3001` | OneBot WebSocket (default)                     |
 
-Raw VNC `5900` is not published by default. Map `127.0.0.1:5900:5900` yourself if you need it.
+Official templates **publish `6081` only**. They do not map raw VNC `5900`. Add `-p 127.0.0.1:5900:5900` yourself if you need a native VNC client.
+
+## Remote-desktop password
+
+The official image has **no** public fixed password. Do not copy sample values from old docs or random posts.
+
+- **Leave `VNC_PASSWD` unset**: the first start generates a random password and **prints it once** in the container logs (one Chinese line, one English line). It is kept on the data volume. Recreating the container or upgrading the image does not change it, as long as the volume is still there, and it will not be printed again.
+- **Set your own password**: pass `VNC_PASSWD` at start. The password is rotated only when you change this value, and the new one is printed once.
+- If the variable still holds the old public default from earlier docs, the next start treats it as unset and replaces it with a new random password.
+
+Do not publish `6081` on an untrusted network either.
+
+Read the current password (it only appears when generated or when you rotate it):
+
+```bash
+docker logs snowluma 2>&1 | grep -E "远程桌面密码:|remote desktop password:" | tail -n 1
+```
+
+If a later restart no longer shows it, that is expected — use the value you saved the first time.
 
 ## ptrace permissions
 
@@ -146,7 +164,7 @@ docker compose up -d
 
 | Var                      | Default        | Notes                                                                                        |
 | ------------------------ | -------------- | -------------------------------------------------------------------------------------------- |
-| `VNC_PASSWD`             | `vncpasswd`    | VNC / noVNC login password. **Change this**, otherwise anyone can see your QQ desktop.       |
+| `VNC_PASSWD`             | (empty)        | Remote-desktop password. Leave empty to generate a random one on first start (printed once in the logs). Set it only if you want your own password. |
 | `TZ`                    | `Asia/Shanghai` | Container timezone. Set in Dockerfile, overridable via env.             |
 | `SNOWLUMA_UID`           | `1000`         | uid of the in-container `snowluma` user. Match it to the host owner of your mounted volumes. |
 | `SNOWLUMA_GID`           | `1000`         | gid of the in-container `snowluma` user.                                                     |
@@ -158,8 +176,7 @@ docker compose up -d
 | `SNOWLUMA_HOOK_AUTOLOAD` | `1`            | Image opts into auto-injection by default. Set `0` to fall back to the manual Load workflow. |
 | `SNOWLUMA_EXTRA_QQ_HOMES` | empty          | Comma- or space-separated extra QQ `/app/...` `HOME` paths for auto-starting multiple accounts. |
 | `SNOWLUMA_QQ_FLAGS`      | `--disable-gpu --disable-software-rasterizer --disable-gpu-compositing` | Flags passed to Linux QQ. The default disables GPU / SwiftShader software rendering to prevent memory leaks. |
-| `VNC_PORT`               | `5900`         | VNC host mapping port.                                                                       |
-| `NOVNC_PORT`             | `6081`         | noVNC host mapping port.                                                                     |
+| `NOVNC_PORT`             | `6081`         | noVNC host mapping port. Official templates publish only this remote-desktop port.           |
 | `ONEBOT_HTTP_PORT`       | `3000`         | OneBot HTTP host mapping port.                                                               |
 | `ONEBOT_WS_PORT`         | `3001`         | OneBot WebSocket host mapping port.                                                          |
 
@@ -177,7 +194,7 @@ Environment variables take precedence over `runtime.json`. To restrict the WebUI
 
 ## First-time login
 
-1. Open `http://<host>:6081/` (noVNC) and enter `VNC_PASSWD`.
+1. Open `http://<host>:6081/` (noVNC) and enter the remote-desktop password from the logs (see **Remote-desktop password**).
 2. Inside the remote desktop you'll see QQ already running. Scan the QR to log in.
 3. Once login completes the hook auto-switches from passive observation to working mode — no need to click Load in the WebUI.
 4. Open `http://<host>:5099/` for the SnowLuma WebUI.
@@ -356,5 +373,5 @@ Multi-arch manifests are merged by CI (`.github/workflows/docker-image.yml`); th
 ## Security notes
 
 - SnowLuma's native addon injects code into the QQ process; the container needs `SYS_PTRACE` and `seccomp=unconfined`. Only run on trusted hosts.
-- The default `VNC_PASSWD` (`vncpasswd`) **must** be changed before exposing the container to anything other than localhost — otherwise your QQ desktop is wide open.
+- Do not expose noVNC / WebUI / OneBot ports raw on the public internet. There is no shared default remote-desktop password, but an open port is still enough for someone else to connect.
 - Comply with NTQQ / Tencent's terms of service plus SnowLuma's and its dependencies' open-source licenses.
