@@ -31,7 +31,7 @@ Both clients extend the abstract `SnowLumaApiClient` base, so `call()` / `reques
 
 ### HTTP
 
-```ts
+```ts twoslash
 import { SnowLumaHttpClient } from '@snowluma/sdk';
 
 const bot = new SnowLumaHttpClient({
@@ -51,7 +51,7 @@ const bot = new SnowLumaHttpClient({
 
 ### WebSocket
 
-```ts
+```ts twoslash
 import { SnowLumaWebSocketClient } from '@snowluma/sdk';
 
 const bot = new SnowLumaWebSocketClient({
@@ -79,7 +79,7 @@ const bot = new SnowLumaWebSocketClient({
 
 Common endpoints have fully typed camelCase methods (`getLoginInfo`, `sendGroupMessage`, `setGroupBan`, …). Any registered action can be called via `raw` / `rawResponse`.
 
-```ts
+```ts twoslash
 import { SnowLumaHttpClient, text } from '@snowluma/sdk';
 
 const bot = new SnowLumaHttpClient({ accessToken: process.env.SNOWLUMA_TOKEN });
@@ -102,7 +102,10 @@ The underlying methods:
 
 Every request can override behavior via `RequestOptions`: `echo` (correlation value), `timeoutMs` (`0` disables the timeout), and `signal` (an `AbortSignal`).
 
-```ts
+```ts twoslash
+import { SnowLumaHttpClient } from '@snowluma/sdk';
+const bot = new SnowLumaHttpClient();
+// ---cut---
 const controller = new AbortController();
 const pending = bot.getStatus({ timeoutMs: 5_000, signal: controller.signal });
 controller.abort();
@@ -113,7 +116,7 @@ await pending; // throws SnowLumaAbortError
 
 Event subscription is a WebSocket-client capability. The client correlates API responses by `echo` and dispatches packets without an `echo` as events.
 
-```ts
+```ts twoslash
 import { SnowLumaWebSocketClient, text } from '@snowluma/sdk';
 
 const bot = new SnowLumaWebSocketClient({
@@ -153,8 +156,12 @@ The event context (`ctx`) has built-in shortcuts:
 
 The SDK ships a chainable message builder and segment factories; send methods accept their output directly:
 
-```ts
+```ts twoslash
 import { fromCQString, message, text, toCQString } from '@snowluma/sdk';
+// ---cut-start---
+import { SnowLumaHttpClient } from '@snowluma/sdk';
+const bot = new SnowLumaHttpClient();
+// ---cut-end---
 
 // Chained
 await bot.sendGroupMessage(123456, text('got it ').at(10001).image('/tmp/a.png'));

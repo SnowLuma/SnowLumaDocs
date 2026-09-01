@@ -5,7 +5,14 @@ import { openapi } from '@/lib/openapi';
 
 const docs = defineDocs({
   dir: 'content/docs',
+  docs: {
+    lastModified: true,
+    postprocess: {
+      includeProcessedMarkdown: true,
+    },
+  },
 });
+
 
 export const source = loader(
   {

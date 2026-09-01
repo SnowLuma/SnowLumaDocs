@@ -31,7 +31,7 @@ description: "@snowluma/sdk —— 类型完备的 OneBot 客户端，独立于 
 
 ### HTTP
 
-```ts
+```ts twoslash
 import { SnowLumaHttpClient } from '@snowluma/sdk';
 
 const bot = new SnowLumaHttpClient({
@@ -51,7 +51,7 @@ const bot = new SnowLumaHttpClient({
 
 ### WebSocket
 
-```ts
+```ts twoslash
 import { SnowLumaWebSocketClient } from '@snowluma/sdk';
 
 const bot = new SnowLumaWebSocketClient({
@@ -79,7 +79,7 @@ const bot = new SnowLumaWebSocketClient({
 
 高频接口提供类型完备的 camelCase 方法（`getLoginInfo`、`sendGroupMessage`、`setGroupBan`……）。任意已注册的 action 都能用 `raw` / `rawResponse` 调用。
 
-```ts
+```ts twoslash
 import { SnowLumaHttpClient, text } from '@snowluma/sdk';
 
 const bot = new SnowLumaHttpClient({ accessToken: process.env.SNOWLUMA_TOKEN });
@@ -102,7 +102,10 @@ const full = await bot.rawResponse('get_status');
 
 每次请求都可通过 `RequestOptions` 覆盖行为：`echo`（关联值）、`timeoutMs`（`0` 表示禁用超时）、`signal`（`AbortSignal`）。
 
-```ts
+```ts twoslash
+import { SnowLumaHttpClient } from '@snowluma/sdk';
+const bot = new SnowLumaHttpClient();
+// ---cut---
 const controller = new AbortController();
 const pending = bot.getStatus({ timeoutMs: 5_000, signal: controller.signal });
 controller.abort();
@@ -113,7 +116,7 @@ await pending; // 抛 SnowLumaAbortError
 
 事件订阅是 WebSocket 客户端独有的能力。客户端用 `echo` 关联 API 响应，把没有 `echo` 的包当作事件分发。
 
-```ts
+```ts twoslash
 import { SnowLumaWebSocketClient, text } from '@snowluma/sdk';
 
 const bot = new SnowLumaWebSocketClient({
@@ -153,8 +156,12 @@ await bot.connect();
 
 SDK 自带链式消息构造器和段工厂，发送接口直接接受它的产物：
 
-```ts
+```ts twoslash
 import { fromCQString, message, text, toCQString } from '@snowluma/sdk';
+// ---cut-start---
+import { SnowLumaHttpClient } from '@snowluma/sdk';
+const bot = new SnowLumaHttpClient();
+// ---cut-end---
 
 // 链式
 await bot.sendGroupMessage(123456, text('收到 ').at(10001).image('/tmp/a.png'));
