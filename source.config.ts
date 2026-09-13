@@ -13,6 +13,7 @@ export default defineConfig({
       persist: { id: 'package-manager' },
     },
     rehypeCodeOptions: {
+      ...rehypeCodeDefaultOptions,
       transformers: [
         ...(rehypeCodeDefaultOptions.transformers ?? []),
         transformerTwoslash({

@@ -17,6 +17,11 @@ export default async function Page(props: PageProps<'/[lang]/docs/[[...slug]]'>)
   const page = source.getPage(params.slug, params.lang);
   if (!page) notFound();
 
+  const title = page.data.title;
+  if (!title?.trim()) {
+    throw new Error(`[docs] Missing page title: ${page.url}`);
+  }
+
   const lastUpdate = lastUpdateOf(page);
 
   if (page.type === 'openapi') {
@@ -27,7 +32,7 @@ export default async function Page(props: PageProps<'/[lang]/docs/[[...slug]]'>)
         <DocsBody>
           <OpenAPIPage {...page.data.getOpenAPIPageProps()} />
         </DocsBody>
-        <PageFeedback lang={params.lang} title={page.data.title} />
+        <PageFeedback lang={params.lang} title={title} />
       </DocsPage>
     );
   }
@@ -41,7 +46,7 @@ export default async function Page(props: PageProps<'/[lang]/docs/[[...slug]]'>)
       <DocsBody>
         <MDX components={getMDXComponents()} />
       </DocsBody>
-      <PageFeedback lang={params.lang} title={page.data.title} />
+      <PageFeedback lang={params.lang} title={title} />
     </DocsPage>
   );
 }
