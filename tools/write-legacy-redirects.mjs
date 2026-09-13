@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Static hosts ignore next.config redirects. Emit HTML bounce pages for old Rspress URLs.
-import { access, mkdir, readdir, writeFile } from 'node:fs/promises';
+import { access, copyFile, mkdir, readdir, stat, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -103,4 +103,33 @@ for (const [from, to] of extras) {
   await writePair(from, to);
 }
 
-console.log(`legacy redirects: ${written.size} bounce files`);
+// Next export writes page.html plus a page/ folder. GitHub Pages then
+// 404s /page/ because the folder has no index.html.
+let copied = 0;
+for (const file of await walkHtml(outDir)) {
+  if (path.basename(file) === 'index.html') continue;
+  const dir = file.slice(0, -'.html'.length);
+  try {
+    if (!(await stat(dir)).isDirectory()) continue;
+  } catch {
+    continue;
+  }
+  const index = path.join(dir, 'index.html');
+  try {
+    await access(index);
+  } catch {
+    await copyFile(file, index);
+    copied += 1;
+  }
+}
+
+for (const locale of ['zh', 'en']) {
+  try {
+    await access(path.join(outDir, locale, 'index.html'));
+  } catch {
+    console.error(`write-legacy-redirects: missing ${locale}/index.html; GitHub Pages will 404 /${locale}/`);
+    process.exit(1);
+  }
+}
+
+console.log(`legacy redirects: ${written.size} bounce files; directory indexes: ${copied}`);
