@@ -35,6 +35,8 @@ Trust the bot's own docs for the path. SnowLuma only dials out.
 
 HTTP event POST uses `httpClients` with the bot's webhook URL.
 
+Account up / down arrives as `notice_type: bot_status` (`sub_type` `online` or `offline`). Use that event to send alerts from the bot; the email / webhook channels in the WebUI are a separate operator path. A forced kick is still `bot_offline`. Process exit does not emit `offline`. The SDK helper is `onBotStatus`.
+
 ## Sidecar install
 
 If you already have a MaiBot / AstrBot compose stack:

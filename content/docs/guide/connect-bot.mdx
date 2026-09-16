@@ -35,6 +35,8 @@ Docker 镜像里，OneBot 默认听 `0.0.0.0`，这样同一 Docker 网络里的
 
 事件 HTTP POST 用 `httpClients`，同样填对方的上报地址。
 
+账号上线 / 下线会推送 `notice_type: bot_status`（`sub_type` 为 `online` 或 `offline`）。用这条事件在应用层自己发通知；WebUI 里的邮件 / Webhook 是另一条运维通道。被踢下线仍是 `bot_offline`。进程退出不会发 `offline`。SDK 用 `onBotStatus`。
+
 ## sidecar 安装
 
 已经有 MaiBot / AstrBot 的 compose 时：

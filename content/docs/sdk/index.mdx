@@ -135,6 +135,10 @@ bot.onRequest('friend', async (_event, ctx) => {
   await ctx.approve();
 });
 
+bot.onBotStatus((event) => {
+  console.log(event.sub_type, event.user_id);
+});
+
 // 注册命令
 bot.command('echo', async (_event, ctx, match) => {
   await ctx.reply(text(match.rest || 'empty'));
@@ -143,7 +147,26 @@ bot.command('echo', async (_event, ctx, match) => {
 await bot.connect();
 ```
 
-可用的事件助手：`onMessage` / `onPrivateMessage` / `onGroupMessage` / `onNotice(type?)` / `onRequest(type?)` / `onMetaEvent` / `command()`，以及更底层的 `onEvent`、`when(predicate, handler)`、`use(middleware)`。生命周期事件用 `on('open' | 'close' | 'error' | 'response' | 'raw', …)`；每个 `on` / `when` / `use` 都返回一个取消订阅的函数。
+可用的事件助手：`onMessage` / `onPrivateMessage` / `onGroupMessage` / `onNotice(type?)` / `onBotStatus` / `onRequest(type?)` / `onMetaEvent` / `command()`，以及更底层的 `onEvent`、`when(predicate, handler)`、`use(middleware)`。生命周期事件用 `on('open' | 'close' | 'error' | 'response' | 'raw', …)`；每个 `on` / `when` / `use` 都返回一个取消订阅的函数。
+
+### 账号上下线
+
+账号上线或下线时会推送一条 notice。`sub_type` 为 `online` 或 `offline`。被踢下线仍是 `bot_offline`。进程退出不会发 `offline`。
+
+这和 WebUI「设置 → 通知」里的邮件 / Webhook 是两条路：那边给没有机器人的运维用；有机器人时用这条事件自己决定发到哪里。
+
+```json
+{
+  "time": 1710000000,
+  "self_id": 10000,
+  "post_type": "notice",
+  "notice_type": "bot_status",
+  "sub_type": "online",
+  "user_id": 10000
+}
+```
+
+也可用 `bot.onNotice('bot_status', handler)` 或 `isBotStatusEvent`。
 
 事件上下文（`ctx`）内置快捷操作：
 

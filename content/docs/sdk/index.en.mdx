@@ -135,6 +135,10 @@ bot.onRequest('friend', async (_event, ctx) => {
   await ctx.approve();
 });
 
+bot.onBotStatus((event) => {
+  console.log(event.sub_type, event.user_id);
+});
+
 // Register a command
 bot.command('echo', async (_event, ctx, match) => {
   await ctx.reply(text(match.rest || 'empty'));
@@ -143,7 +147,26 @@ bot.command('echo', async (_event, ctx, match) => {
 await bot.connect();
 ```
 
-Available event helpers: `onMessage` / `onPrivateMessage` / `onGroupMessage` / `onNotice(type?)` / `onRequest(type?)` / `onMetaEvent` / `command()`, plus the lower-level `onEvent`, `when(predicate, handler)`, and `use(middleware)`. Lifecycle events use `on('open' | 'close' | 'error' | 'response' | 'raw', …)`. Every `on` / `when` / `use` returns an unsubscribe function.
+Available event helpers: `onMessage` / `onPrivateMessage` / `onGroupMessage` / `onNotice(type?)` / `onBotStatus` / `onRequest(type?)` / `onMetaEvent` / `command()`, plus the lower-level `onEvent`, `when(predicate, handler)`, and `use(middleware)`. Lifecycle events use `on('open' | 'close' | 'error' | 'response' | 'raw', …)`. Every `on` / `when` / `use` returns an unsubscribe function.
+
+### Account online / offline
+
+When an account comes online or goes offline, SnowLuma pushes a notice. `sub_type` is `online` or `offline`. A forced kick is still `bot_offline`. Process exit does not emit `offline`.
+
+This is separate from the email / webhook channels under WebUI Settings → Notifications. Those are for operators without a bot. If you have a bot, listen here and send the alert wherever you want.
+
+```json
+{
+  "time": 1710000000,
+  "self_id": 10000,
+  "post_type": "notice",
+  "notice_type": "bot_status",
+  "sub_type": "online",
+  "user_id": 10000
+}
+```
+
+You can also use `bot.onNotice('bot_status', handler)` or `isBotStatusEvent`.
 
 The event context (`ctx`) has built-in shortcuts:
 
