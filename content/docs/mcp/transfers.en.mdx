@@ -1,0 +1,88 @@
+---
+title: File Transfers and Background Tasks
+description: Transfer files between MCP and SnowLuma hosts and retain background task results
+---
+
+## Choose an execution method
+
+Ordinary `invoke_action` waits for completion. `invoke_action_background` persists a task record, returns its identifier, and lets the client fetch the result later. The background entry currently accepts only catalog actions marked as streams, not ordinary actions such as sending a message.
+
+Both require write mode. Existing execution tools retain their behavior; background execution is an explicit choice.
+
+## Upload from the MCP host
+
+Set `SNOWLUMA_MCP_UPLOAD_ROOT` to an existing allowed directory. Pass these arguments to `invoke_action`:
+
+```json
+{
+  "action": "upload_file_stream",
+  "params": { "file_retention": 300000 },
+  "execution": { "input_file": "/home/me/mcp-share/report.pdf" }
+}
+```
+
+The input must resolve inside the upload root; paths and symlinks escaping it are rejected. MCP owns transfer identifiers and chunk fields; do not supply them again in `params`. `execution` controls MCP-side behavior and is not forwarded as action parameters.
+
+The completed `file_path` belongs to the **SnowLuma server** and can be used in a later media or file action. Uploading alone does not send a chat message. `file_retention` is in milliseconds and defaults to five minutes; zero disables expiry of the completed server file.
+
+Failure or cancellation attempts to clean up an unfinished upload, but cannot undo a committed file. A lost completion response may leave the remote file present. Do not blindly retry a send because the response was lost.
+
+## Download to the MCP host
+
+Example `invoke_action` arguments, with a **server-side** path:
+
+```json
+{
+  "action": "download_file_stream",
+  "params": { "file": "/srv/shared/report.pdf", "chunk_size": 65536 }
+}
+```
+
+A `file_id` may also be used as documented by the action. Image and record variants are `download_file_image_stream` and `download_file_record_stream`. Downloads are written incrementally under `SNOWLUMA_MCP_STREAM_DIR` and committed only after validation. Results contain `file_path`, `file_size`, `sha256`, `frame_count`, and `terminal`. This path is on the **MCP host**; the model does not receive the whole encoded file.
+
+Each client allows four concurrent top-level streams. `SNOWLUMA_MCP_MAX_STREAM_BYTES` limits each file; the shared download directory quota is twice that value. Unknown-size downloads reserve the full per-file limit. Completed files remain on disk and consume quota until the operator moves or deletes them. Malformed frames, truncation, limit violations, and cancellation remove the unfinished download.
+
+## Progress and cancellation
+
+Supply standard `_meta.progressToken` metadata to receive matching `notifications/progress`. Downloads report bytes written, automatic uploads report acknowledged bytes, and generic streams report frame counts. Totals are present only for known positive file sizes. Calls without a progress token receive no progress notifications.
+
+Cancellation reaches requests and response reads. Ordinary calls use a request timeout; streams use connection and per-read idle deadlines. Cancellation does not prove a remote operation was prevented, and progress does not replace a successful final result. Background tasks use status polling rather than the initiating request's progress or cancellation signal; cancel them with `tasks/cancel`.
+
+## Enable persistent tasks
+
+Requirements:
+
+- Write mode with a OneBot HTTP endpoint.
+- An absolute private `SNOWLUMA_MCP_TASK_DIR`. POSIX directories use `0700` and files `0600`; unsuitable permissions cause errors.
+- An MCP `2026-07-28` client declaring `extensions: {"io.modelcontextprotocol/tasks": {}}`.
+
+Pass the same upload arguments to `invoke_action_background`. Its response resembles:
+
+```json
+{
+  "resultType": "task",
+  "taskId": "11111111-1111-4111-8111-111111111111",
+  "status": "working",
+  "ttlMs": null,
+  "pollIntervalMs": 1000
+}
+```
+
+The identifier above is illustrative; use the real returned value.
+
+| Interface | Purpose |
+| --- | --- |
+| `tasks/get`, `{ "taskId": "..." }` | Fetch status and the final saved `result` or `error`. |
+| `tasks/cancel`, `{ "taskId": "..." }` | Request cooperative cancellation, then query the final state. |
+| `tasks/update` | Answer outstanding task input requests, not edit arbitrary task fields. |
+| `list_tasks` tool | List metadata without result bodies using `cursor` and `limit` (1–100, default 50). |
+
+The current transfer entry does not request interactive input or automatically combine with `_with_input`; provide complete parameters first. Task lifecycle operations are protocol methods, while `list_tasks` is a tool. Deprecated `tasks/list` and `tasks/result` are not provided.
+
+`completed` means the tool finished, not necessarily that the business operation succeeded. Inspect nested diagnostics and OneBot responses. Cancellation does not roll back effects, and completion already in flight may win the race.
+
+## Restart and storage boundaries
+
+Records survive restart without automatic expiry or deletion. **Unfinished work becomes failed with an unknown remote outcome; it is never replayed and transfers are not resumed.** At most four tasks run concurrently, with a 16 MiB limit per persisted record.
+
+A directory has one runtime owner and is bound to a digest of the effective mode, endpoint, and token. Use a new private directory when configuration changes, retaining old history. Do not delete records to hide configuration errors. Corruption, permission problems, and write failures remain explicit errors. Results may contain private account data.

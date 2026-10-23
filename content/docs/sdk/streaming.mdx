@@ -1,0 +1,132 @@
+---
+title: 流式传输
+description: 增量上传、逐块下载，以及流式响应的取消、校验和错误处理
+---
+
+HTTP 与 WebSocket 客户端都支持流式上传、下载。原有 `request()`、`call()`、`raw()`、`rawResponse()` 和 `downloadFile()` 继续保持单响应语义；多帧响应请使用本页的方法。只想上传后直接发送图片或文件时，见[消息辅助](/zh/sdk/messaging)。
+
+> [!INFO] 文档与版本
+> 本页随当前 SDK 源码同步，是否可用以安装的 npm 发布包为准。连接的 SnowLuma 服务端也必须支持相应的流式动作；客户端安装与配置见 [SDK 首页](/zh/sdk/)。
+
+## 上传文件
+
+`uploadFileStream(source, options?)` 逐块上传，等待每块确认后再继续，最后独立发起完成请求。返回 `UploadFileStreamComplete`，包含 `file_path`、`file_size`、`sha256` 等完成信息。
+
+```ts
+import { createReadStream } from 'node:fs';
+import { stat } from 'node:fs/promises';
+import { SnowLumaHttpClient } from '@snowluma/sdk';
+
+const client = new SnowLumaHttpClient({
+  baseUrl: 'http://127.0.0.1:3000/',
+  accessToken: process.env.SNOWLUMA_TOKEN,
+});
+const path = './photo.png';
+const fileSize = (await stat(path)).size;
+const signal = AbortSignal.timeout(60_000);
+const uploaded = await client.uploadFileStream(createReadStream(path, { signal }), {
+  fileSize,
+  filename: 'photo.png',
+  signal,
+  onProgress: ({ uploadedBytes, fileSize }) => {
+    console.log(`${uploadedBytes}/${fileSize}`);
+  },
+});
+console.log(uploaded.file_path, uploaded.file_size, uploaded.sha256);
+```
+
+`source` 接受 `Uint8Array`（含 Node.js `Buffer`）、`Blob`、`ReadableStream<Uint8Array>` 或 `AsyncIterable<Uint8Array>`。字节数组和 `Blob` 可推导大小；流或异步迭代器必须提供 `fileSize`，以便上传前确定总分块数。实际长度与声明大小不一致会报错，空文件也受支持。
+
+| 选项 | 含义 |
+| --- | --- |
+| `fileSize` | 总字节数；流来源必填 |
+| `filename` | 上传文件名 |
+| `chunkSize` | 每块解码后字节数，默认 64 KiB，范围 1–1048576 |
+| `expectedSha256` | 预期摘要；由服务端验证，SDK 也核对完成信息中的摘要 |
+| `fileRetention` | 完成文件在服务端的保留毫秒数，`0` 禁用过期；当前服务端默认五分钟 |
+| `streamId` | 新上传的唯一标识；省略时自动生成，不能复用已有上传 |
+| `onProgress` | 每块确认后调用，可返回 Promise；SDK 等其完成才继续读取 |
+| `signal` / `timeoutMs` / `echo` | 请求取消、超时和关联值；边界见下文 |
+
+`file_path` 位于 **SnowLuma 服务端**。完成上传不会写入 SDK 机器的文件，也不会自动发送 QQ 消息。该方法不提供断点续传或自动重试。
+
+`signal` 会取消请求并关闭可读来源。自定义异步迭代器应接收同一信号，让挂起读取和清理能结束；SDK 无法强制任意生产者完成自己的 Promise。示例为 Node.js 来源传入了同一信号。
+
+失败或取消的上传不会被完成；部分上传由服务端空闲超时清理（当前为十分钟）。SDK 不自动发重置请求，也不删除已完成的服务端文件。保留时间与部分上传清理属于服务端策略，以实际部署版本为准。
+
+## 下载文件
+
+`downloadFileStream(params, options?)` 返回异步迭代器，每次提供一个 `Uint8Array` 字节块。以下 Node.js 示例下载到独立临时文件，校验完成后再移动到目标路径：
+
+```ts
+import { createWriteStream } from 'node:fs';
+import { mkdtemp, rename, rm } from 'node:fs/promises';
+import { join } from 'node:path';
+import { pipeline } from 'node:stream/promises';
+import { SnowLumaHttpClient } from '@snowluma/sdk';
+
+const client = new SnowLumaHttpClient({
+  accessToken: process.env.SNOWLUMA_TOKEN,
+});
+// 临时目录与目标在同一目录下，避免移动时跨文件系统。
+const tempDirectory = await mkdtemp('./download-');
+const temporary = join(tempDirectory, 'photo.png');
+try {
+  await pipeline(
+    client.downloadFileStream(
+      { file: '/path/on/snowluma-server/photo.png', chunk_size: 64 * 1024 },
+      {
+        signal: AbortSignal.timeout(60_000),
+        onInfo: (info) => console.log(info.file_name, info.file_size),
+      },
+    ),
+    createWriteStream(temporary, { flags: 'wx' }),
+  );
+  // 确认目标路径可覆盖后使用；成功前不会替换目标文件。
+  await rename(temporary, './downloaded.png');
+} finally {
+  await rm(tempDirectory, { recursive: true, force: true });
+}
+```
+
+参数选择服务端 `file` 或 `file_id`，并可提供 `chunk_size`。`options.action` 可以选 `download_file_stream`（默认）、`download_file_image_stream`、`download_file_record_stream`。`onInfo` 在第一个字节块输出前运行。
+
+迭代器最终返回 `DownloadFileStreamComplete`。`for await` 与 `pipeline()` 会读完并校验传输，但丢弃迭代器的最终返回值；需要其中的 `total_bytes` / `total_chunks` 时，手动调用 `iterator.next()` 并读取 `done: true` 时的 `value`。
+
+SDK 解码并检查分块顺序、块长度和最终总数。初始文件大小为零可能表示大小未知，最终字节数和块数仍必须匹配。缺少元数据、格式错误、传输截断和服务端失败都会抛错，已被应用消费的字节不会回滚。
+
+## 逐帧读取
+
+需要原始分块信息时，使用 `stream()` 或 `requestStream()`：
+
+```ts
+import { SnowLumaHttpClient } from '@snowluma/sdk';
+
+const client = new SnowLumaHttpClient();
+for await (const frame of client.stream('test_download_stream', {})) {
+  console.log(frame.type, frame.data_type);
+}
+
+for await (const response of client.requestStream('test_download_stream', {})) {
+  console.log(response.status, response.retcode, response.data);
+}
+```
+
+- `requestStream()` 返回完整响应信封，包括最终失败信封；调用方自行判断业务是否成功。
+- `stream()` 返回类型化数据载荷，遇到失败信封时抛 `SnowLumaApiError` 或其鉴权子类，即使之前已收到数据也会报错。
+- 两者支持三个下载动作、`test_download_stream`、`upload_file_stream`。每次上传请求只返回一次确认，包括 `type: 'stream'` 的分块确认；底层调用者需要另外发完成请求。重置仍保留服务端现有的失败信封语义。
+
+## 取消、超时和缓冲区
+
+`signal`、`echo` 和 `timeoutMs` 与普通请求一样可用。超时覆盖一次活跃流式请求（包含 WebSocket 建连）；上传则分别对每块及完成请求计时。`0` 禁用超时；来源读取和应用回调不受请求超时计时。整体流程请使用自己的取消信号。
+
+停止迭代会释放客户端资源。HTTP 还会取消响应体；WebSocket 只停止收集当前请求，不关闭共享连接。协议没有逐请求取消下载的消息，服务端可能继续发剩余帧。因此请为传输使用唯一 `echo`，不要在旧帧可能到达时复用已取消传输的关联值。断线使活跃传输失败，重连不重放它们。
+
+| 选项 | 默认值 | 作用 |
+| --- | --- | --- |
+| `maxBufferBytes` | 32 MiB | 限制单个 HTTP 帧或排队的 WebSocket 载荷字节数 |
+| `maxBufferedFrames` | 256 | 限制排队的 WebSocket 帧数 |
+
+超限会抛错，不会静默丢帧或把整个文件无限缓存。HTTP 按消费速度读取，WebSocket 没有逐请求背压；向较慢的目标下载大文件时，优先使用 HTTP。
+
+流式类型从 `@snowluma/sdk` 与 `@snowluma/sdk/types` 导出。自定义 `SnowLumaApiClient` 子类实现 `requestStream()` 后即可支持流式调用；只实现 `request()` 的旧子类仍兼容，尝试流式调用时会明确报不支持。

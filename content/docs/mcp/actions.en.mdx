@@ -1,0 +1,77 @@
+---
+title: Action Discovery and Results
+description: Find actions, inspect result schemas, check configuration, and trace calls
+---
+
+## Search and pagination
+
+`search_actions` keeps case-insensitive substring matching and catalog order by default. Example tool arguments:
+
+```json
+{
+  "query": "group mute",
+  "match": "keywords",
+  "read_only": false,
+  "stream": false,
+  "limit": 10,
+  "offset": 0
+}
+```
+
+Keyword mode combines space-separated terms with AND, recognizes a small set of common Chinese/English synonyms, and ranks exact names or aliases first. It is not unrestricted semantic search.
+
+Both `list_actions` and `search_actions` accept `category`, `read_only`, `stream`, `limit` (1–200), and `offset` (non-negative). Without pagination they retain `{ count, actions }`; with pagination they add matching `total` and `next_offset`, which is `null` on the last page. These tools read the bundled catalog only.
+
+## Parameters, return schemas, and examples
+
+`get_action({ "name": "get_msg" })` exposes `inputSchema`, `returnsSchema`, constraints, and `examples`. Replace sample account, group, message, and file identifiers with values from the current session.
+
+`returnsSchema` describes successful **OneBot `data`**, not the full envelope or MCP wrapper. Stream schemas describe individual frames; MCP downloads instead return saved-file metadata. Unsupported actions and compatibility placeholders are explicitly identified.
+
+Ordinary message IDs are non-zero signed 32-bit integers; negative values are valid. Example `query_action` arguments:
+
+```json
+{
+  "action": "get_msg",
+  "params": { "message_id": -123 }
+}
+```
+
+Do not take absolute values or replace negative IDs with zero. Preserve decimal-string identifiers and sizes, as well as `null`, as documented.
+
+## Structured results
+
+Completed calls preserve their existing `content` text and also provide `structuredContent`:
+
+```json
+{
+  "result": { "status": "ok", "retcode": 0, "data": { "message_id": -123 } },
+  "diagnostics": { "outcome": "success" }
+}
+```
+
+`result` holds the original payload. Catalog tools may return arrays or indexes rather than OneBot envelopes. MCP tool errors set it to `null`. `diagnostics.outcome` is `success`, `failed`, or `unknown`; failures may include `kind`, `message`, and `next_step`.
+
+Ordinary OneBot business failures retain their envelope without setting `isError`, so **checking `isError` alone is insufficient**. Asynchronous acknowledgements and unconfirmed outcomes are `unknown`. Transport, argument, and stream protocol errors set `isError: true`.
+
+Modern `input_required` and `task` results are continuations. Check `resultType` first, then complete input collection or fetch the task's terminal result.
+
+## Runtime overview
+
+`get_runtime_info({})` stays offline by default. It reports the effective mode, execution/write availability, catalog version, and—in execution mode—transfer limits and local directories. It does not expose the endpoint or token. `server_support: "unknown"` and `connection_checked: false` are not evidence of a connection or login.
+
+The following explicit option runs three read-only queries: `get_login_info`, `get_status`, and `get_version_info`:
+
+```json
+{ "check_connection": true }
+```
+
+This is available only in read/write mode. Original responses and diagnostics remain under `checks`, including partial failures. A successful HTTP exchange alone does not establish that the account is online.
+
+## Caching and tracing
+
+Modern clients receive five-minute private cache hints for tool discovery and static resource lists, and five-minute public hints for the bundled catalog and preview UI. Enabling events disables resource-list caching. Event resources are not cached; tool execution results receive no cache hints. Legacy replies omit modern-only cache fields.
+
+Each tool call returns a correlation identifier in `_meta.traceparent`. Callers may provide a valid `traceparent` and optional `tracestate` in request `_meta` to retain upstream correlation. HTTP headers carry the trace; action parameters do not.
+
+With TRACE logging enabled in SnowLuma, match `traceparent` to `http_trace`, then follow its local request number. MCP diagnostics record the tool, outcome, duration, and failure category, not message contents or tokens. Traces are not authorization credentials and no telemetry exporter is installed.

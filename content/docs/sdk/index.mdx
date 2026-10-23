@@ -5,10 +5,19 @@ description: "@snowluma/sdk —— 类型完备的 OneBot 客户端，独立于 
 
 `@snowluma/sdk` 是一个 **类型完备的 OneBot v11 客户端**，用 TypeScript 编写。它面向第三方消费者：你不需要在同一个进程里跑 SnowLuma，也不依赖 SnowLuma 运行时——它只是通过 OneBot 的 HTTP / WebSocket 端口连到任意一个正在运行的 SnowLuma 实例。
 
-包可以直接从 npm 安装，与 SnowLuma 核心 **共享 action 类型**，因此调用参数和返回值不会随版本漂移。
+包可以直接从 npm 安装。SDK 独立维护动作名、参数和返回值类型，并通过测试与服务端动作注册表及参数解析器核对；发布包不依赖服务端代码。连接的服务端版本仍需与所用能力匹配。
+
+> [!INFO] 文档与版本
+> 本章随当前 SDK 源码同步，新增能力是否可用以你安装的 npm 发布包为准；源码更新不代表已发布。请同时核对 SDK 与 SnowLuma 服务端版本。
+
+| 想做什么 | 从这里开始 |
+| --- | --- |
+| 安装、连接、调用动作、订阅事件 | 当前页 |
+| 发送本机图片或文件、引用回复、等待下一条消息 | [消息辅助](/zh/sdk/messaging) |
+| 分块上传、逐块下载、处理取消和传输错误 | [流式传输](/zh/sdk/streaming) |
 
 > [!INFO] 端口从哪来
-> SDK 连接的是 SnowLuma 暴露的 OneBot 端口：HTTP 默认 `0.0.0.0:3000`、WebSocket 默认 `0.0.0.0:3001`。`accessToken` 同样来自 OneBot 配置。先在 [配置](/zh/guide/configuration) 页确认这些网络适配器已启用。
+> SDK 连接的是 SnowLuma 暴露的 OneBot 端口：通常使用 HTTP `http://127.0.0.1:3000/`、WebSocket `ws://127.0.0.1:3001/`，实际地址以服务端配置为准。`accessToken` 同样来自 OneBot 配置。先在 [配置](/zh/guide/configuration) 页确认这些网络适配器已启用。
 
 ## 安装
 
@@ -16,16 +25,28 @@ description: "@snowluma/sdk —— 类型完备的 OneBot 客户端，独立于 
 @snowluma/sdk
 ```
 
-需要 **Node.js ≥ 22**（推荐 Node 24 LTS）。包是纯 ESM（`"type": "module"`），自带类型声明。
+Node.js 版本要求为 **`^24.22.1 || >=26.12.1`**：24 系列从 24.22.1 起，或 26.12.1 及更新版本；不包含 25 系列。包是纯 ESM（`"type": "module"`），自带类型声明，可由 Node.js 原生导入，无需打包器。
+
+保存为 `example.mjs`，安装后运行 `node example.mjs`：
+
+```js
+import { SnowLumaHttpClient } from '@snowluma/sdk';
+import { isSnowLumaAction } from '@snowluma/sdk/actions';
+
+const bot = new SnowLumaHttpClient();
+console.log(bot.constructor.name, isSnowLumaAction('get_login_info'));
+```
+
+TypeScript 项目可使用 `module` / `moduleResolution: "NodeNext"`，并在自己的 `package.json` 设置 `"type": "module"`；使用打包器的项目也受支持。
 
 ## 支持的传输
 
 | 传输 | 客户端类 | 默认端点 |
 | --- | --- | --- |
 | HTTP（POST JSON） | `SnowLumaHttpClient` | `http://127.0.0.1:3000/` |
-| WebSocket（正向 / 反向，含事件） | `SnowLumaWebSocketClient` | `ws://127.0.0.1:3001/` |
+| WebSocket（主动连接，含事件） | `SnowLumaWebSocketClient` | `ws://127.0.0.1:3001/` |
 
-两个客户端都继承自抽象基类 `SnowLumaApiClient`，因此 `call()` / `request()` 以及所有 camelCase action 快捷方法在两种传输上一致。HTTP 适合纯请求-响应的脚本；WebSocket 在此之上还能 **实时接收事件**。
+两个客户端都继承自抽象基类 `SnowLumaApiClient`，因此 `call()` / `request()` 以及所有 camelCase action 快捷方法在两种传输上一致。HTTP 适合纯请求-响应的脚本；WebSocket 在此之上还能 **实时接收事件**。`SnowLumaWebSocketClient` 主动连接服务端的正向 WebSocket 地址，不提供接收反向 WebSocket 的监听服务器。
 
 ## 构造客户端
 
@@ -66,7 +87,7 @@ const bot = new SnowLumaWebSocketClient({
 - `url?` —— OneBot WebSocket 端点，默认 `ws://127.0.0.1:3001/`。
 - `accessToken?` —— 通过查询参数附加到连接 URL。
 - `requestTimeoutMs?` —— 默认请求超时，默认 `30000`。
-- `role?` —— 客户端声明的角色：`'Api'` | `'Event'` | `'Universal'`（默认 `'Universal'`）。
+- `role?` —— 保留在客户端上的角色属性：`'Api'` | `'Event'` | `'Universal'`（默认 `'Universal'`）；目前不会发送给服务端，不能用它切换端点权限或事件路由。
 - `reconnect?` —— `true` 或一个 `ReconnectOptions`（`retries` / `minDelayMs` / `maxDelayMs`），开启意外断开后的自动重连。
 - `protocols?` / `webSocket?` —— 可选子协议、可选自定义 `WebSocket` 构造器（Node 运行时或测试用）。
 
@@ -99,6 +120,21 @@ const full = await bot.rawResponse('get_status');
 
 - `call(action, params?, options?)` —— 发送 action，返回 `data`；当 `status` 为 `failed` 或 `retcode !== 0` 时抛 `SnowLumaApiError`。
 - `request(action, params?, options?)` —— 返回完整响应信封，不抛业务错。
+
+已知动作均在 `SnowLumaActionMap` 中提供参数与返回值条目（包含兼容别名）；`ActionParams<动作名>` 与 `ActionResult<动作名>` 可用于你自己的封装。为兼容现有调用，部分结果仍保留宽泛的 JSON 类型；类型检查不替代服务端的范围、权限与状态校验。
+
+```ts
+import { SnowLumaHttpClient } from '@snowluma/sdk';
+import type { ActionParams, ActionResult } from '@snowluma/sdk/types';
+
+const bot = new SnowLumaHttpClient();
+const params: ActionParams<'send_group_msg'> = {
+  group_id: 123456,
+  message: [{ type: 'text', data: { text: '你好' } }],
+};
+const sent: ActionResult<'send_group_msg'> = await bot.call('send_group_msg', params);
+console.log(sent.message_id);
+```
 
 每次请求都可通过 `RequestOptions` 覆盖行为：`echo`（关联值）、`timeoutMs`（`0` 表示禁用超时）、`signal`（`AbortSignal`）。
 
@@ -170,7 +206,8 @@ await bot.connect();
 
 事件上下文（`ctx`）内置快捷操作：
 
-- `ctx.reply(message)` —— 按私聊 / 群聊自动回复。
+- `ctx.reply(message)` —— 按私聊 / 群聊发送普通回复。
+- `ctx.quote(message)` —— 在 SDK 创建的消息事件上下文中，引用当前消息回复；见[消息辅助](/zh/sdk/messaging)。
 - `ctx.approve()` / `ctx.reject(reason)` —— 处理好友或群请求。
 - `ctx.quickOperation(operation)` —— 调用 `.handle_quick_operation`。
 - `ctx.stopPropagation()` —— 停止后续中间件分发。
@@ -186,7 +223,7 @@ import { SnowLumaHttpClient } from '@snowluma/sdk';
 const bot = new SnowLumaHttpClient();
 // ---cut-end---
 
-// 链式
+// 链式：图片路径位于 SnowLuma 服务端
 await bot.sendGroupMessage(123456, text('收到 ').at(10001).image('/tmp/a.png'));
 
 // 段数组
@@ -199,18 +236,25 @@ const parsed = fromCQString('hi[CQ:at,qq=all]');
 
 内置段：`text`、`br`、`face`、`at`、`atAll`、`reply`、`image`、`record`、`video`、`json`、`xml`、`poke`、`forward`、`node`、`share`、`music`、`location`、`contact`、`raw`。`reply()` 在一条链里只能出现一次。
 
+消息段里的字符串文件路径（如上例 `/tmp/a.png`）指向 **SnowLuma 服务端**，不会自动读取 SDK 所在机器的文件；本机媒体请使用[本地媒体发送方法](/zh/sdk/messaging)。消息 ID 是非零有符号 32 位整数，负值有效；引用、查询和撤回时应原样保留，不能取绝对值。
+
 ## 自动重连、ack 关联与共享类型
 
 - **ack 关联** —— WebSocket 客户端给每个请求生成 `echo`，把响应路由回对应的 `Promise`，因此并发请求不会串台。可通过 `RequestOptions.echo` 覆盖关联值。
 - **自动重连** —— `reconnect: true`（或 `ReconnectOptions`）启用指数退避（`minDelayMs` 默认 1000，`maxDelayMs` 默认 30000）。断线时所有挂起请求会以 `SnowLumaConnectionError` 拒绝。
-- **共享 action 类型** —— action 名、参数和结果类型与 `@snowluma/core` 同源，因此调用面始终与服务端一致。
-- **统一错误体系** —— 所有错误继承 `SnowLumaError`：业务失败抛 `SnowLumaApiError`（鉴权类 retcode 走 `SnowLumaAuthError`），传输层抛 `SnowLumaTransportError` 基类下的 `SnowLumaConnectionError` / `SnowLumaParseError` / `SnowLumaTimeoutError` / `SnowLumaAbortError`。
+- **类型兼容** —— SDK 导出的动作类型可供消费端共享，但与服务端代码独立维护。包内目录代表该 SDK 版本已知的动作，不是对远端能力的探测；自定义或动态动作仍可通过 `raw()` / `rawResponse()` 调用。
+- **业务与传输错误** —— SDK 的业务和传输错误类继承 `SnowLumaError`：业务失败抛 `SnowLumaApiError`（鉴权类 retcode 走 `SnowLumaAuthError`），传输层抛 `SnowLumaTransportError` 基类下的 `SnowLumaConnectionError` / `SnowLumaParseError` / `SnowLumaTimeoutError` / `SnowLumaAbortError`。本地参数校验、文件访问和部分上下文操作也可能抛出原生异常，不能只捕获 `SnowLumaError`。
 
 ## 子路径导入
 
-除了主入口，包还提供分模块导出：`@snowluma/sdk/client`、`/messages`、`/events`、`/types`、`/errors`、`/actions`。按需精确导入即可。
+除了主入口，包还提供分模块导出：`@snowluma/sdk/client`、`/messages`、`/events`、`/types`、`/errors`、`/actions`、`/node`。按需精确导入即可。
+
+`SNOWLUMA_ACTIONS`、`isSnowLumaAction` 和类型 `SnowLumaKnownAction` 可从主入口或 `/actions` 导入。`/node` 单独提供读取本机文件的 `localFile()`，主入口及浏览器入口不会引入 Node 文件系统模块。
 
 ## 相关链接
+
+- [消息辅助](/zh/sdk/messaging) —— 本地媒体一站式发送、引用回复与事件等待。
+- [流式传输](/zh/sdk/streaming) —— 上传、下载、进度与取消。
 
 - [配置](/zh/guide/configuration) —— 启用并保护 OneBot HTTP / WS 网络适配器，拿到 `accessToken`。
 - [开发者文档](/zh/guide/developer) —— monorepo 结构与运行时内部。

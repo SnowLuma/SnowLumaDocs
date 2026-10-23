@@ -1,0 +1,60 @@
+---
+title: 实时事件订阅
+description: 按账号和会话筛选 OneBot 事件，通过资源通知和游标增量读取
+---
+
+## 配置事件连接
+
+读或写模式下设置 `SNOWLUMA_MCP_EVENTS_URL`，例如 `ws://127.0.0.1:3001/event`。这是 OneBot 的事件地址，不是 MCP 地址，也不是 WebUI 地址。它与 HTTP 端点分别配置，使用同一个 `SNOWLUMA_MCP_TOKEN` 授权请求头。
+
+只允许 `ws:` / `wss:`，不能带内嵌用户名、密码、查询参数或片段。列出工具、资源不会联网；调用 `subscribe_events` 才会建立连接。文档模式不会连接事件源。
+
+## 创建订阅
+
+先通过 `get_login_info` 等方式确认预期账号，再向 `subscribe_events` 传入：
+
+```json
+{
+  "self_id": 10001,
+  "types": ["message", "notice"],
+  "group_ids": [20001],
+  "user_ids": [30001]
+}
+```
+
+这里的账号和会话编号都是示例。`self_id` 必填，必须与连接收到的事件账号一致；不一致会停止连接并报错。一个 MCP 连接内的资源共享一个账号的事件源。
+
+`types` 可选 `message`、`notice`、`request`，省略表示三类都收。`message_sent` 归入消息类。群和用户筛选按 AND 组合：同时提供时，两者都必须匹配。群筛选会排除没有 `group_id` 的私聊等事件。每组编号过滤器最多 100 个不同的正安全整数。
+
+## 读取事件
+
+成功结果的 `structuredContent.result.uri` 是订阅资源地址，形式为 `snowluma://onebot/events/<id>`。向 `resources/read` 传入真实地址：
+
+```json
+{ "uri": "snowluma://onebot/events/11111111-1111-4111-8111-111111111111" }
+```
+
+资源的 `contents[].text` 是 JSON，包含 `status`、`events`、`next_cursor`、`oldest_cursor`、`dropped_events`、`gap` 和 `notification_failed`。保存 `next_cursor`，下次把它放入同一资源 URI 的 `?after=` 中，只读取更新的事件：
+
+```json
+{ "uri": "snowluma://onebot/events/11111111-1111-4111-8111-111111111111?after=12" }
+```
+
+游标属于单个资源，不能跨资源复用。读取不消费事件；这里只保留创建订阅后的实时事件，不是消息历史查询。
+
+## 接收更新通知
+
+- 新版客户端通过 `subscriptions/listen` 订阅资源更新；TypeScript 客户端使用 `client.listen({ resourceSubscriptions: [uri] })`。
+- 旧客户端先调用 `resources/subscribe`，再接收 `notifications/resources/updated`。
+
+通知只表示资源发生变化，收到后需要重新读取内容。**订阅通知时必须使用不带 `?after` 的原始资源 URI。**
+
+停止新版通知流不会释放事件缓存。两代客户端都可调用工具 `unsubscribe_events`，参数为 `{ "uri": "实际资源地址" }`；旧版 `resources/unsubscribe` 也会释放该资源。最后一个资源释放后关闭 WebSocket，MCP 连接结束时释放其所有事件资源。
+
+## 缓冲、断线与缺口
+
+每个资源最多保留 256 条事件和 1 MiB 数据，一个运行连接最多 16 个资源，单帧上限 256 KiB。慢消费者可能遇到旧事件被淘汰；应检查 `gap`、`dropped_events` 和 `oldest_cursor`，不能把当前队列当成完整记录。
+
+连接失败、账号不符、格式错误或断线会显式反映在状态或错误中，不会静默重连。断线后重建或切换账号前，先释放已有资源；重新订阅不恢复缺失事件。通知发送失败会通过 `notification_failed` 表明。
+
+事件订阅本身不执行 OneBot 业务动作，也不发送 QQ 消息。客户端后续如何回复，仍由调用方工作流决定。

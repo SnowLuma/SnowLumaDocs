@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "@fumadocs/language": "^0.2.4",
-    "@snowluma/sdk": "^1.14.15",
+    "@snowluma/sdk": "^2.1.1",
     "fumadocs-core": "^16.15.4",
     "fumadocs-mdx": "^15.4.0",
     "fumadocs-openapi": "^11.3.5",

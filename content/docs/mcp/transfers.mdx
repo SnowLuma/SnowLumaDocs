@@ -1,0 +1,88 @@
+---
+title: 文件传输与后台任务
+description: 在 MCP 主机与 SnowLuma 之间传输文件，并保存后台任务状态和结果
+---
+
+## 选择执行方式
+
+普通 `invoke_action` 会等待执行结束再返回；`invoke_action_background` 先保存任务记录并返回编号，稍后通过任务接口查询结果。后台入口目前仅支持目录中标记为流式的动作，不接受普通发消息等动作。
+
+两种方式都要求写模式。原有 `query_action` / `invoke_action` 的调用方式不变，后台执行必须显式选择。
+
+## 上传 MCP 主机的文件
+
+先把 `SNOWLUMA_MCP_UPLOAD_ROOT` 设置为已有的允许上传目录。向 `invoke_action` 传入：
+
+```json
+{
+  "action": "upload_file_stream",
+  "params": { "file_retention": 300000 },
+  "execution": { "input_file": "/home/me/mcp-share/report.pdf" }
+}
+```
+
+`execution.input_file` 必须解析到上传根目录内；越界路径和指向根目录外的符号链接会被拒绝。传输编号、分块内容等由 MCP 管理，不要再在 `params` 中提供。`execution` 是 MCP 执行选项，不会转发为动作参数。
+
+上传完成后返回的 `file_path` 位于 **SnowLuma 服务端**，可供后续发文件或媒体动作使用。上传本身不会向聊天发送消息。这里的 `file_retention` 单位是毫秒，默认五分钟；传 `0` 会禁用服务端完成文件的自动过期。
+
+取消或失败会尝试清理未完成上传，但无法撤销已提交的文件；如果完成响应丢失，远端文件仍可能存在。不要据此盲目重试发送。
+
+## 下载到 MCP 主机
+
+下面是 `invoke_action` 参数，`params.file` 是 **服务端路径**：
+
+```json
+{
+  "action": "download_file_stream",
+  "params": { "file": "/srv/shared/report.pdf", "chunk_size": 65536 }
+}
+```
+
+也可按动作说明使用 `file_id`；图片和语音下载分别使用 `download_file_image_stream`、`download_file_record_stream`。文件增量写入 `SNOWLUMA_MCP_STREAM_DIR`，通过完整性检查后才成为完成文件。返回 `file_path`、`file_size`、`sha256`、`frame_count` 和 `terminal`；这个 `file_path` 属于 **MCP 主机**，模型不会收到整个文件的编码内容。
+
+每个客户端最多同时运行四个顶层流式动作。单文件上限由 `SNOWLUMA_MCP_MAX_STREAM_BYTES` 控制，下载目录总配额为其两倍；未知大小的下载会先按单文件上限预留。完成文件不会由 MCP 自动删除，仍占配额，需要自行移走或清理。无效帧、截断、超限、取消等失败会删除本次未完成的下载文件。
+
+## 进度与取消
+
+调用时提供标准 `_meta.progressToken`，可收到相同令牌的 `notifications/progress`。下载报告已写入字节，自动上传报告已获服务端确认的字节，普通流报告帧数。只有已知正文件大小时才报告总量。没有进度令牌时不会发送进度通知。
+
+取消会传递到请求和响应读取。普通请求使用请求超时；流式请求使用连接超时和每次读取的空闲超时。取消不保证远端操作没发生，进度达到末尾也不能代替最终成功结果。后台任务通过任务状态查询结果，不沿用启动请求的进度通知或取消信号；取消它需调用 `tasks/cancel`。
+
+## 启用持久化任务
+
+需要以下条件：
+
+- 写模式和 OneBot HTTP 端点。
+- `SNOWLUMA_MCP_TASK_DIR` 为绝对路径的私有目录。POSIX 上目录为 `0700`、文件为 `0600`；权限不合要求会报错。
+- MCP `2026-07-28` 客户端声明 `extensions: {"io.modelcontextprotocol/tasks": {}}`。
+
+向 `invoke_action_background` 传入与上传示例相同的参数即可。返回结果类似：
+
+```json
+{
+  "resultType": "task",
+  "taskId": "11111111-1111-4111-8111-111111111111",
+  "status": "working",
+  "ttlMs": null,
+  "pollIntervalMs": 1000
+}
+```
+
+上面的编号只是示例，后续调用须使用真实返回值。
+
+| 接口 | 用途 |
+| --- | --- |
+| `tasks/get`，参数 `{ "taskId": "..." }` | 查询状态；结束后读取保存的 `result` 或 `error`。 |
+| `tasks/cancel`，参数 `{ "taskId": "..." }` | 请求协作式取消，随后再查询最终状态。 |
+| `tasks/update` | 回应尚未解决的任务输入请求；不是任意修改任务的接口。 |
+| 工具 `list_tasks` | 按 `cursor`、`limit` 列出任务元数据，不包含结果正文；`limit` 为 1–100，默认 50。 |
+
+当前后台传输入口不会自行请求补充输入，也不会与 `_with_input` 自动组合，请先准备完整参数。`tasks/get` 等是协议方法，`list_tasks` 是工具；这里不提供旧版 `tasks/list`、`tasks/result`。
+
+`completed` 表示工具已完成，不保证业务成功；仍需检查嵌套结果的诊断和 OneBot 响应。取消不回滚远端效果，已经完成的操作可能先于取消生效。
+
+## 重启和存储边界
+
+结果记录重启后保留，不自动过期或删除。**未完成任务会标记失败，并提示远端结果未知；不会自动重放，也不提供断点续传。** 最多四个并发任务，每条持久化记录上限 16 MiB。
+
+同一目录只允许一个运行实例使用，并绑定当前模式、端点和令牌配置的摘要。更换配置时使用新的私有目录，保留旧记录；不要删除历史来掩盖配置错误。文件损坏、权限不足或写入失败会明确报错。任务结果可能含账号数据，应按私有数据保管。

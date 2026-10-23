@@ -1,0 +1,132 @@
+---
+title: Streaming files
+description: Incremental uploads, chunked downloads, cancellation, validation, and errors
+---
+
+Both HTTP and WebSocket clients support streaming uploads and downloads. Existing `request()`, `call()`, `raw()`, `rawResponse()`, and `downloadFile()` keep their single-response contracts; use the methods below for responses containing multiple frames. To upload and immediately send media, see [Messaging helpers](/en/sdk/messaging).
+
+> [!INFO] Documentation and versions
+> This page follows the current SDK source; availability depends on your installed npm release. The connected SnowLuma server must also support the relevant streaming actions. See the [SDK overview](/en/sdk/) for installation and configuration.
+
+## Upload a file
+
+`uploadFileStream(source, options?)` uploads incrementally, waits for each chunk acknowledgement, then issues a separate completion request. It returns `UploadFileStreamComplete`, including `file_path`, `file_size`, and `sha256`.
+
+```ts
+import { createReadStream } from 'node:fs';
+import { stat } from 'node:fs/promises';
+import { SnowLumaHttpClient } from '@snowluma/sdk';
+
+const client = new SnowLumaHttpClient({
+  baseUrl: 'http://127.0.0.1:3000/',
+  accessToken: process.env.SNOWLUMA_TOKEN,
+});
+const path = './photo.png';
+const fileSize = (await stat(path)).size;
+const signal = AbortSignal.timeout(60_000);
+const uploaded = await client.uploadFileStream(createReadStream(path, { signal }), {
+  fileSize,
+  filename: 'photo.png',
+  signal,
+  onProgress: ({ uploadedBytes, fileSize }) => {
+    console.log(`${uploadedBytes}/${fileSize}`);
+  },
+});
+console.log(uploaded.file_path, uploaded.file_size, uploaded.sha256);
+```
+
+`source` accepts `Uint8Array` (including Node.js `Buffer`), `Blob`, `ReadableStream<Uint8Array>`, or `AsyncIterable<Uint8Array>`. Byte arrays and blobs provide their size. Streams and async iterables require `fileSize` so the total chunk count is known before uploading. A mismatch between actual and declared length throws. Empty files are supported.
+
+| Option | Meaning |
+| --- | --- |
+| `fileSize` | Total byte count; required for stream sources |
+| `filename` | Uploaded filename |
+| `chunkSize` | Decoded bytes per chunk; defaults to 64 KiB, range 1–1048576 |
+| `expectedSha256` | Expected digest, verified by the server and checked against completion metadata by the SDK |
+| `fileRetention` | Completed server-file retention in milliseconds; `0` disables expiry; the current server default is five minutes |
+| `streamId` | Unique ID for a fresh upload; generated when omitted; must not reuse an existing upload |
+| `onProgress` | Called after each acknowledged chunk; may return a Promise, which is awaited before reading more |
+| `signal` / `timeoutMs` / `echo` | Request cancellation, timeout, and correlation value; see the boundaries below |
+
+`file_path` is on the **SnowLuma server**. Upload completion does not write a file on the SDK machine or send a QQ message. The helper does not resume or retry transfers automatically.
+
+`signal` cancels requests and closes readable sources. Custom async iterables should receive the same signal so pending reads and cleanup can finish. The SDK cannot force an arbitrary producer to resolve its promises. The example passes the same signal to the Node.js source.
+
+Failed or cancelled uploads are not finalized. Partial uploads expire after the server's idle timeout (currently ten minutes). The SDK does not issue a reset request or delete completed server files automatically. Retention and partial-upload cleanup are server policies; check your deployed version.
+
+## Download a file
+
+`downloadFileStream(params, options?)` returns an async iterator yielding `Uint8Array` chunks. This Node.js example downloads to a separate temporary file and moves it to the target only after successful completion:
+
+```ts
+import { createWriteStream } from 'node:fs';
+import { mkdtemp, rename, rm } from 'node:fs/promises';
+import { join } from 'node:path';
+import { pipeline } from 'node:stream/promises';
+import { SnowLumaHttpClient } from '@snowluma/sdk';
+
+const client = new SnowLumaHttpClient({
+  accessToken: process.env.SNOWLUMA_TOKEN,
+});
+// Keep the temporary directory beside the target to avoid cross-filesystem moves.
+const tempDirectory = await mkdtemp('./download-');
+const temporary = join(tempDirectory, 'photo.png');
+try {
+  await pipeline(
+    client.downloadFileStream(
+      { file: '/path/on/snowluma-server/photo.png', chunk_size: 64 * 1024 },
+      {
+        signal: AbortSignal.timeout(60_000),
+        onInfo: (info) => console.log(info.file_name, info.file_size),
+      },
+    ),
+    createWriteStream(temporary, { flags: 'wx' }),
+  );
+  // Use a destination you may overwrite; it is not replaced before success.
+  await rename(temporary, './downloaded.png');
+} finally {
+  await rm(tempDirectory, { recursive: true, force: true });
+}
+```
+
+Parameters accept a server-side `file` or `file_id`, plus optional `chunk_size`. `options.action` selects `download_file_stream` (default), `download_file_image_stream`, or `download_file_record_stream`. `onInfo` runs before the first byte chunk is yielded.
+
+The iterator's final return value is `DownloadFileStreamComplete`. `for await` and `pipeline()` consume and validate the transfer, but discard that return value. To access its `total_bytes` / `total_chunks`, call `iterator.next()` manually and read `value` when `done` is `true`.
+
+The SDK decodes and checks chunk order, chunk lengths, and final totals. A zero initial size may mean unknown size; final byte and chunk counts must still match. Missing metadata, malformed frames, truncation, and server failures throw. Bytes already consumed by your application are not rolled back.
+
+## Read individual frames
+
+Use `stream()` or `requestStream()` when you need raw frame information:
+
+```ts
+import { SnowLumaHttpClient } from '@snowluma/sdk';
+
+const client = new SnowLumaHttpClient();
+for await (const frame of client.stream('test_download_stream', {})) {
+  console.log(frame.type, frame.data_type);
+}
+
+for await (const response of client.requestStream('test_download_stream', {})) {
+  console.log(response.status, response.retcode, response.data);
+}
+```
+
+- `requestStream()` yields full response envelopes, including a final failed envelope. Callers check business success themselves.
+- `stream()` yields typed payloads and throws `SnowLumaApiError` or its authentication subtype for failed envelopes, even after earlier data has arrived.
+- Both support the three download actions, `test_download_stream`, and `upload_file_stream`. Each upload request returns one acknowledgement, including `type: 'stream'` chunk acknowledgements. Low-level callers finalize in a separate request. Reset retains the server's existing failed-envelope behavior.
+
+## Cancellation, timeouts, and buffering
+
+`signal`, `echo`, and `timeoutMs` work as on ordinary requests. Timeout covers one active streaming request, including WebSocket connection setup. Uploads apply it separately to each chunk and completion request. `0` disables timeout. Source reads and application callbacks are not timed by the request timeout; use your own cancellation signal for an overall deadline.
+
+Stopping iteration releases client resources. HTTP also cancels its response body. WebSocket stops collecting that request without closing the shared connection. The protocol has no per-request download cancellation message, so the server may continue sending remaining frames. Use unique transfer echoes; do not reuse an aborted transfer's echo while late frames may arrive. Disconnects fail active transfers, and reconnects do not replay them.
+
+| Option | Default | Limit |
+| --- | --- | --- |
+| `maxBufferBytes` | 32 MiB | One HTTP frame or queued WebSocket payload bytes |
+| `maxBufferedFrames` | 256 | Queued WebSocket frames |
+
+Overflow throws instead of silently dropping frames or buffering the entire file. HTTP reads follow consumption; WebSocket has no per-request backpressure. Prefer HTTP when downloading large files to a slow destination.
+
+Streaming types are exported from `@snowluma/sdk` and `@snowluma/sdk/types`. Custom `SnowLumaApiClient` subclasses can implement `requestStream()` to support streaming. Existing request-only subclasses remain compatible and receive an explicit unsupported error if streaming is attempted.

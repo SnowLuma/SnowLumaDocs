@@ -1,0 +1,60 @@
+---
+title: Live Event Subscriptions
+description: Filter OneBot events by account and conversation, then read updates with resource cursors
+---
+
+## Configure the event connection
+
+In read or write mode, set `SNOWLUMA_MCP_EVENTS_URL`, for example `ws://127.0.0.1:3001/event`. This is a OneBot event endpoint, not an MCP or WebUI address. It is configured separately from HTTP and reuses `SNOWLUMA_MCP_TOKEN` in an authorization header.
+
+Only `ws:` / `wss:` URLs without embedded credentials, query parameters, or fragments are accepted. Listing tools or resources stays offline; `subscribe_events` opens the connection. Docs mode never connects to the event source.
+
+## Create a subscription
+
+Determine the expected account using `get_login_info` or an equivalent check, then call `subscribe_events`:
+
+```json
+{
+  "self_id": 10001,
+  "types": ["message", "notice"],
+  "group_ids": [20001],
+  "user_ids": [30001]
+}
+```
+
+Identifiers above are examples. Required `self_id` must match received events; a mismatch stops the connection and is reported. Resources on one MCP connection share one account's event source.
+
+Optional types are `message`, `notice`, and `request`; omission selects all three. `message_sent` belongs to the message category. Group and user filters combine with AND. A group filter excludes private messages and other events without `group_id`. Each ID filter accepts at most 100 distinct positive safe integers.
+
+## Read events
+
+The successful result's `structuredContent.result.uri` is a resource address of the form `snowluma://onebot/events/<id>`. Read the actual returned URI with `resources/read`:
+
+```json
+{ "uri": "snowluma://onebot/events/11111111-1111-4111-8111-111111111111" }
+```
+
+Resource `contents[].text` contains JSON with `status`, `events`, `next_cursor`, `oldest_cursor`, `dropped_events`, `gap`, and `notification_failed`. Retain `next_cursor` and append it as `?after=` to subsequent reads of the same resource:
+
+```json
+{ "uri": "snowluma://onebot/events/11111111-1111-4111-8111-111111111111?after=12" }
+```
+
+Cursors belong to individual resources and cannot be reused across them. Reads do not consume events. Only events arriving after subscription creation are retained; this is not a message-history API.
+
+## Receive change notifications
+
+- Modern clients use `subscriptions/listen`; the TypeScript client exposes `client.listen({ resourceSubscriptions: [uri] })`.
+- Legacy clients first call `resources/subscribe`, then receive `notifications/resources/updated`.
+
+A notification says the resource changed; read it again to obtain events. **Notification subscriptions must use the canonical URI without `?after`.**
+
+Stopping a modern notification stream does not release its event buffer. Both generations can call the `unsubscribe_events` tool with `{ "uri": "actual resource URI" }`; legacy `resources/unsubscribe` also releases it. Removing the last resource closes the WebSocket. Closing MCP releases all event resources owned by that connection.
+
+## Buffer limits and gaps
+
+Each resource retains at most 256 events and 1 MiB. One connection supports at most 16 resources, with a 256 KiB incoming-frame limit. Slow readers may lose older buffered entries. Check `gap`, `dropped_events`, and `oldest_cursor` rather than treating the current queue as a complete record.
+
+Connection failure, account mismatch, malformed input, and disconnection remain visible in status or errors. There is no silent reconnection. Release existing resources before reconnecting or switching accounts; subscribing again does not recover missing events. Failed notification delivery sets `notification_failed`.
+
+Subscriptions execute no OneBot business action and send no QQ messages. Any subsequent reply belongs to the caller's workflow.

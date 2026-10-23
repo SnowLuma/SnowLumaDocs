@@ -1,0 +1,58 @@
+---
+title: Input Completion and Message Previews
+description: Collect missing required parameters and review a message draft before sending
+---
+
+## Collect missing parameters
+
+`query_action_with_input` and `invoke_action_with_input` retain the original tools' arguments, catalog lookup, and mode gates. They request input only for absent top-level fields in the catalog's `required` array; they do not infer conditional requirements or optional values. Existing execution tools gain no new prompt step.
+
+Example `invoke_action_with_input` arguments:
+
+```json
+{
+  "action": "send_group_msg",
+  "params": { "group_id": 20001 }
+}
+```
+
+A form-capable client asks for the missing message. The current form has one `params_json` string field containing a JSON object such as:
+
+```json
+{ "message": "Hello" }
+```
+
+Answers cannot overwrite provided parameters, the action name, or execution options. Extra fields and invalid values cause errors. Declined, cancelled, or invalid answers do not execute the action. Complete parameters execute directly; program-generated automatic-upload fields do not need user input.
+
+## Client compatibility
+
+Clients must declare form elicitation support. Modern protocol calls return `resultType: "input_required"`; the client resumes with the protocol's request state and input response. Capable legacy clients use `elicitation/create`. Continuation results are not final OneBot responses.
+
+Clients without form support receive an explicit tool error and can still submit complete arguments to the original tools. Continuation state is tied to the original tool and parameters, lasts ten minutes, and is consumed once. Concurrent or repeated answers cannot repeat the same operation. Restart invalidates pending input rather than replaying it.
+
+Input completion collects missing data; **it is not a general approval gate for writes**. Authorization for existing calls remains the client's policy.
+
+## Preview a message draft
+
+Call `preview_message` with:
+
+```json
+{
+  "message_type": "group",
+  "target_id": 20001,
+  "text": "Service started",
+  "reply_to": -123456
+}
+```
+
+Use `private` for a private conversation. Targets must be positive safe integers. Optional reply IDs are non-zero signed 32-bit integers; negative values are valid. Only literal text and quoted replies are supported. Text resembling control codes is not interpreted as message segments.
+
+Every client receives a readable draft, `can_send`, and the corresponding `invoke_action` arguments. Previewing sends nothing and does not fetch the quoted message.
+
+## Interactive panel
+
+Clients declaring the MCP Apps extension `io.modelcontextprotocol/ui` and the `text/html;profile=mcp-app` MIME type receive the `ui://snowluma/message-preview.html` resource metadata.
+
+The panel shows the target, text, and quoted ID. It invokes the existing `invoke_action` through the host only after a user clicks Send; the server still enforces write permission. Read/docs mode and clients without server-tool support remain preview-only.
+
+The panel prevents duplicate clicks and never retries failed or uncertain sends automatically. A successful acknowledgement means the server accepted the message, not proof of delivery or QQ rendering. The panel loads no external scripts, fonts, or media. Clients without panel support continue using text results.

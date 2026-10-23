@@ -1,0 +1,165 @@
+---
+title: Messaging helpers
+description: Send local media, quote messages explicitly, and wait for future events
+---
+
+These helpers preserve existing behavior: string paths in message segments still refer to the SnowLuma server, `ctx.reply()` still sends an ordinary reply, and existing subscriptions and middleware need no migration.
+
+> [!INFO] Versions and prerequisites
+> This page follows the current SDK source; availability depends on your installed npm release. Configure a client using the [SDK overview](/en/sdk/) first. Media sends also require a SnowLuma server that supports streaming uploads and the corresponding send actions.
+
+## Send local media in one call
+
+Both HTTP and WebSocket clients provide these methods. They upload local bytes, wait for completion, then pass the returned server path to the send action.
+
+| Content | Group method | Private method | Result |
+| --- | --- | --- | --- |
+| Image | `sendGroupImage` | `sendPrivateImage` | `{ message_id }` |
+| Voice | `sendGroupRecord` | `sendPrivateRecord` | `{ message_id }` |
+| Video | `sendGroupVideo` | `sendPrivateVideo` | `{ message_id }` |
+| File | `sendGroupFile` | `sendPrivateFile` | `{ file_id }` |
+
+### Send a file from Node.js
+
+```ts
+import { SnowLumaHttpClient } from '@snowluma/sdk';
+import { localFile } from '@snowluma/sdk/node';
+
+const bot = new SnowLumaHttpClient({
+  baseUrl: 'http://127.0.0.1:3000/',
+  accessToken: process.env.SNOWLUMA_TOKEN,
+});
+const receipt = await bot.sendGroupImage(123456, await localFile('./picture.png'), {
+  image: { summary: 'Picture' },
+  signal: AbortSignal.timeout(60_000),
+  onProgress: ({ uploadedBytes, fileSize }) => {
+    console.log(`${uploadedBytes}/${fileSize} bytes`);
+  },
+});
+console.log(receipt.message_id);
+
+await bot.sendPrivateFile(10001, await localFile('./report.pdf'), {
+  name: 'Report.pdf',
+});
+```
+
+`localFile(pathOrFileURL)` is available **only from `@snowluma/sdk/node`**. It returns a named, file-backed `Blob` source without buffering the entire file. The path is on the SDK machine. Keep the file unchanged until sending finishes: missing files, non-regular files, and changes during reading produce errors. Root and browser-facing entries do not import Node filesystem modules.
+
+### Bytes, browser files, and streams
+
+Media sources support:
+
+- `Uint8Array`, including Node.js `Buffer`.
+- `Blob` or a browser-selected `File`; a `File` supplies its name automatically.
+- `ReadableStream<Uint8Array>` or `AsyncIterable<Uint8Array>`, including byte-mode Node.js readable streams; these require `fileSize`.
+- `{ source, filename }`, to name a source without changing its bytes.
+
+An explicit `filename` option overrides the source's name. For file sends, `name` is the display name in QQ and defaults to the uploaded filename; group files also accept `folder` / `folderId`.
+
+Put media attributes under `image`, `record`, or `video`. `video.thumb` remains a **server-side path**; thumbnails are not uploaded automatically. These new methods do not accept a local-path string: use `localFile()` explicitly or provide a byte source.
+
+See [Streaming files](/en/sdk/streaming) for upload options, including `chunkSize`, `expectedSha256`, `fileRetention`, `signal`, and `onProgress`. Progress counts bytes acknowledged by the server, not QQ message delivery.
+
+### Errors and cancellation
+
+```ts
+import { SnowLumaHttpClient, SnowLumaMediaSendError } from '@snowluma/sdk';
+import { localFile } from '@snowluma/sdk/node';
+
+const bot = new SnowLumaHttpClient();
+try {
+  await bot.sendPrivateImage(10001, await localFile('./picture.png'), {
+    signal: AbortSignal.timeout(60_000),
+  });
+} catch (error) {
+  if (error instanceof SnowLumaMediaSendError) {
+    console.error(error.stage, error.cause);
+    // error.upload contains completion metadata if uploading finished.
+  }
+  throw error;
+}
+```
+
+`SnowLumaMediaSendError.stage` is `upload` or `send`. Its `cause` retains the original API, abort, or timeout error, and `upload` contains metadata when the upload completed. Errors opening a file with `localFile()` are thrown directly rather than wrapped as send errors.
+
+`timeoutMs` applies separately to each upload request and the final send request; it is not a deadline for the whole operation or source reads. Use your own `AbortSignal` for overall cancellation. Cancellation between the stages prevents sending. Cancellation or timeout after dispatch does not prove that a message was not sent. The SDK does not retry automatically, roll back, or delete server files. Failed group-file chat publication is reported as an error with the uploaded file ID retained in its error context.
+
+## Quote a message explicitly
+
+Use `ctx.quote()` in an SDK-created message-event context to quote the current message. Ordinary `ctx.reply()` behavior remains unchanged.
+
+```ts
+import { SnowLumaWebSocketClient, text } from '@snowluma/sdk';
+
+const bot = new SnowLumaWebSocketClient({
+  accessToken: process.env.SNOWLUMA_TOKEN,
+});
+bot.onGroupMessage(async (event, ctx) => {
+  if (event.post_type === 'message' && event.raw_message === '/ping') {
+    await ctx.quote(text('pong'));
+  }
+});
+await bot.connect();
+```
+
+`ctx.quote()` chooses the event's private or group conversation and uses its message ID. It rejects non-message events. Outside a handler, including with an HTTP client, use `quoteMessage()` to compose the same content:
+
+```ts
+import { SnowLumaHttpClient, quoteMessage } from '@snowluma/sdk';
+
+const bot = new SnowLumaHttpClient();
+// Replace this with a real message_id from the same conversation; negatives are valid.
+await bot.sendGroupMessage(123456, quoteMessage(-42, 'Reply body'));
+```
+
+`quoteMessage(messageId, body, options?)` is also exported from `@snowluma/sdk/messages`. It only composes content; it does not query history or send requests. The server must be able to resolve the referenced message ID. IDs must be **non-zero signed 32-bit integers**; negative values are preserved.
+
+Bodies accept plain strings, CQ strings, a single segment, segment arrays, or message chains. String CQ fields and escaping are preserved by default. With `autoEscape: true`, a string becomes literal text following the quote; arrays and chains remain structured. A body already containing a reply segment is rejected. Inputs are not mutated.
+
+Old `SnowLumaEventContext` objects and explicitly typed existing handlers remain valid. SDK-created contexts and inferred client callbacks expose `SnowLumaEventContextWithQuote`. To annotate a reusable new handler, use `EventHandler<MyEvent, SnowLumaEventContextWithQuote<MyEvent>>`; middleware and command handlers provide the corresponding context type parameter as well.
+
+## Wait for a future event
+
+The WebSocket client provides `waitForEvent(predicate?, options?)` and `waitForMessage(predicate?, options?)`, and both also accept just an options object. Predicates must return a boolean synchronously. Type guards additionally narrow the resolved type.
+
+Register the wait before sending so a fast reply cannot arrive before its listener:
+
+```ts
+import { SnowLumaWebSocketClient } from '@snowluma/sdk';
+
+const bot = new SnowLumaWebSocketClient({
+  accessToken: process.env.SNOWLUMA_TOKEN,
+});
+const controller = new AbortController();
+await bot.connect();
+try {
+  const reply = bot.waitForMessage(
+    (event) => event.post_type === 'message'
+      && event.message_type === 'private'
+      && event.user_id === 10001,
+    { timeoutMs: 30_000, signal: controller.signal },
+  );
+  const [incoming] = await Promise.all([
+    reply,
+    bot.sendPrivateMessage(10001, 'Ready?', { signal: controller.signal }),
+  ]);
+  console.log(incoming.raw_message);
+} finally {
+  controller.abort(); // Also releases an unfinished wait if sending failed first.
+  bot.close();
+}
+```
+
+Waits register synchronously. They do not connect automatically, replay history, consume other listeners' events, or survive reconnects. They observe the same public stream as `onEvent`, **after middleware**; events stopped by middleware are not visible. Multiple waits can resolve from the same event.
+
+`waitForMessage` includes both `message` and `message_sent`. To wait only for an incoming reply, filter direction, conversation, and sender as in the example.
+
+| Outcome | Behavior |
+| --- | --- |
+| Predicate matches | Resolves with the event and removes the listener, abort handler, and timer |
+| Timeout | Rejects with `SnowLumaTimeoutError` |
+| `signal` cancellation | Rejects with `SnowLumaAbortError` |
+| Disconnection or explicit `close()` | Rejects with `SnowLumaConnectionError`; reconnect does not restore the wait |
+| Predicate throws | Rejects with the original error |
+
+Every completion path cleans up listeners and timers. The default timeout is the client's `requestTimeoutMs` (30 seconds by default); `0` disables it. Cancelling a wait does not itself close the client or undo a sent message. The example explicitly closes its connection in `finally`.

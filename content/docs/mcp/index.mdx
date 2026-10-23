@@ -1,33 +1,34 @@
 ---
 title: MCP 使用
-description: 把 SnowLuma 的 OneBot action 目录和可选执行能力接入 MCP 客户端
+description: 配置 SnowLuma MCP，查询动作、执行请求，并按需启用后台任务和事件订阅
 ---
 
-SnowLuma 发布了 `@snowluma/mcp`，这是一个通过 stdio 运行的 MCP Server。它把 SnowLuma 的 OneBot action 目录暴露给支持 MCP 的客户端，让 LLM 可以按需查询 action 文档、参数、约束和 JSON Schema；在你显式配置 OneBot HTTP 端点后，也可以让 LLM 调用正在运行的 SnowLuma 实例。
+`@snowluma/mcp` 通过 stdio 把 SnowLuma 的 OneBot 动作目录和可选执行能力接入 AI 客户端。原有工具、参数、文本结果和读写权限保持兼容；支持新版能力的客户端还可以使用补充输入、后台任务、事件订阅和消息预览面板。
 
-源码参考主仓 [`packages/mcp`](https://github.com/SnowLuma/SnowLuma/tree/main/packages/mcp)。
+本节按[当前开发分支](https://github.com/SnowLuma/SnowLuma/tree/dev/packages/mcp)维护。新能力需要包含对应更新的包；源码更新不代表 npm 包已经发布，请核对实际安装版本。目录是随包提供的快照，不代表连接的服务端支持其中所有动作。
 
 ## 工作模式
 
 | 模式 | 何时启用 | 能做什么 |
-| ---- | -------- | -------- |
-| `docs` | 默认；未配置 `SNOWLUMA_MCP_ENDPOINT` | 只提供 action 文档、搜索、分类和完整目录资源，不连接运行中的 SnowLuma。 |
-| `read` | 配置了 OneBot HTTP 端点，且未显式设 `SNOWLUMA_MCP_MODE` | 在文档工具之外，允许调用只读 action，例如 `get_*`、`can_*`。 |
-| `write` | 显式设置 `SNOWLUMA_MCP_MODE=write` | 允许调用任意已知 action，包括发消息、改群设置等有副作用的操作。 |
+| --- | --- | --- |
+| `docs` | 未配置端点，或显式选择文档模式 | 查询目录、查看本地环境概览、生成消息草稿；不访问运行中的 SnowLuma。 |
+| `read` | 配置端点后的默认模式 | 增加明确标记为只读的动作；配置事件地址后可以订阅事件。 |
+| `write` | 显式设置 `SNOWLUMA_MCP_MODE=write` | 增加写动作、流式传输；配置任务目录且客户端支持时可以创建后台任务。 |
 
-> [!WARNING]
-> 写模式会把 `invoke_action` 暴露给 MCP 客户端。只有在你信任当前客户端、模型和会话时才开启。
+只读属性来自动作定义，不能仅凭 `get_` 等名称前缀判断。即使绕过工具列表直接调用，服务端也会检查模式。所有流式动作目前都要求写模式，包括下载。
 
 ## 准备
 
-- 一个支持 stdio MCP Server 的客户端，例如 Claude Desktop、Cline 或其他 MCP 客户端。
-- 客户端所在机器需要能运行 `npx`，并使用 Node.js `>= 22`。
-- 只用文档模式时，不需要启动 SnowLuma。
-- 要执行 action 时，MCP 连接的是 **OneBot HTTP 端点**，不是 WebUI 端口。Docker 默认是 `http://127.0.0.1:3000/`，WebUI 默认 `5099` 只用于管理界面。
+- 一个支持 stdio MCP 服务的客户端。
+- 当前包要求 Node.js `^24.22.1 || >=26.12.1`，客户端能运行 `node` 或 `npx`。
+- 执行动作需要已配置的 **OneBot HTTP 端点**，例如 `http://127.0.0.1:3000/`；WebUI 的管理端口不能替代它。
+- 事件订阅另外需要 OneBot WebSocket 事件地址，不能从 HTTP 端口猜测。
+
+同一命令支持 MCP `2026-07-28` 的发现机制和旧客户端的初始化流程，无需为旧客户端更换启动方式。高级能力是否可用还取决于客户端声明的支持情况；这里不会启动对外监听的 MCP HTTP 服务。
 
 ## 文档模式
 
-不需要运行 SnowLuma，也不需要配置 OneBot 端点。把下面配置加入 MCP 客户端：
+下面是使用 `mcpServers` 配置格式的客户端示例，其他客户端请使用其等价配置：
 
 ```json
 {
@@ -40,28 +41,20 @@ SnowLuma 发布了 `@snowluma/mcp`，这是一个通过 stdio 运行的 MCP Serv
 }
 ```
 
-可用工具：
-
 | 工具 | 说明 |
-| ---- | ---- |
-| `list_actions({ category? })` | 列出 action 轻量索引，可按分类过滤。 |
-| `get_action({ name })` | 查看单个 action 的完整文档、参数表、跨字段约束、返回说明和 `inputSchema`。 |
-| `search_actions({ query })` | 按名称、摘要、别名搜索 action。 |
-| `list_categories()` | 列出分类和每类 action 数量。 |
+| --- | --- |
+| `list_actions` | 按分类、读写属性、流式属性筛选，可分页。 |
+| `search_actions` | 默认子串匹配，可显式开启多关键词与常用中英文同义词匹配。 |
+| `get_action` | 参数、约束、返回数据结构和调用示例，支持别名。 |
+| `list_categories` | 分类及动作数量。 |
+| `get_runtime_info` | 默认只查看本地配置；主动检查连接需执行模式。 |
+| `preview_message` | 生成纯文本和引用回复草稿，调用本身不发送消息。 |
 
-同时会暴露资源 `snowluma://onebot/actions`，内容是当前版本完整 action catalog。
+资源 `snowluma://onebot/actions` 提供完整目录。详见[动作发现与结果](/zh/docs/mcp/actions)。
 
 ## 连接到 SnowLuma
 
-如果你要让 MCP 调用真实 action，需要先确保 SnowLuma 的 OneBot HTTP 服务可访问。Docker 默认映射后，宿主机上的 MCP 客户端通常使用：
-
-```text
-http://127.0.0.1:3000/
-```
-
-如果 MCP 客户端不在同一台宿主机上，把 `127.0.0.1` 换成服务器 IP 或域名。HTTP access token 取自 WebUI 的网络适配器配置，或 `config/onebot.json` / `config/onebot_<uin>.json` 中对应 `httpServers[].accessToken`。
-
-只读执行配置：
+在 WebUI 的网络适配器配置中确认 OneBot HTTP 地址与访问令牌。以下配置启用只读执行：
 
 ```json
 {
@@ -78,76 +71,57 @@ http://127.0.0.1:3000/
 }
 ```
 
-此时除了文档工具，还会出现：
+`127.0.0.1` 指 MCP 进程所在机器。跨机器连接时使用实际服务地址；访问令牌应由客户端配置注入，不要放进提示词。
 
-| 工具 | 说明 |
-| ---- | ---- |
-| `query_action({ action, params? })` | 只调用标记为只读的 action，并返回完整 OneBot 响应。 |
+执行模式提供 `query_action({ action, params? })`，以及缺少必填参数时请求用户补充的 `query_action_with_input`。完整参数仍可直接交给原工具。
 
 ## 开启写模式
 
-写模式需要显式打开：
+在上面的 `env` 中增加 `"SNOWLUMA_MCP_MODE": "write"`，会增加 `invoke_action({ action, params?, execution? })` 和 `invoke_action_with_input`。写模式允许发消息、修改群设置等实际操作，请按所用客户端的授权策略控制调用。
+
+下面是同时配置可选服务的 `env` 示例。只保留需要的项，目录是 **MCP 主机**上的目录：
 
 ```json
 {
-  "mcpServers": {
-    "snowluma": {
-      "command": "npx",
-      "args": ["-y", "@snowluma/mcp"],
-      "env": {
-        "SNOWLUMA_MCP_ENDPOINT": "http://127.0.0.1:3000/",
-        "SNOWLUMA_MCP_TOKEN": "your-access-token",
-        "SNOWLUMA_MCP_MODE": "write"
-      }
-    }
-  }
+  "SNOWLUMA_MCP_MODE": "write",
+  "SNOWLUMA_MCP_ENDPOINT": "http://127.0.0.1:3000/",
+  "SNOWLUMA_MCP_TOKEN": "your-access-token",
+  "SNOWLUMA_MCP_UPLOAD_ROOT": "/home/me/mcp-share",
+  "SNOWLUMA_MCP_STREAM_DIR": "/home/me/mcp-downloads",
+  "SNOWLUMA_MCP_TASK_DIR": "/home/me/private-mcp-tasks",
+  "SNOWLUMA_MCP_EVENTS_URL": "ws://127.0.0.1:3001/event"
 }
 ```
-
-写模式会额外暴露：
-
-| 工具 | 说明 |
-| ---- | ---- |
-| `invoke_action({ action, params? })` | 调用任意已知 action，包括发消息、踢人、改群设置等可能产生副作用的操作。 |
-
-建议让客户端对 `invoke_action` 保持人工确认；`query_action` 可以按客户端策略自动批准。
 
 ## 环境变量
 
 | 变量 | 说明 |
-| ---- | ---- |
-| `SNOWLUMA_MCP_ENDPOINT` | OneBot HTTP 端点，例如 `http://127.0.0.1:3000/`。不设置时只启用文档模式。 |
-| `SNOWLUMA_MCP_TOKEN` | OneBot access token。会作为 `Authorization: Bearer ...` 发送。 |
-| `SNOWLUMA_MCP_TIMEOUT_MS` | 单次请求超时，默认 `30000` 毫秒。 |
-| `SNOWLUMA_MCP_MODE` | `docs` / `read` / `write`。有 endpoint 时默认 `read`，无 endpoint 时默认 `docs`。 |
+| --- | --- |
+| `SNOWLUMA_MCP_ENDPOINT` | OneBot HTTP 端点；未设置时使用文档模式。 |
+| `SNOWLUMA_MCP_TOKEN` | HTTP 和事件连接共用的访问令牌，通过授权请求头发送。 |
+| `SNOWLUMA_MCP_MODE` | `docs`、`read` 或 `write`。 |
+| `SNOWLUMA_MCP_TIMEOUT_MS` | 默认 `30000` 毫秒。普通请求为请求超时；流式请求分别限制连接和每次读取的空闲时间。 |
+| `SNOWLUMA_MCP_STREAM_DIR` | 下载输出目录；默认系统临时目录下的 `onebot-mcp-downloads`。 |
+| `SNOWLUMA_MCP_UPLOAD_ROOT` | 允许自动上传的已有目录；未设置时禁止自动读取本地文件上传。 |
+| `SNOWLUMA_MCP_MAX_STREAM_BYTES` | 单文件上限，正整数，最大且默认为 `4294967296` 字节。 |
+| `SNOWLUMA_MCP_TASK_DIR` | 后台任务的绝对路径私有目录；要求写模式和有效端点。 |
+| `SNOWLUMA_MCP_EVENTS_URL` | 显式配置的 `ws:` / `wss:` 事件地址；不能带用户名、密码、查询参数或片段。 |
 
 ## 使用建议
 
-典型流程：
+1. 用 `search_actions` 找到动作，再用 `get_action` 确认参数、返回结构和标识来源。
+2. 用 `get_runtime_info` 查看配置；需要联网核查时显式传入 `check_connection: true`。
+3. 普通查询用 `query_action`，写入用 `invoke_action`。缺少必填参数时可用对应的 `_with_input` 工具。
+4. 长传输可以创建后台任务；等待后续消息时可以订阅事件。
+5. 检查业务响应和结果诊断，不把“工具调用完成”当成“消息已送达”。
 
-1. 先让模型用 `search_actions` 或 `list_actions` 找到 action。
-2. 再用 `get_action` 查看参数 schema 和约束。
-3. 只读查询用 `query_action`。
-4. 确认要产生副作用时，再在写模式下使用 `invoke_action`。
+继续阅读：
 
-示例提问：
-
-```text
-帮我查一下 get_group_member_list 需要哪些参数。
-```
-
-```text
-用 SnowLuma 查询当前登录账号信息。
-```
-
-```text
-给群 123456 发送一条“服务已启动”消息，发送前先给我确认参数。
-```
+- [动作发现、结构化结果与追踪](/zh/docs/mcp/actions)
+- [文件传输与持久化任务](/zh/docs/mcp/transfers)
+- [补充输入与消息预览](/zh/docs/mcp/interaction)
+- [实时事件订阅](/zh/docs/mcp/events)
 
 ## 安全边界
 
-- MCP Server 只会调用 catalog 中已知的 action，未知 action 会被拒绝。
-- `query_action` 只接受显式标记为只读的 action。
-- `invoke_action` 即使被客户端直接调用，也会在非写模式下拒绝执行。
-- OneBot 返回的业务失败会作为响应数据返回；只有网络或传输失败才会作为 MCP 错误。
-- action 目录来自构建时从 `@snowluma/onebot` 生成的快照，会随 SnowLuma 发布版本更新。
+动作必须存在于包内目录，并通过读写模式检查。目录查询和默认环境概览不联网；事件连接仅在调用订阅工具后建立。取消或超时不会撤销已到达服务端的操作，也不会触发自动重试。普通业务失败保留 OneBot 响应，需检查 `status`、`retcode` 和结构化诊断；参数、传输及流式协议错误会显式报错。

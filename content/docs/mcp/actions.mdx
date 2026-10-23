@@ -1,0 +1,77 @@
+---
+title: 动作发现与结果
+description: 搜索动作、读取返回结构、检查环境，并追踪调用结果
+---
+
+## 搜索和分页
+
+`search_actions` 默认保持不区分大小写的子串匹配和目录顺序。下面是传给工具的参数：
+
+```json
+{
+  "query": "群 禁言",
+  "match": "keywords",
+  "read_only": false,
+  "stream": false,
+  "limit": 10,
+  "offset": 0
+}
+```
+
+`keywords` 模式要求空格分隔的各关键词都匹配，支持一组常见中英文同义词，完整动作名或别名优先。它不是任意语义搜索。
+
+`list_actions` 和 `search_actions` 都支持 `category`、`read_only`、`stream`、`limit`（1–200）和 `offset`（非负整数）。不传分页参数时保持 `{ count, actions }`；传入后还返回匹配总数 `total` 和下一页 `next_offset`，末页为 `null`。这些操作只查询包内目录。
+
+## 参数、返回结构与示例
+
+调用 `get_action({ "name": "get_msg" })` 可读取 `inputSchema`、`returnsSchema`、约束和 `examples`。示例里的账号、群、消息标识和路径必须替换为当前会话的真实值。
+
+`returnsSchema` 描述成功响应的 **OneBot `data`**，不是整个响应信封，也不是 MCP 的包装结构。流式动作描述的是单帧数据；MCP 的下载结果则是保存后的文件信息。未实现动作和兼容占位行为会明确标注。
+
+普通消息编号是非零的有符号 32 位整数，负值合法。例如下面是 `query_action` 的参数：
+
+```json
+{
+  "action": "get_msg",
+  "params": { "message_id": -123 }
+}
+```
+
+不要取绝对值或把负值改为零；也不要把十进制字符串形式的大小、标识或 `null` 擅自改成其他类型。
+
+## 读取结构化结果
+
+完成的工具调用保留原有 `content` 文本，并增加 `structuredContent`：
+
+```json
+{
+  "result": { "status": "ok", "retcode": 0, "data": { "message_id": -123 } },
+  "diagnostics": { "outcome": "success" }
+}
+```
+
+`result` 是原始结果；目录工具可以返回数组或索引，不能总按 OneBot 响应解析。MCP 工具错误的 `result` 为 `null`。`diagnostics.outcome` 为 `success`、`failed` 或 `unknown`，失败时可带 `kind`、`message`、`next_step`。
+
+普通 OneBot 业务失败保留原始信封，不设置 `isError`，因此 **仅检查 `isError` 不够**。异步受理或尚未确认的结果会标为 `unknown`。传输错误、参数错误和流式协议错误设置 `isError: true`。
+
+新版协议的 `input_required` 和 `task` 是继续处理的状态。先检查 `resultType`，完成补充输入或查询任务后再读取最终结果。
+
+## 环境概览
+
+`get_runtime_info({})` 默认不联网，返回实际模式、执行和写入是否启用、目录版本，以及执行模式下的传输限制、下载目录和上传根目录。端点和令牌不会出现在概览中。`server_support: "unknown"`、`connection_checked: false` 不能解读为已连接或已登录。
+
+显式传入下面参数，会执行三项只读查询：`get_login_info`、`get_status`、`get_version_info`。
+
+```json
+{ "check_connection": true }
+```
+
+此检查仅在读/写模式可用；各项原始响应与诊断保留在 `checks` 中。部分失败仍然可见，HTTP 成功也不等于账号在线。
+
+## 缓存与追踪
+
+新版客户端可缓存静态发现信息：工具列表和静态资源列表提供五分钟的私有缓存提示，完整目录和预览界面资源提供五分钟的公共缓存提示。启用事件后资源列表不缓存，账号事件资源不缓存，工具执行结果不提供缓存提示。旧客户端不收到新版专属缓存字段。
+
+每次工具调用都会产生追踪标识，并通过结果的 `_meta.traceparent` 返回。调用者也可在请求 `_meta` 中提供合法的 `traceparent` 和可选 `tracestate`，与上游调用关联。追踪信息通过 HTTP 请求头传递，不混入动作参数。
+
+在 SnowLuma 开启 TRACE 日志后，用同一 `traceparent` 找到 `http_trace`，再沿日志中的请求编号排查。MCP 日志记录工具、结果、耗时和错误类别，不记录正文或令牌。追踪不是权限凭据，也不会自动上传遥测。

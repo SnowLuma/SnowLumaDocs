@@ -1,0 +1,165 @@
+---
+title: 消息辅助
+description: 本地媒体一站式发送、显式引用回复与未来事件等待
+---
+
+这些方法同时保留原有行为：消息段中的字符串路径仍指向 SnowLuma 服务端，`ctx.reply()` 仍发送普通回复，已有事件订阅和中间件无需迁移。
+
+> [!INFO] 版本与前置条件
+> 本页随当前 SDK 源码同步，是否可用以安装的 npm 发布包为准。先按 [SDK 首页](/zh/sdk/) 配置客户端；媒体发送还要求所连接的 SnowLuma 支持流式上传和对应发送动作。
+
+## 本地媒体一站式发送
+
+HTTP 与 WebSocket 客户端都提供以下方法。它们先上传本地字节，等待上传完成，再把返回的服务端路径交给发送动作。
+
+| 内容 | 群聊方法 | 私聊方法 | 返回值 |
+| --- | --- | --- | --- |
+| 图片 | `sendGroupImage` | `sendPrivateImage` | `{ message_id }` |
+| 语音 | `sendGroupRecord` | `sendPrivateRecord` | `{ message_id }` |
+| 视频 | `sendGroupVideo` | `sendPrivateVideo` | `{ message_id }` |
+| 文件 | `sendGroupFile` | `sendPrivateFile` | `{ file_id }` |
+
+### 从 Node.js 发送文件
+
+```ts
+import { SnowLumaHttpClient } from '@snowluma/sdk';
+import { localFile } from '@snowluma/sdk/node';
+
+const bot = new SnowLumaHttpClient({
+  baseUrl: 'http://127.0.0.1:3000/',
+  accessToken: process.env.SNOWLUMA_TOKEN,
+});
+const receipt = await bot.sendGroupImage(123456, await localFile('./picture.png'), {
+  image: { summary: '图片' },
+  signal: AbortSignal.timeout(60_000),
+  onProgress: ({ uploadedBytes, fileSize }) => {
+    console.log(`${uploadedBytes}/${fileSize} bytes`);
+  },
+});
+console.log(receipt.message_id);
+
+await bot.sendPrivateFile(10001, await localFile('./report.pdf'), {
+  name: '报告.pdf',
+});
+```
+
+`localFile(pathOrFileURL)` **只能从 `@snowluma/sdk/node` 导入**，返回带文件名、由文件支撑的 `Blob` 来源，不会一次把整个文件读入内存。路径位于 SDK 所在机器；发送结束前不要修改文件。文件不存在、不是普通文件或读取期间被修改时会报错。主入口与浏览器入口不引入 Node 文件系统模块。
+
+### 字节、浏览器文件与流
+
+媒体来源支持：
+
+- `Uint8Array`（包括 Node.js `Buffer`）。
+- `Blob` 或浏览器选择得到的 `File`；`File` 会自动提供文件名。
+- `ReadableStream<Uint8Array>` 或 `AsyncIterable<Uint8Array>`（包括字节模式的 Node.js 可读流）；必须提供 `fileSize`。
+- `{ source, filename }`：在不改变字节来源的情况下指定文件名。
+
+显式 `filename` 选项优先于来源携带的文件名。文件发送的 `name` 是 QQ 中显示的名称，默认使用上传文件名；群文件还可传 `folder` / `folderId`。
+
+媒体属性分别放在 `image`、`record`、`video` 下。`video.thumb` 仍是**服务端路径**，不会自动上传缩略图。这些新方法不接受字符串本地路径，必须显式使用 `localFile()` 或提供字节来源。
+
+可用的上传选项详见[流式传输](/zh/sdk/streaming)，包括 `chunkSize`、`expectedSha256`、`fileRetention`、`signal`、`onProgress`。进度统计的是服务端确认收到的字节数，不代表 QQ 消息已送达。
+
+### 错误与取消
+
+```ts
+import { SnowLumaHttpClient, SnowLumaMediaSendError } from '@snowluma/sdk';
+import { localFile } from '@snowluma/sdk/node';
+
+const bot = new SnowLumaHttpClient();
+try {
+  await bot.sendPrivateImage(10001, await localFile('./picture.png'), {
+    signal: AbortSignal.timeout(60_000),
+  });
+} catch (error) {
+  if (error instanceof SnowLumaMediaSendError) {
+    console.error(error.stage, error.cause);
+    // 上传已完成时，可从 error.upload 查看完成信息。
+  }
+  throw error;
+}
+```
+
+`SnowLumaMediaSendError` 的 `stage` 为 `upload` 或 `send`，`cause` 保留原始业务、取消或超时错误；上传已完成时还包含 `upload` 元数据。`localFile()` 自身的打开错误直接抛出，不会包装成发送错误。
+
+`timeoutMs` 分别作用于每次上传请求和最终发送请求，并非整个流程或来源读取的总时限。需要整体取消时使用自己的 `AbortSignal`。两阶段之间取消会阻止发送；发送请求已经发出后再取消或超时，不能据此判断消息未发送。SDK 不自动重试、回滚或删除服务端文件。群文件聊天发布失败会报错，并保留已上传文件 ID 的错误上下文。
+
+## 显式引用回复
+
+在 SDK 创建的消息事件上下文中，使用 `ctx.quote()` 引用当前消息；普通 `ctx.reply()` 的行为不变。
+
+```ts
+import { SnowLumaWebSocketClient, text } from '@snowluma/sdk';
+
+const bot = new SnowLumaWebSocketClient({
+  accessToken: process.env.SNOWLUMA_TOKEN,
+});
+bot.onGroupMessage(async (event, ctx) => {
+  if (event.post_type === 'message' && event.raw_message === '/ping') {
+    await ctx.quote(text('pong'));
+  }
+});
+await bot.connect();
+```
+
+`ctx.quote()` 自动选择当前私聊或群聊，并使用事件的消息 ID；非消息事件调用会被拒绝。事件外（包括 HTTP 客户端）使用 `quoteMessage()` 构造相同内容：
+
+```ts
+import { SnowLumaHttpClient, quoteMessage } from '@snowluma/sdk';
+
+const bot = new SnowLumaHttpClient();
+// 换成同一会话中实际收到的 message_id；负值有效。
+await bot.sendGroupMessage(123456, quoteMessage(-42, '回复正文'));
+```
+
+`quoteMessage(messageId, body, options?)` 也从 `@snowluma/sdk/messages` 导出。它只构造内容，不查询历史或发起请求；服务端必须能解析被引用的消息 ID。ID 必须是**非零有符号 32 位整数**，负值原样保留。
+
+正文接受普通字符串、CQ 字符串、单个消息段、消息段数组或消息链。默认保留字符串原有的 CQ 字段和转义；`autoEscape: true` 会把字符串作为引用后的纯文本，数组和消息链仍保持结构化。正文已有回复段时拒绝再次添加；不会修改传入内容。
+
+旧 `SnowLumaEventContext` 对象和显式标注的旧处理器类型仍可使用。SDK 创建的上下文及客户端推导出的回调参数提供 `SnowLumaEventContextWithQuote`。需要标注可复用的新处理器时，使用 `EventHandler<MyEvent, SnowLumaEventContextWithQuote<MyEvent>>`；中间件和命令处理器也提供对应的上下文类型参数。
+
+## 等待未来事件
+
+WebSocket 客户端提供 `waitForEvent(predicate?, options?)` 和 `waitForMessage(predicate?, options?)`，也支持只传选项对象。筛选函数必须同步返回布尔值；类型守卫还能收窄结果类型。
+
+下面先注册等待，再发送消息，避免快速回复早于监听器到达：
+
+```ts
+import { SnowLumaWebSocketClient } from '@snowluma/sdk';
+
+const bot = new SnowLumaWebSocketClient({
+  accessToken: process.env.SNOWLUMA_TOKEN,
+});
+const controller = new AbortController();
+await bot.connect();
+try {
+  const reply = bot.waitForMessage(
+    (event) => event.post_type === 'message'
+      && event.message_type === 'private'
+      && event.user_id === 10001,
+    { timeoutMs: 30_000, signal: controller.signal },
+  );
+  const [incoming] = await Promise.all([
+    reply,
+    bot.sendPrivateMessage(10001, '准备好了吗？', { signal: controller.signal }),
+  ]);
+  console.log(incoming.raw_message);
+} finally {
+  controller.abort(); // 发送先失败时，也释放尚未完成的等待。
+  bot.close();
+}
+```
+
+等待会同步注册监听器，但不会自动连接、回放历史、消耗其他监听器的事件，也不会跨重连保留。它监听与 `onEvent` 相同的公开事件流，位于**中间件之后**；被中间件停止传播的事件不可见。多个等待可以由同一个事件完成。
+
+`waitForMessage` 同时包含 `message` 和 `message_sent`。只等对方回复时，要像上例一样筛选方向、会话和发送者。
+
+| 结果 | 行为 |
+| --- | --- |
+| 满足筛选条件 | 返回事件，移除监听器、取消处理器和定时器 |
+| 超时 | 抛 `SnowLumaTimeoutError` |
+| `signal` 取消 | 抛 `SnowLumaAbortError` |
+| 断线或显式 `close()` | 抛 `SnowLumaConnectionError`，重连不会恢复该等待 |
+| 筛选函数抛错 | 原样拒绝等待 |
+
+所有结束路径都会清理监听器与定时器。默认超时继承客户端 `requestTimeoutMs`（默认 30 秒），`0` 禁用超时。取消等待本身不会关闭客户端或撤销已发出的消息；上例的 `finally` 由脚本自行关闭连接。

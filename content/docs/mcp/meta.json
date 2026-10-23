@@ -1,4 +1,10 @@
 {
   "title": "MCP",
-  "pages": ["index"]
+  "pages": [
+    "index",
+    "actions",
+    "transfers",
+    "interaction",
+    "events"
+  ]
 }
