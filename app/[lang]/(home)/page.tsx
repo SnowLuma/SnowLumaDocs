@@ -1,38 +1,58 @@
 import type { Metadata } from 'next';
-import type { ReactNode } from 'react';
 import { DynamicLink } from 'fumadocs-core/dynamic-link';
-import { ConnectionFigure } from '@/components/home/connection-figure';
+import { ScrollyArchitecture } from '@/components/home/scrolly-architecture';
 import { SnowMark } from '@/components/snow-mark';
 
-const developerLinks = {
-  zh: [
-    { href: '/[lang]/docs/api', label: 'API 参考', description: '查找动作、参数和返回值，让每次调用都有据可循。', kind: 'api' },
-    { href: '/[lang]/docs/sdk', label: 'TypeScript SDK', description: '用熟悉的类型与方法，构建你自己的客户端。', kind: 'sdk' },
-    { href: '/[lang]/docs/mcp', label: 'MCP 接入', description: '把 QQ 的能力，交给支持 MCP 的 AI 工具。', kind: 'mcp' },
-  ],
-  en: [
-    { href: '/[lang]/docs/api', label: 'API reference', description: 'Explore actions, parameters, and responses for every call.', kind: 'api' },
-    { href: '/[lang]/docs/sdk', label: 'TypeScript SDK', description: 'Build your own client with familiar types and methods.', kind: 'sdk' },
-    { href: '/[lang]/docs/mcp', label: 'Connect with MCP', description: 'Put QQ capabilities in reach of your AI tools.', kind: 'mcp' },
-  ],
-} as const;
-
-function Arrow({ diagonal = false }: { diagonal?: boolean }) {
-  return (
-    <svg className="sl-arrow" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path d={diagonal ? 'M6 18 18 6M6 6h12v12' : 'M4 12h15m-6-6 6 6-6 6'} stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
+interface DirectoryColumn {
+  title: string;
+  items: Array<{ href: string; label: string; external?: boolean }>;
 }
 
-function GuideIcon({ kind }: { kind: 'api' | 'sdk' | 'mcp' | 'deploy' }) {
-  const paths: Record<typeof kind, ReactNode> = {
-    api: <path d="m8 7-5 5 5 5m8-10 5 5-5 5m-3-13-2 20" />,
-    sdk: <><rect x="3" y="4" width="18" height="16" rx="3" /><path d="M3 9h18m-14 4 2 2-2 2m5 0h4" /></>,
-    mcp: <><path d="m5 15 9-9a3 3 0 0 1 4 4l-6 6m-9-5 7-7a3 3 0 0 1 4 0m-6 8-2 2a3 3 0 0 0 0 4l3 3m2-9 2 2a3 3 0 0 1 0 4l-1 1" /></>,
-    deploy: <><rect x="4" y="3" width="16" height="7" rx="2" /><rect x="4" y="14" width="16" height="7" rx="2" /><path d="M8 6.5h.01M8 17.5h.01M12 6.5h4m-4 11h4" /></>,
-  };
-  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[kind]}</svg>;
+function getDirectoryColumns(zh: boolean): DirectoryColumn[] {
+  return [
+    {
+      title: zh ? '使用指南' : 'Guides',
+      items: [
+        { href: '/[lang]/docs/guide/introduction', label: zh ? '项目介绍' : 'Introduction' },
+        { href: '/[lang]/docs/guide/quickstart', label: zh ? '快速开始' : 'Quick Start' },
+        { href: '/[lang]/docs/guide/configuration', label: zh ? '配置参考' : 'Configuration' },
+        { href: '/[lang]/docs/guide/connect-bot', label: zh ? '对接机器人框架' : 'Connect a Bot Framework' },
+        { href: '/[lang]/docs/guide/china-network', label: zh ? '中国大陆网络环境' : 'Mainland China Network' },
+        { href: '/[lang]/docs/guide/faq', label: zh ? '常见问题' : 'FAQ' },
+      ],
+    },
+    {
+      title: zh ? '部署方式' : 'Deployment',
+      items: [
+        { href: '/[lang]/docs/guide/deploy', label: zh ? '选择部署方式' : 'Choose a Deployment' },
+        { href: '/[lang]/docs/guide/deploy/docker', label: zh ? 'Docker 部署' : 'Docker' },
+        { href: '/[lang]/docs/guide/deploy/windows', label: zh ? 'Windows 原生部署' : 'Windows Native' },
+        { href: '/[lang]/docs/guide/deploy/linux-manual', label: zh ? 'Linux 手动部署' : 'Linux Manual' },
+        { href: '/[lang]/docs/guide/deploy/wsl2', label: zh ? 'WSL2 部署' : 'WSL2' },
+        { href: '/[lang]/docs/guide/deploy/baota', label: zh ? '宝塔面板部署' : 'Baota Panel' },
+      ],
+    },
+    {
+      title: 'TypeScript SDK',
+      items: [
+        { href: '/[lang]/docs/sdk', label: zh ? 'SDK 总览' : 'SDK Overview' },
+        { href: '/[lang]/docs/sdk/messaging', label: zh ? '消息构造与回复' : 'Messaging & Replies' },
+        { href: '/[lang]/docs/sdk/streaming', label: zh ? '流式文件传输' : 'Streaming File Transfers' },
+        { href: '/[lang]/docs/guide/developer', label: zh ? '开发者指南' : 'Developer Guide' },
+      ],
+    },
+    {
+      title: zh ? '协议与 AI' : 'Protocol & AI',
+      items: [
+        { href: '/[lang]/docs/api', label: zh ? 'OneBot API 参考' : 'OneBot API Reference' },
+        { href: '/[lang]/docs/mcp', label: zh ? 'MCP 服务总览' : 'MCP Server Overview' },
+        { href: '/[lang]/docs/mcp/actions', label: zh ? '动作发现与执行' : 'Action Discovery & Execution' },
+        { href: '/[lang]/docs/mcp/events', label: zh ? '事件与后台任务' : 'Events & Background Tasks' },
+        { href: '/[lang]/docs/mcp/transfers', label: zh ? '流式文件传输' : 'File Transfers' },
+        { href: '/llms.txt', label: 'llms.txt ↗', external: true },
+      ],
+    },
+  ];
 }
 
 export function generateStaticParams() {
@@ -43,91 +63,207 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
   const { lang } = await params;
   const zh = lang === 'zh';
   return {
-    title: zh ? 'SnowLuma 文档 · 连接 QQ，即刻开始构建' : 'SnowLuma Docs · Native QQ, ready to build',
+    title: zh ? 'SnowLuma 文档 · 让 QQ 原生会话，连接你的应用' : 'SnowLuma Docs · Bring native QQ sessions to your applications',
     description: zh
-      ? '通过 OneBot v11，把 QQ 原生会话接入你的机器人、应用与 AI 工具。探索 SnowLuma 部署指南、API、TypeScript SDK 与 MCP 文档。'
-      : 'Connect native QQ sessions to your bots, apps, and AI tools with OneBot v11. Explore SnowLuma deployment guides, APIs, the TypeScript SDK, and MCP.',
+      ? '将桌面端 QQ 会话转换为标准 OneBot v11 动作与事件，通过 WebSocket、HTTP、WebUI、TypeScript SDK 与 MCP 提供统一入口。'
+      : 'Translate desktop QQ sessions into standard OneBot v11 actions and events, with a unified runtime across WebSocket, HTTP, WebUI, TypeScript SDK, and MCP.',
   };
 }
 
 export default async function HomePage({ params }: { params: Promise<{ lang: string }> }) {
   const { lang } = await params;
   const zh = lang === 'zh';
+  const directoryColumns = getDirectoryColumns(zh);
 
   return (
     <div className="sl-home">
-      <a className="sl-skip-link" href="#sl-guide">{zh ? '跳转到文档入口' : 'Skip to documentation'}</a>
-      <section className="sl-hero" aria-labelledby="sl-home-title">
-        <div className="sl-home-inner sl-hero-grid">
-          <div className="sl-hero-copy">
-            <p className="sl-eyebrow"><span className="sl-eyebrow-line" /> SNOWLUMA <span className="sl-eyebrow-divider">/</span> DOCUMENTATION</p>
-            <h1 id="sl-home-title">
-              <span>{zh ? '连接 QQ，' : 'Native QQ.'}</span>
-              <span className="sl-title-accent">{zh ? '即刻开始构建。' : 'Ready to build.'}</span>
-            </h1>
-            <p className="sl-lead">
-              {zh
-                ? '通过 OneBot v11，把 QQ 原生会话接入你的机器人、应用与 AI 工具。部署、连接、开发，从这里开始。'
-                : 'Bring native QQ sessions to your bots, apps, and AI tools with OneBot v11. Your next connection starts here.'}
-            </p>
-            <div className="sl-actions">
-              <DynamicLink className="sl-btn sl-btn-primary" href="/[lang]/docs/guide/quickstart">
-                {zh ? '开始使用' : 'Get started'}<Arrow />
-              </DynamicLink>
-              <DynamicLink className="sl-text-link" href="/[lang]/docs/guide/introduction">
-                {zh ? '了解 SnowLuma' : 'Meet SnowLuma'}<Arrow diagonal />
-              </DynamicLink>
-            </div>
-            <div className="sl-hero-details" aria-label={zh ? '平台与协议' : 'Platforms and protocol'}>
-              <span>Linux & Windows</span><span>OneBot v11</span><span>TypeScript</span>
-            </div>
-          </div>
-          <ConnectionFigure zh={zh} />
-        </div>
-      </section>
+      <a className="sl-skip-link" href="#architecture">
+        {zh ? '跳转到核心架构与文档目录' : 'Skip to architecture and documentation'}
+      </a>
 
-      <div className="sl-home-inner">
-        <section className="sl-ecosystem" aria-label={zh ? '机器人框架接入' : 'Bot framework integrations'}>
-          <p>{zh ? '连接你熟悉的生态' : 'Connect with your ecosystem'}</p>
-          <div className="sl-frameworks"><span>MaiBot<span className="sl-framework-dot">.</span></span><span>AstrBot</span><span>NoneBot</span></div>
-          <DynamicLink className="sl-text-link" href="/[lang]/docs/guide/connect-bot">{zh ? '查看接入指南' : 'Connect a bot'}<Arrow diagonal /></DynamicLink>
-        </section>
-
-        <section className="sl-guide" id="sl-guide" aria-labelledby="sl-guide-title" tabIndex={-1}>
-          <div className="sl-section-heading">
-            <div><p className="sl-eyebrow">FIND YOUR START</p><h2 id="sl-guide-title">{zh ? '下一步，由你选择。' : 'Find your next step.'}</h2></div>
-            <p>{zh ? '从首次部署，到第一次 API 调用。' : 'From your first deployment to your first API call.'}</p>
-          </div>
-
-          <div className="sl-guide-grid">
-            <article className="sl-deploy-card" aria-labelledby="sl-deploy-title">
-              <div className="sl-deploy-top"><span className="sl-guide-icon"><GuideIcon kind="deploy" /></span><span className="sl-section-index">01 / SET UP</span></div>
-              <h3 id="sl-deploy-title">{zh ? '先让 SnowLuma 运行起来。' : 'Get SnowLuma up and running.'}</h3>
-              <p>{zh ? '选择适合你的环境，完成部署与首次登录。' : 'Choose your environment, deploy, and sign in to QQ.'}</p>
-              <div className="sl-deploy-options">
-                <DynamicLink href="/[lang]/docs/guide/deploy/docker"><span className="sl-platform-symbol" aria-hidden="true">&gt;_</span>Docker<Arrow diagonal /></DynamicLink>
-                <DynamicLink href="/[lang]/docs/guide/deploy/windows"><svg className="sl-platform-symbol" viewBox="0 0 18 18" fill="currentColor" aria-hidden="true"><path d="M1 1h7v7H1zm9 0h7v7h-7zM1 10h7v7H1zm9 0h7v7h-7z" /></svg>Windows<Arrow diagonal /></DynamicLink>
-              </div>
-              <DynamicLink className="sl-text-link sl-deploy-more" href="/[lang]/docs/guide/deploy">{zh ? '查看全部部署方式' : 'Explore all deployment options'}<Arrow /></DynamicLink>
-            </article>
-
-            <div className="sl-developer-guides">
-              <div className="sl-developer-heading"><span>{zh ? '为构建者准备' : 'Made for builders'}</span><span className="sl-section-index">02 / BUILD</span></div>
-              {(zh ? developerLinks.zh : developerLinks.en).map((item) => (
-                <DynamicLink key={item.kind} className="sl-guide-link" href={item.href}>
-                  <span className="sl-guide-icon"><GuideIcon kind={item.kind} /></span>
-                  <div><h3>{item.label}</h3><p>{item.description}</p></div>
-                  <Arrow diagonal />
+      <div className="sl-container">
+        {/* FIRST VIEWPORT: Calm, Uncluttered, Single Focal Point */}
+        <section className="sl-first-screen" aria-labelledby="sl-home-title">
+          <div className="sl-hero-stage">
+            <div>
+              <div className="sl-hero-eyebrow sl-mono">QQ PROTOCOL RUNTIME · ONEBOT V11</div>
+              <h1 className="sl-hero-title" id="sl-home-title">
+                {zh ? (
+                  <>
+                    让 QQ 原生会话，
+                    <br />
+                    连接你的应用。
+                  </>
+                ) : (
+                  <>
+                    Bring native QQ sessions
+                    <br />
+                    to your applications.
+                  </>
+                )}
+              </h1>
+              <p className="sl-hero-lead">
+                {zh
+                  ? '将桌面端 QQ 会话转换为标准 OneBot v11 动作与事件，通过 WebSocket、HTTP、WebUI、SDK 与 MCP 提供统一入口。'
+                  : 'Translate desktop QQ sessions into standard OneBot v11 actions and events, with a unified runtime across WebSocket, HTTP, WebUI, SDK, and MCP.'}
+              </p>
+              <div className="sl-hero-cta">
+                <DynamicLink href="/[lang]/docs/guide/quickstart" className="sl-btn-solid">
+                  <span>{zh ? '快速开始' : 'Get Started'}</span>
+                  <span className="sl-mono">→</span>
                 </DynamicLink>
-              ))}
+                <DynamicLink href="/[lang]/docs/guide/deploy" className="sl-btn-text">
+                  {zh ? '选择部署方式' : 'Deploy Guides'}
+                </DynamicLink>
+                <DynamicLink href="/[lang]/docs/api" className="sl-btn-text sl-mono">
+                  {zh ? 'API 参考' : 'API Reference'}
+                </DynamicLink>
+              </div>
+            </div>
+
+            <div className="sl-hero-art">
+              <div className="sl-art-frame">
+                <img src="/mascot.png" alt="SnowLuma" />
+              </div>
+              <div className="sl-art-caption sl-mono">
+                <span>SnowLuma Runtime</span>
+                <span>Windows x64 · Linux x64 / arm64</span>
+              </div>
             </div>
           </div>
-          <div className="sl-help"><span>{zh ? '已经在使用？' : 'Already up and running?'}</span><DynamicLink href="/[lang]/docs/guide/configuration">{zh ? '配置参考' : 'Configuration'}</DynamicLink><span className="sl-help-separator">/</span><DynamicLink href="/[lang]/docs/guide/faq">{zh ? '常见问题' : 'FAQ'}</DynamicLink></div>
+
+          {/* Quiet 4-Pillar Bottom Index */}
+          <div className="sl-pillar-strip">
+            <a href="#step-bridge" className="sl-pillar-item">
+              <span className="sl-pillar-num sl-mono">01</span>
+              <span className="sl-pillar-title">{zh ? '多账号会话桥接' : 'Multi-Account Bridge'}</span>
+              <span className="sl-pillar-desc">{zh ? '原生进程接入与独立会话管理' : 'Native process hook & isolated sessions'}</span>
+            </a>
+            <a href="#step-onebot" className="sl-pillar-item">
+              <span className="sl-pillar-num sl-mono">02</span>
+              <span className="sl-pillar-title">{zh ? 'OneBot v11 协议' : 'OneBot v11 Protocol'}</span>
+              <span className="sl-pillar-desc">{zh ? '声明式动作与强类型事件转换' : 'Declarative actions & typed events'}</span>
+            </a>
+            <a href="#step-sdk" className="sl-pillar-item">
+              <span className="sl-pillar-num sl-mono">03</span>
+              <span className="sl-pillar-title">TypeScript SDK</span>
+              <span className="sl-pillar-desc">{zh ? '@snowluma/sdk 强类型客户端' : 'Typed client & message builders'}</span>
+            </a>
+            <a href="#step-mcp" className="sl-pillar-item">
+              <span className="sl-pillar-num sl-mono">04</span>
+              <span className="sl-pillar-title">{zh ? 'MCP 服务' : 'MCP Server'}</span>
+              <span className="sl-pillar-desc">{zh ? '@snowluma/mcp 连接 AI 客户端' : 'Connect AI agents via @snowluma/mcp'}</span>
+            </a>
+          </div>
         </section>
 
-        <footer className="sl-footer">
-          <div className="sl-footer-brand"><SnowMark /><span className="sl-wordmark">Snow<span>Luma</span></span><span className="sl-footer-note">{zh ? '每一个连接，都从这里开始。' : 'Every connection starts here.'}</span></div>
-          <a className="sl-text-link" href="https://github.com/SnowLuma/SnowLuma" target="_blank" rel="noreferrer noopener">GitHub<Arrow diagonal /></a>
+        {/* CHAPTER 01: STATE-DRIVEN SCROLLYTELLING (Zero Layout Shift) */}
+        <ScrollyArchitecture zh={zh} />
+
+        {/* CHAPTER 02: QUICK START */}
+        <section className="sl-chapter" aria-labelledby="sl-quickstart-title">
+          <div className="sl-chapter-head">
+            <span className="sl-chapter-num sl-mono">02 / Quick Start</span>
+            <div>
+              <h2 className="sl-chapter-title" id="sl-quickstart-title">
+                {zh ? '三步启动并接入' : 'Up and running in three steps'}
+              </h2>
+              <p className="sl-chapter-lead">
+                {zh
+                  ? '支持服务器 Docker 容器常驻，或直接解压预编译发行包在本机运行。'
+                  : 'Run in a persistent Docker container on your server, or launch the prebuilt release bundle locally.'}
+              </p>
+            </div>
+          </div>
+
+          <div className="sl-steps-list">
+            <div className="sl-step-row">
+              <span className="sl-step-idx sl-mono">01</span>
+              <div>
+                <div className="sl-step-title">{zh ? '启动 SnowLuma' : 'Start SnowLuma'}</div>
+                <div className="sl-step-desc">
+                  {zh
+                    ? '通过 Docker Compose 或预编译发行包启动服务。'
+                    : 'Launch the runtime with Docker Compose or a prebuilt release archive.'}
+                </div>
+              </div>
+              <div className="sl-step-cmd sl-mono">docker compose up -d</div>
+            </div>
+
+            <div className="sl-step-row">
+              <span className="sl-step-idx sl-mono">02</span>
+              <div>
+                <div className="sl-step-title">{zh ? '登录 WebUI 控制台' : 'Sign in to the WebUI console'}</div>
+                <div className="sl-step-desc">
+                  {zh
+                    ? '使用启动日志中的初始密码登录并接入 QQ 进程。'
+                    : 'Sign in with the initial password from startup logs and attach a QQ process.'}
+                </div>
+              </div>
+              <div className="sl-step-cmd sl-mono">http://localhost:5099</div>
+            </div>
+
+            <div className="sl-step-row">
+              <span className="sl-step-idx sl-mono">03</span>
+              <div>
+                <div className="sl-step-title">{zh ? '连接你的机器人或应用' : 'Connect your bot or application'}</div>
+                <div className="sl-step-desc">
+                  {zh
+                    ? '通过 OneBot v11、TypeScript SDK 或 MCP 发起调用。'
+                    : 'Call actions and subscribe to events over OneBot v11, the TypeScript SDK, or MCP.'}
+                </div>
+              </div>
+              <div className="sl-step-cmd sl-mono">pnpm add @snowluma/sdk</div>
+            </div>
+          </div>
+        </section>
+
+        {/* CHAPTER 03: DOCUMENTATION INDEX */}
+        <section className="sl-chapter" aria-labelledby="sl-index-title">
+          <div className="sl-chapter-head">
+            <span className="sl-chapter-num sl-mono">03 / Index</span>
+            <div>
+              <h2 className="sl-chapter-title" id="sl-index-title">
+                {zh ? '文档目录' : 'Documentation Index'}
+              </h2>
+            </div>
+          </div>
+
+          <div className="sl-dir-grid">
+            {directoryColumns.map((col) => (
+              <div key={col.title}>
+                <div className="sl-dir-col-title sl-mono">{col.title}</div>
+                <ul className="sl-dir-links">
+                  {col.items.map((item) => (
+                    <li key={item.href}>
+                      {item.external ? (
+                        <a href={item.href}>{item.label}</a>
+                      ) : (
+                        <DynamicLink href={item.href}>{item.label}</DynamicLink>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Minimal Footer */}
+        <footer className="sl-site-footer">
+          <div className="sl-footer-row">
+            <span className="sl-footer-brand sl-mono">
+              <SnowMark />
+              <span className="sl-wordmark">
+                Snow<span>Luma</span>
+              </span>
+            </span>
+            <p>
+              {zh
+                ? 'SnowLuma 是独立的第三方项目，与腾讯 / QQ 无隶属或授权关系。项目采用源码可见非商业许可，仅供学习与技术研究，软件按“现状”提供。'
+                : 'SnowLuma is an independent third-party project and is not affiliated with or endorsed by Tencent or QQ. Distributed under a source-available non-commercial license for research and learning, provided "AS IS".'}
+            </p>
+          </div>
         </footer>
       </div>
     </div>
